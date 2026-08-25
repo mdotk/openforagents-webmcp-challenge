@@ -46,3 +46,30 @@ The required native checks are:
 
 The public entry should claim only the native browser behavior that has been
 observed in the named browser build.
+
+## Chrome observation — 26 August 2026
+
+The deployed experience was checked in Chrome 151.0.7922.174 at
+<https://openforagents-webmcp-challenge.vercel.app/>.
+
+The page completed native registration and read back its Open for Agents tool
+inventory through `document.modelContext.getTools()`. It showed seven permanent
+tools at the start, eight after a person approved the exact power reroute, and
+seven again after the one-use repair was used or the approval was revoked.
+Restarting the experience returned it to revision 0 with seven tools and no
+launch tool.
+
+The visible fallback completed the full repair and launch journey. The denial,
+revocation and restart paths also behaved as described. Launch stayed locked
+until the approved repair was complete and was performed only through the
+visible human control. No console errors or warnings appeared.
+
+The experience was also checked at desktop width, 390 px and 320 px. All
+controls and explanations remained present, and neither mobile width produced
+horizontal overflow.
+
+This run did not record an independent agent invoking a native tool. The
+available browser-control connection could inspect the page but not Chrome's
+native Model Context panel or its main-world tool API. Independent inventory
+and tool invocation therefore remain required before the final submission can
+claim them.
