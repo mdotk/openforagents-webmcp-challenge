@@ -68,8 +68,14 @@ The experience was also checked at desktop width, 390 px and 320 px. All
 controls and explanations remained present, and neither mobile width produced
 horizontal overflow.
 
-This run did not record an independent agent invoking a native tool. The
-available browser-control connection could inspect the page but not Chrome's
-native Model Context panel or its main-world tool API. Independent inventory
-and tool invocation therefore remain required before the final submission can
-claim them.
+Chrome's WebMCP Model Context Tool Inspector independently listed all seven
+permanent tools with their expected closed schemas and read-only annotations.
+It executed `mission_status` with `{}`, which returned the initial revision 0
+state, and `restart_comms_relay` with `{"expected_revision": 0}`, which returned
+revision 1 with a ready communications relay and a nominal signal. The visible
+page reflected the same state while launch remained locked. The experience was
+then restarted and returned to revision 0 with seven tools.
+
+This establishes native inventory and one read-only plus one state-changing
+tool invocation in the named Chrome build. It does not establish model-driven
+tool selection or compatibility with every browser or agent.
