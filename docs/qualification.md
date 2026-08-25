@@ -69,7 +69,7 @@ controls and explanations remained present, and neither mobile width produced
 horizontal overflow.
 
 Chrome's WebMCP Model Context Tool Inspector independently listed all seven
-permanent tools with their expected closed schemas and read-only annotations.
+permanent tools with their expected closed schemas and `readOnlyHint` values.
 It executed `mission_status` with `{}`, which returned the initial revision 0
 state, and `restart_comms_relay` with `{"expected_revision": 0}`, which returned
 revision 1 with a ready communications relay and a nominal signal. The visible
