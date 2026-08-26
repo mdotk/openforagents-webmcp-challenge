@@ -6,8 +6,9 @@ prototype is the current challenge entry.
 
 ## Implemented slice
 
-The prototype is selected with `?experience=fitting-room`. The root URL still
-opens Launch Window A-01.
+The prototype is available at
+<https://openforagents-webmcp-challenge.vercel.app/?experience=fitting-room>.
+The root URL still opens Launch Window A-01.
 
 The browser-local implementation contains:
 
@@ -43,10 +44,11 @@ The fitting-room tests cover:
 - Temporary-tool registration, use, removal and disposal.
 - The visible manual journey and fallback when native WebMCP is unavailable.
 
-## Chrome observation — 26 August 2026
+## Deployed Chrome observation — 26 August 2026
 
-The local production experience was checked in the user's existing Chrome
-session.
+The experience from commit `3c3c6aa` was checked at the deployed URL in the
+user's existing Chrome session. The root URL was checked separately and still
+opened Launch Window A-01.
 
 Chrome exposed seven native tools at revision 0. The visible journey then:
 
@@ -66,7 +68,7 @@ The prototype produced no console warnings or errors. The page had no
 horizontal overflow at desktop, 390 px or 320 px, and the controls remained
 available at both mobile widths.
 
-This check establishes native registration and the visible 7 to 8 to 7
-lifecycle in the named local browser session. It does not yet establish
-deployed discovery, independent tool execution by a model, compatibility with
-every browser or agent, or readiness to replace the current entry.
+This check establishes deployed native registration and the visible 7 to 8 to
+7 lifecycle in that Chrome session. It does not yet establish independent tool
+execution by a model, compatibility with every browser or agent, or readiness
+to replace the current entry.
