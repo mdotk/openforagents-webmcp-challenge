@@ -36,6 +36,12 @@ Shared Fitting Room keeps those responsibilities separate:
 The result is not a recommendation pasted into chat. It is one revisioned
 shopping state that the person and agent can both read and change.
 
+This is deliberately not presented as a new AI stylist. Tailored product search
+and agent-assisted carts already exist as WebMCP examples. The distinctive
+part is that subjective interpretation, retailer-controlled commercial truth,
+human taste and one-use authority remain separate while operating on the same
+visible state.
+
 ## Why WebMCP is essential
 
 WebMCP gives the browser agent typed access to the same retailer state the page
@@ -115,6 +121,11 @@ correctly blocked review until the unavailable layer was replaced. Desktop,
 That evidence establishes the page and native capability lifecycle in the
 tested Chrome session. The final submission should not claim model-driven
 shopping until the complete external-agent journey has been recorded.
+
+Do not publish this draft as the final entry while that limitation remains. If
+the prototype is promoted, the live root URL, README, screenshots, video and
+submission must all describe this one experience; Launch Window A-01 should
+remain historical or secondary rather than appearing as a competing entry.
 
 ## Testing instructions
 

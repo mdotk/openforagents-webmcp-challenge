@@ -331,6 +331,12 @@ whether an explicit supported rediscovery step solves the problem. Do not
 weaken scope validation, add a general reservation tool or introduce new
 infrastructure merely to preserve the dynamic animation.
 
+The page must not register a `build_best_outfit`, free-form shopping or other
+model-like convenience tool. The external model supplies interpretation and
+planning. The site supplies bounded facts, shared state, validation and exact
+authority. Keeping that boundary visible is part of the contract, not merely a
+presentation choice.
+
 ## Product acceptance
 
 The proposed replacement is ready for entry-level qualification only when:
@@ -353,6 +359,10 @@ The proposed replacement is ready for entry-level qualification only when:
 - Desktop, 390 px and 320 px layouts remain readable and operable.
 - Native evidence names the tested browser and distinguishes tool discovery,
   execution and model-driven behavior.
+- A complete external-agent run demonstrates interpretation, multi-step tool
+  use, human-directed revision, stock-driven replanning and dynamic discovery
+  of the temporary tool. Manual inspector calls alone do not satisfy this
+  requirement.
 
 Existing Launch Window A-01 qualification cannot be reused as evidence for
 renamed tools, retailer state or the fitting-room authority lifecycle.

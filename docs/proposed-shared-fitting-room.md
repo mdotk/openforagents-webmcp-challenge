@@ -27,6 +27,51 @@ revision-controlled fitting room:
 This preserves the strongest technical idea in Launch Window A-01 while giving
 the agent a task that requires interpretation, coordination and replanning.
 
+## Adopted entry thesis
+
+Proceed with the fitting-room concept as the preferred replacement candidate,
+but do not promote it to the root URL or describe it as the challenge entry
+until the independent browser-agent gate passes.
+
+The entry is not:
+
+- An AI stylist that returns an outfit suggestion.
+- A Halloween-costume search page.
+- A model pretending to know live prices, sizes or stock.
+- A single `build_best_outfit` shortcut that hides the agent's work.
+- A shared cart with a decorative approval step.
+
+The entry is:
+
+> A shared, revision-controlled fitting room where a person directs the taste,
+> an external browser agent solves the changing shopping constraints, and the
+> retailer exposes one exact commercial capability only after approval.
+
+That positioning must remain consistent across the root experience, README,
+submission copy, screenshots and video if the prototype is promoted.
+
+## Competitive distinction
+
+Fashion search alone is not a novel WebMCP contribution. The official WebMCP
+material already describes tailored shopping, and other public demonstrations
+already show agent-assisted product browsing and cart building.
+
+The prototype therefore earns its place through the complete collaboration:
+
+- The agent interprets subjective language but queries only structured,
+  retailer-authored facts.
+- The person and agent work in one visible, revisioned fitting room.
+- A human pin changes what the agent may revise.
+- A transparent inventory update invalidates a previously viable look.
+- The agent must recover without silently relaxing a hard constraint.
+- Human approval changes the browser's actual capability inventory from seven
+  tools to eight for one exact action, then back to seven.
+- The simulated hold visibly changes quantity, produces a reference and expiry,
+  charges nothing and rejects replay.
+
+If the recorded journey does not make those differences obvious, it is not
+ready to replace Launch Window A-01, however polished the interface looks.
+
 ## Naming
 
 `FableFit` is an internal codename only and must not be used as the public name.
@@ -84,6 +129,12 @@ availability.
 - Explaining why the proposed combination fits the request.
 - Replanning when the person changes direction or availability changes.
 - Requesting review only after the current look passes the retailer's checks.
+
+There is deliberately no general natural-language product-search tool and no
+`build_best_outfit` tool. The model must translate the person's language into
+the retailer's bounded categories, colors, sizes, style tags, movement rating,
+contact zones, pickup date and price constraints. The application must not
+simulate that interpretation inside a deterministic search function.
 
 ### The retailer remains authoritative for
 
@@ -299,3 +350,33 @@ these conditions:
 
 If those conditions cannot be met, preserve the qualified Launch Window entry
 rather than publishing an ordinary shopping assistant under a new design.
+
+## Promotion gate
+
+The prototype may replace the root entry only after one truthful, recorded
+external-agent journey proves all of the following on the deployed application:
+
+1. The agent discovers the seven permanent tools without using a site-owned
+   assistant or a manually reconstructed tool list.
+2. It interprets the saved brief, searches structured retailer fields and
+   builds a complete first look through multiple WebMCP calls.
+3. It observes and preserves a person-pinned item during a requested revision.
+4. It notices the labelled inventory update, explains the failed constraint and
+   repairs the look without relaxing the saved rules.
+5. It validates the final revision and requests review without creating a hold.
+6. After the person approves, the same supported agent environment discovers
+   `reserve_approved_look` as the eighth tool.
+7. It invokes that tool once, receives the simulated reference and expiry, and
+   observes that the inventory returns to seven.
+8. Replay fails and no checkout, payment or order capability appears.
+
+Inspector-driven calls and manual page controls remain useful technical
+evidence, but they do not satisfy this model-driven gate. If a tested agent
+cannot refresh the dynamic tool inventory reliably, diagnose that limitation
+before changing the contract. Do not replace the exact temporary authority
+with a permanently exposed general reservation tool merely to make the demo
+easier to record.
+
+After the gate passes, promote one coherent experience only. Preserve Launch
+Window in repository history or at a clearly secondary route; do not present
+two competing challenge entries through the live URL, README or submission.

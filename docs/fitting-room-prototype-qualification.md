@@ -77,3 +77,24 @@ This check establishes deployed native registration and the visible 7 to 8 to
 7 lifecycle in that Chrome session. It does not yet establish independent tool
 execution by a model, compatibility with every browser or agent, or readiness
 to replace the current entry.
+
+## Remaining promotion gate
+
+The prototype remains a candidate because the independent model-driven journey
+has not yet been completed. Promotion requires one supported external browser
+agent to perform the complete shopping sequence through native WebMCP:
+
+1. Read the saved brief and retailer facts.
+2. Build a complete first look through multiple calls.
+3. Preserve a person-pinned item while revising the aesthetic direction.
+4. Detect the labelled inventory change and repair the invalid look without
+   relaxing the confirmed constraints.
+5. Validate and request the exact review without making a hold.
+6. Rediscover and use the temporary eighth tool after human approval.
+7. Observe the returned reference, expiry and $0 charge, followed by removal of
+   the temporary capability.
+8. Confirm replay rejection and the continuing absence of checkout, payment and
+   order tools.
+
+Chrome Inspector qualification and the manual fallback remain valid supporting
+evidence. Neither may be represented as external-agent reasoning or execution.

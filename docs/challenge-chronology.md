@@ -50,6 +50,13 @@ tool available for one exact look; successful use removes it again. The local
 Chrome qualification is recorded separately in
 [fitting-room-prototype-qualification.md](fitting-room-prototype-qualification.md).
 
+The entrant subsequently adopted the fitting-room concept as the preferred
+replacement candidate, subject to one unresolved gate: a supported external
+browser agent must complete the real reasoning and dynamic-tool journey. The
+manual page journey and Chrome Inspector evidence do not satisfy that gate.
+Until it passes, Launch Window remains the root experience and the fitting room
+must not be described as the submitted challenge entry.
+
 ## Submission status
 
 As of 26 August 2026, Matt Gibbs has joined the challenge on Devpost. No project
