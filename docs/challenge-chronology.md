@@ -1,8 +1,7 @@
-# Challenge chronology
+# Launch Window A-01 challenge chronology
 
-Open for Agents WebMCP Challenge is a new, standalone challenge-period project
-created by Enoki Limited in 2026. The title describes the entry and is not a
-final product name.
+Launch Window A-01 is a new, standalone challenge-period project created by
+Enoki Limited in 2026 for the WebMCP Challenge.
 
 Enoki Limited is the entrant and Matt Gibbs is its representative.
 
@@ -20,10 +19,10 @@ interface are new work in this repository. They are not a release, edition or
 renamed version of the existing Open for Agents plugin, hosted Assistant, demo
 or website.
 
-The entry uses the Open for Agents name because it comes from the same
-publisher and explores the same subject: websites that expose understandable,
-limited tools to user-chosen agents. Shared subject matter and authorship do
-not make this repository a continuation of an existing product's code.
+Launch Window A-01 comes from the same publisher and explores the same subject
+as Open for Agents: websites that expose understandable, limited tools to
+user-chosen agents. Shared subject matter and authorship do not make this
+repository a continuation of an existing product's code.
 
 ## Reproducing the entry
 
@@ -33,6 +32,7 @@ on its own. The README describes the current experience and its limits.
 
 ## Submission status
 
-As of 26 August 2026, no Devpost terms have been accepted for this entry, no
-entry video has been published to YouTube and no final challenge submission has
-been made. This chronology does not claim a challenge result.
+As of 26 August 2026, Matt Gibbs has joined the challenge on Devpost. No project
+submission has been created, no entry video has been published to YouTube and
+no final challenge submission has been made. This chronology does not claim a
+challenge result.

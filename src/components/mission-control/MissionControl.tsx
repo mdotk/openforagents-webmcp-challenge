@@ -89,6 +89,8 @@ export function MissionControl({
         </div>
       </header>
 
+      <CapabilityCircuit {...circuit} />
+
       <div className="mc-primary-grid">
         <section className="mc-flight-window" aria-label={sceneLabel}>
           <StatusAtmosphere {...atmosphere} />
@@ -109,7 +111,6 @@ export function MissionControl({
 
         <aside className="mc-telemetry" aria-label="Mission readiness">
           <SystemReadouts {...systems} />
-          <CapabilityCircuit {...circuit} />
         </aside>
       </div>
 

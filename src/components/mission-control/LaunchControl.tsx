@@ -17,12 +17,12 @@ const launchCopy: Record<
 > = {
   locked: {
     title: 'Launch is locked',
-    description: 'A person must approve the exact action before launch becomes available.',
+    description: 'Complete every repair. Launch is not exposed through WebMCP.',
     button: 'Awaiting approval',
   },
   ready: {
-    title: 'You have final control',
-    description: 'Approval is recorded. Launch happens only when you press the button.',
+    title: 'Launch stays on this page',
+    description: 'The repairs are complete. Use the visible button when you are ready.',
     button: 'Launch now',
   },
   launching: {

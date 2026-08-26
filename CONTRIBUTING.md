@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering a contribution to Open for Agents WebMCP Challenge.
+Thank you for considering a contribution to Launch Window A-01.
 
 ## Before proposing a change
 

@@ -6,9 +6,12 @@ import {
 } from 'react'
 import { MissionControl as MissionControlView } from './components/mission-control/MissionControl'
 import type {
+  CapabilityGroup,
+  TemporaryCapabilityState,
+} from './components/mission-control/CapabilityCircuit'
+import type {
   ApprovalState,
   AtmosphereCondition,
-  CircuitNode,
   LedgerEntry,
   LaunchState,
   MissionPhase as ViewMissionPhase,
@@ -18,7 +21,7 @@ import type {
   MissionSnapshot,
   MissionToolsRegistration,
 } from './types'
-import { registerMissionTools } from './webmcp'
+import { permanentMissionToolNames, registerMissionTools } from './webmcp'
 import './App.css'
 
 const approvalRequest = {
@@ -29,28 +32,41 @@ const approvalRequest = {
     { label: 'Scope', value: 'Guidance power only' },
     { label: 'Amount', value: '15 kW', emphasis: true },
     { label: 'Authority', value: 'One use' },
-    { label: 'Final command', value: 'Human only' },
+    { label: 'Final command', value: 'Visible page control' },
   ],
   confirmation:
-    'The authority disappears after use or revocation. Launch remains yours.',
+    'The tool disappears after use or revocation. Launch is not exposed through WebMCP.',
 } as const
+
+const capabilityGroups: readonly CapabilityGroup[] = [
+  {
+    id: 'read',
+    label: 'Read tools',
+    detail: 'Inspect state without changing it.',
+    tone: 'read',
+    toolNames: permanentMissionToolNames.slice(0, 4),
+  },
+  {
+    id: 'repair',
+    label: 'Bounded repairs',
+    detail: 'Restart the relay or recalibrate navigation.',
+    tone: 'repair',
+    toolNames: permanentMissionToolNames.slice(4, 6),
+  },
+  {
+    id: 'request',
+    label: 'Approval request',
+    detail: 'Ask for the 15 kW decision; do not apply it.',
+    tone: 'request',
+    toolNames: permanentMissionToolNames.slice(6),
+  },
+]
 
 const phaseLabels: Record<MissionSnapshot['phase'], string> = {
   checks: 'Systems need attention',
   'awaiting-approval': 'Approval required',
   approved: 'Repair path authorized',
   launched: 'Launch complete',
-}
-
-const repairStateToCircuit: Record<
-  MissionSnapshot['repairPlan'][number]['status'],
-  CircuitNode['state']
-> = {
-  blocked: 'locked',
-  available: 'available',
-  'awaiting-approval': 'active',
-  authorized: 'active',
-  complete: 'complete',
 }
 
 function finalActivity(snapshot: MissionSnapshot) {
@@ -67,12 +83,23 @@ function approvalState(snapshot: MissionSnapshot): ApprovalState {
 
 function approvalMessage(snapshot: MissionSnapshot) {
   if (snapshot.activeGrant) {
-    return 'The exact one-use repair is available to the agent or the manual controls.'
+    return 'The exact one-use repair is approved. Use it or revoke it before continuing.'
   }
   if (snapshot.launchReady || snapshot.phase === 'launched') {
-    return 'The approval was consumed by the repair. The final command is still yours.'
+    return 'The repair consumed the approval. Launch is available through the visible page control, not WebMCP.'
   }
   return undefined
+}
+
+function temporaryCapabilityState(
+  snapshot: MissionSnapshot,
+): TemporaryCapabilityState {
+  if (snapshot.activeGrant) return 'available'
+  if (snapshot.pendingAuthority) return 'awaiting-approval'
+  if (snapshot.proposal?.status === 'revoked') return 'revoked'
+  if (snapshot.proposal?.status === 'denied') return 'declined'
+  if (snapshot.launchReady || snapshot.phase === 'launched') return 'consumed'
+  return 'unavailable'
 }
 
 function atmosphereCondition(snapshot: MissionSnapshot): AtmosphereCondition {
@@ -170,26 +197,6 @@ function App() {
     (system) => system.id === 'guidance-power',
   )
 
-  const circuitNodes: CircuitNode[] = [
-    ...snapshot.repairPlan.map((step) => ({
-      id: step.id,
-      label: step.label,
-      detail: step.procedure,
-      state: repairStateToCircuit[step.status],
-    })),
-    {
-      id: 'human-launch',
-      label: 'Human launch command',
-      detail: 'Never exposed as an agent tool.',
-      state:
-        snapshot.phase === 'launched'
-          ? 'complete'
-          : snapshot.launchReady
-            ? 'available'
-            : 'locked',
-    },
-  ]
-
   const ledgerEntries: LedgerEntry[] = snapshot.activity.map((entry, index) => ({
     id: entry.id,
     time: `T+${String(entry.sequence - 1).padStart(2, '0')}`,
@@ -225,8 +232,10 @@ function App() {
   const operatorControls = (
     <section className="operator-console" aria-labelledby="operator-title">
       <div className="operator-console__copy">
-        <span className="experience__eyebrow">Guided fallback</span>
-        <h2 id="operator-title">No agent connected? Run the same controls here.</h2>
+        <span className="experience__eyebrow">Manual fallback</span>
+        <strong id="operator-title">
+          No agent connected? Use the visible controls.
+        </strong>
         <p aria-live="polite">
           {actionError ? `Action stopped: ${actionError}` : finalActivity(snapshot)}
         </p>
@@ -280,11 +289,15 @@ function App() {
       <header className="experience__briefing">
         <div>
           <span className="experience__eyebrow">Open for Agents experiment</span>
-          <h1>One mission. Eight tools. One decision only you can make.</h1>
+          <h1>
+            Seven tools. Approval adds one exact repair. Launch stays on the
+            page.
+          </h1>
           <p>
-            Ask a browser agent to diagnose the launch. It can make the safe
-            repairs, but the final power reroute appears only after your exact
-            approval—and launch never becomes an agent tool.
+            The permanent WebMCP tools can inspect the mission, make two bounded
+            repairs and ask for a power decision. Approval adds{' '}
+            <code>apply_power_reroute</code> for one use. Use or revocation removes
+            it. Launch Aster is not exposed through WebMCP.
           </p>
         </div>
         <div className="experience__agent-state" aria-live="polite">
@@ -293,7 +306,7 @@ function App() {
             aria-hidden="true"
           />
           <div>
-            <small>Agent link</small>
+            <small>WebMCP surface</small>
             <strong>{agentStatus}</strong>
           </div>
         </div>
@@ -302,7 +315,7 @@ function App() {
       <main>
         <MissionControlView
           title="Launch Window A-01"
-          description="A live simulation of bounded agent authority and human control."
+          description="Watch the WebMCP surface change as the power reroute is approved, used or revoked."
           phase={viewPhase}
           phaseLabel={phaseLabels[snapshot.phase]}
           atmosphere={{
@@ -320,7 +333,16 @@ function App() {
           }}
           rocket={{ rocketName: 'Aster / 01' }}
           systems={{ systems: snapshot.systems }}
-          circuit={{ nodes: circuitNodes }}
+          circuit={{
+            groups: capabilityGroups,
+            registeredToolNames,
+            temporaryToolName: 'apply_power_reroute',
+            temporaryState: temporaryCapabilityState(snapshot),
+            nativeSupported: registration?.supported === true,
+            registrationPending,
+            registrationError: Boolean(registrationError),
+            launchLabel: 'Launch Aster',
+          }}
           controls={operatorControls}
           approval={{
             request: approvalRequest,

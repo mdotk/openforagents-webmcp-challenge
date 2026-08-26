@@ -15,9 +15,9 @@
 .experience__briefing {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(22px, 5vw, 88px);
-  align-items: end;
-  padding: clamp(24px, 4vw, 56px);
+  gap: clamp(20px, 4vw, 68px);
+  align-items: center;
+  padding: clamp(20px, 2.7vw, 38px);
   border-bottom: 0;
 }
 
@@ -30,11 +30,10 @@
   text-transform: uppercase;
 }
 
-.experience__briefing h1,
-.operator-console h2 {
+.experience__briefing h1 {
   margin: 0;
   color: #f4fbff;
-  font-size: clamp(1.55rem, 3vw, 3.25rem);
+  font-size: clamp(1.55rem, 2.65vw, 2.85rem);
   line-height: 1.02;
   letter-spacing: -0.035em;
   text-wrap: balance;
@@ -50,6 +49,15 @@
 
 .experience__briefing p {
   max-width: 72ch;
+}
+
+.experience__briefing code {
+  padding: 1px 4px;
+  color: #dffdf8;
+  background: rgba(89, 227, 218, 0.08);
+  border: 1px solid rgba(89, 227, 218, 0.16);
+  font: 600 0.86em/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
 }
 
 .experience__agent-state {
@@ -96,25 +104,39 @@
 
 .operator-console {
   display: grid;
-  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
-  gap: 24px;
+  grid-template-columns: minmax(270px, 0.8fr) minmax(0, 1.2fr);
+  gap: 14px;
   align-items: center;
-  margin-top: clamp(16px, 2vw, 26px);
-  padding: 20px clamp(20px, 3vw, 38px);
+  margin-top: 10px;
+  padding: 10px clamp(12px, 1.6vw, 20px);
   box-shadow: none;
   background:
-    linear-gradient(90deg, rgba(89, 227, 218, 0.06), transparent 42%),
-    rgba(7, 17, 31, 0.92);
+    linear-gradient(90deg, rgba(89, 227, 218, 0.035), transparent 42%),
+    rgba(5, 15, 24, 0.72);
 }
 
-.operator-console h2 {
-  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
-  letter-spacing: -0.015em;
+.operator-console .experience__eyebrow {
+  margin-bottom: 2px;
+  color: #789b9d;
+  font-size: 0.58rem;
+}
+
+.operator-console__copy > strong {
+  display: block;
+  color: #c4d8da;
+  font-size: 0.73rem;
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .operator-console p {
-  margin-top: 8px;
-  font-size: 0.88rem;
+  margin-top: 2px;
+  overflow: hidden;
+  color: #789496;
+  font-size: 0.65rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .operator-console__actions {
@@ -125,13 +147,14 @@
 }
 
 .operator-console__actions button {
-  min-height: 42px;
-  padding: 8px 13px;
+  min-height: 34px;
+  padding: 6px 10px;
   border: 1px solid rgba(137, 187, 190, 0.27);
   border-radius: 2px;
   color: #dceced;
   background: rgba(15, 37, 44, 0.88);
   cursor: pointer;
+  font-size: 0.68rem;
   transition:
     border-color 150ms ease,
     background 150ms ease,
@@ -174,8 +197,7 @@
     padding-top: 10px;
   }
 
-  .experience__briefing,
-  .operator-console {
+  .experience__briefing {
     grid-template-columns: 1fr;
   }
 
@@ -193,7 +215,23 @@
   }
 }
 
+@media (max-width: 700px) {
+  .operator-console {
+    grid-template-columns: 1fr;
+  }
+
+  .operator-console__actions button {
+    min-height: 42px;
+  }
+}
+
 @media (max-width: 480px) {
+  html,
+  body,
+  #root {
+    min-width: 0;
+  }
+
   .experience {
     width: 100%;
     padding: 0;
@@ -207,7 +245,7 @@
 
   .operator-console__actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .operator-console__actions button {

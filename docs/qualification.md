@@ -1,4 +1,4 @@
-# Qualification status
+# Launch Window A-01 qualification
 
 This page distinguishes automated product checks from native browser evidence.
 
@@ -20,7 +20,7 @@ The tests cover:
   disposal.
 - Removal of the temporary tool after use or revocation.
 - The absence of any launch tool.
-- The complete manual fallback and human-only launch.
+- The complete manual fallback and launch through the visible page control.
 - Keyboard focus through approval, use and final launch.
 
 Dependency auditing reports no known vulnerabilities, and the bounded source
@@ -61,8 +61,9 @@ launch tool.
 
 The visible fallback completed the full repair and launch journey. The denial,
 revocation and restart paths also behaved as described. Launch stayed locked
-until the approved repair was complete and was performed only through the
-visible human control. No console errors or warnings appeared.
+until the approved repair was complete, was not exposed through WebMCP and was
+performed through the visible page control. No console errors or warnings
+appeared.
 
 The experience was also checked at desktop width, 390 px and 320 px. All
 controls and explanations remained present, and neither mobile width produced
