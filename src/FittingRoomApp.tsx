@@ -317,6 +317,14 @@ function FittingRoomApp() {
         </section>
 
         <section className="fitting-room-prototype__controls" aria-labelledby="controls-title">
+          <details className="fitting-room-prototype__agent-prompt">
+            <summary>Prompt your browser agent</summary>
+            <p>
+              Use this page&apos;s tools to build the strongest complete look from
+              my saved brief. Explain your choices and stop before requesting a
+              hold.
+            </p>
+          </details>
           <div>
             <span className="fitting-room-prototype__kicker">Try the journey</span>
             <h2 id="controls-title">Shop the brief together</h2>

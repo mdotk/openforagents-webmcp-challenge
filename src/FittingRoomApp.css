@@ -550,6 +550,26 @@
   margin-top: 24px;
 }
 
+.fitting-room-prototype__agent-prompt {
+  grid-column: 1 / -1;
+  padding: 13px 15px;
+  color: #51263b;
+  background: #f8edf2;
+  border: 1px solid #e0c6d2;
+  border-radius: 10px;
+}
+
+.fitting-room-prototype__agent-prompt summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.fitting-room-prototype__agent-prompt p {
+  max-width: 84ch;
+  margin: 10px 0 0;
+  color: #624654;
+}
+
 .fitting-room-prototype__controls h2 {
   margin: 4px 0 8px;
   font-size: 1.8rem;

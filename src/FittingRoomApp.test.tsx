@@ -16,6 +16,7 @@ describe('Shared fitting-room technical prototype', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/couture vampire look for Saturday/i)).toBeVisible()
     expect(await screen.findByText('7 modeled tools · native unavailable')).toBeVisible()
+    expect(screen.getByText('Prompt your browser agent')).toBeVisible()
     expect(
       screen.getByText(/all products, quantities, reviews and holds/i),
     ).toBeVisible()
