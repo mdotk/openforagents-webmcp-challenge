@@ -49,9 +49,9 @@ The fitting-room tests cover:
 
 ## Deployed Chrome observation — 26 August 2026
 
-The experience from commit `3c3c6aa` was checked at the deployed URL in the
-user's existing Chrome session. The root URL was checked separately and still
-opened Launch Window A-01.
+The polished experience through commit `b55129b` was checked at the deployed
+URL in the user's existing Chrome session. The root URL was checked separately
+and still opened Launch Window A-01.
 
 Chrome exposed seven native tools at revision 0. The visible journey then:
 
@@ -67,6 +67,7 @@ Chrome exposed seven native tools at revision 0. The visible journey then:
 8. Used the approved hold once, creating `FF-DEMO-001` and returning the native
    inventory to seven tools.
 
+All three fitting-room images loaded at their expected 960-pixel source width.
 The prototype produced no console warnings or errors. The page had no
 horizontal overflow at desktop, 390 px or 320 px. The shared mirror,
 fitting-room contents, human pin, validation state and visible controls
