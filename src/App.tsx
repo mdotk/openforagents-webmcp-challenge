@@ -73,6 +73,38 @@ function finalActivity(snapshot: MissionSnapshot) {
   return snapshot.activity.at(-1)?.message ?? 'Mission state is ready.'
 }
 
+function heroTitle(snapshot: MissionSnapshot) {
+  if (snapshot.phase === 'launched') {
+    return 'Launch complete. The systems were repaired. You approved. You launched.'
+  }
+  if (snapshot.launchReady) {
+    return 'The repairs are complete. Launch stays in your hands.'
+  }
+  if (snapshot.activeGrant) {
+    return 'Approved: one exact repair is available now.'
+  }
+  if (snapshot.pendingAuthority) {
+    return 'The routine repairs are done. Power is your decision.'
+  }
+  return 'Repair a rocket with an agent. Approve one consequential step. Launch it yourself.'
+}
+
+function heroDescription(snapshot: MissionSnapshot) {
+  if (snapshot.phase === 'launched') {
+    return 'The one-use repair tool is gone. Seven WebMCP tools remain, and launch was completed only through the visible page control.'
+  }
+  if (snapshot.launchReady) {
+    return 'The approved repair ran once and disappeared. Seven WebMCP tools remain. Launch Aster is available only from this page.'
+  }
+  if (snapshot.activeGrant) {
+    return 'Your approval created one temporary tool for this exact 15 kW repair. Use it or revoke it before continuing.'
+  }
+  if (snapshot.pendingAuthority) {
+    return 'The agent can ask for the 15 kW decision, but it cannot reroute the power until you approve it.'
+  }
+  return 'Seven WebMCP tools let an agent inspect the mission, make two routine repairs and ask for the 15 kW power decision. Your approval creates one temporary repair tool. Launch stays on this page.'
+}
+
 function approvalState(snapshot: MissionSnapshot): ApprovalState {
   if (snapshot.pendingAuthority) return 'required'
   if (snapshot.proposal?.status === 'denied') return 'declined'
@@ -229,6 +261,45 @@ function App() {
     !snapshot.pendingAuthority &&
     !snapshot.activeGrant
 
+  const routineRepairsComplete =
+    communications?.status === 'ready' && navigation?.status === 'ready'
+  const powerRepairComplete = guidance?.status === 'ready'
+
+  const journeySteps = [
+    {
+      number: '01',
+      actor: 'Agent',
+      title: 'Inspect and repair',
+      detail: 'Restore communications and navigation.',
+      state: routineRepairsComplete ? 'complete' : 'active',
+    },
+    {
+      number: '02',
+      actor: snapshot.activeGrant ? 'Agent' : 'You',
+      title: snapshot.activeGrant ? 'Use approved repair' : 'Approve power',
+      detail: snapshot.activeGrant
+        ? 'Apply the exact, one-use power reroute.'
+        : 'Create one exact, one-use repair.',
+      state: powerRepairComplete
+        ? 'complete'
+        : routineRepairsComplete
+          ? 'active'
+          : 'waiting',
+    },
+    {
+      number: '03',
+      actor: 'You',
+      title: 'Launch Aster',
+      detail: 'Use the page control—not an agent tool.',
+      state:
+        snapshot.phase === 'launched'
+          ? 'complete'
+          : snapshot.launchReady
+            ? 'active'
+            : 'waiting',
+    },
+  ] as const
+
   const operatorControls = (
     <section className="operator-console" aria-labelledby="operator-title">
       <div className="operator-console__copy">
@@ -287,18 +358,10 @@ function App() {
   return (
     <div className="experience">
       <header className="experience__briefing">
-        <div>
+        <div className="experience__briefing-copy">
           <span className="experience__eyebrow">Open for Agents experiment</span>
-          <h1>
-            Seven tools. Approval adds one exact repair. Launch stays on the
-            page.
-          </h1>
-          <p>
-            The permanent WebMCP tools can inspect the mission, make two bounded
-            repairs and ask for a power decision. Approval adds{' '}
-            <code>apply_power_reroute</code> for one use. Use or revocation removes
-            it. Launch Aster is not exposed through WebMCP.
-          </p>
+          <h1>{heroTitle(snapshot)}</h1>
+          <p>{heroDescription(snapshot)}</p>
         </div>
         <div className="experience__agent-state" aria-live="polite">
           <span
@@ -310,12 +373,38 @@ function App() {
             <strong>{agentStatus}</strong>
           </div>
         </div>
+
+        <ol className="experience__journey" aria-label="Mission sequence">
+          {journeySteps.map((step) => (
+            <li
+              className={`experience__journey-step experience__journey-step--${step.state}`}
+              key={step.number}
+              aria-current={step.state === 'active' ? 'step' : undefined}
+            >
+              <span className="experience__journey-number" aria-hidden="true">
+                {step.number}
+              </span>
+              <span className="experience__journey-copy">
+                <small>{step.actor}</small>
+                <strong>{step.title}</strong>
+                <span>{step.detail}</span>
+              </span>
+              <span className="experience__journey-state">
+                {step.state === 'complete'
+                  ? 'Done'
+                  : step.state === 'active'
+                    ? 'Current'
+                    : 'Next'}
+              </span>
+            </li>
+          ))}
+        </ol>
       </header>
 
       <main>
         <MissionControlView
           title="Launch Window A-01"
-          description="Watch the WebMCP surface change as the power reroute is approved, used or revoked."
+          description="Three flight systems stand between the vehicle and launch."
           phase={viewPhase}
           phaseLabel={phaseLabels[snapshot.phase]}
           atmosphere={{

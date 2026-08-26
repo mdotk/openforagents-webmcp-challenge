@@ -166,103 +166,147 @@ export function CapabilityCircuit({
           : `Updating browser inventory · ${registeredToolNames.length} registered`
         : 'Capability model shown · native WebMCP unavailable'
 
-  return (
-    <section
-      className={`mc-panel mc-circuit ${className}`.trim()}
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
-    >
-      <div className="mc-circuit__heading">
-        <div>
-          <span className="mc-kicker">WebMCP authority lifecycle</span>
-          <h2 id={titleId}>{title}</h2>
-          <p id={descriptionId}>{description}</p>
-        </div>
-        <div
-          className="mc-circuit__inventory"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <strong>{expectedCount}</strong>
-          <span>
-            {hasTemporaryAuthority
-              ? 'capabilities now'
-              : 'permanent capabilities'}
-          </span>
-          <small>{inventoryDetail}</small>
-        </div>
-      </div>
+  const disclosureTitle = registrationPending
+    ? `${expectedCount} modeled capabilities`
+    : registrationError
+      ? `${expectedCount} modeled capabilities`
+      : nativeSupported
+        ? `${registeredToolNames.length} agent tools live`
+        : `${expectedCount} modeled capabilities`
 
-      <div className="mc-circuit__surface">
-        <section
-          className="mc-circuit__permanent"
-          aria-label={`${permanentCount} permanent WebMCP tools`}
-        >
-          <div className="mc-circuit__card-heading">
-            <div>
-              <span className="mc-kicker">Always available</span>
-              <h3>Permanent WebMCP surface</h3>
+  const disclosureDetail = registrationPending
+    ? 'Checking native browser registration.'
+    : registrationError
+      ? 'Browser registration needs attention. The visible controls remain available.'
+      : !nativeSupported
+        ? 'Native WebMCP is unavailable here. The visible controls use the same mission rules.'
+        : hasTemporaryAuthority && !temporaryRegistered
+          ? 'Approval recorded. Adding one temporary repair tool.'
+          : hasTemporaryAuthority
+            ? 'Approval added one temporary repair tool.'
+            : temporaryState === 'consumed'
+              ? 'The one-use repair is gone. Seven tools remain.'
+              : temporaryState === 'revoked'
+                ? 'The approval was revoked. Seven tools remain.'
+                : 'Seven permanent tools. Approval can add one exact repair.'
+
+  return (
+    <details className={`mc-circuit-disclosure ${className}`.trim()}>
+      <summary>
+        <span className="mc-circuit-disclosure__title">
+          <span className="mc-kicker">WebMCP details</span>
+          <strong>{disclosureTitle}</strong>
+        </span>
+        <span className="mc-circuit-disclosure__detail" aria-live="polite">
+          {disclosureDetail}
+        </span>
+        <span className="mc-circuit-disclosure__action">
+          View exact tools and lifecycle
+        </span>
+      </summary>
+
+      <section
+        className="mc-panel mc-circuit"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+      >
+        <div className="mc-circuit__heading">
+          <div>
+            <span className="mc-kicker">WebMCP authority lifecycle</span>
+            <h2 id={titleId}>{title}</h2>
+            <p id={descriptionId}>{description}</p>
+          </div>
+          <div
+            className="mc-circuit__inventory"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <strong>{expectedCount}</strong>
+            <span>
+              {hasTemporaryAuthority
+                ? 'capabilities now'
+                : 'permanent capabilities'}
+            </span>
+            <small>{inventoryDetail}</small>
+          </div>
+        </div>
+
+        <div className="mc-circuit__surface">
+          <section
+            className="mc-circuit__permanent"
+            aria-label={`${permanentCount} permanent WebMCP tools`}
+          >
+            <div className="mc-circuit__card-heading">
+              <div>
+                <span className="mc-kicker">Always available</span>
+                <h3>Permanent WebMCP surface</h3>
+              </div>
+              <strong>{permanentCount} tools</strong>
             </div>
-            <strong>{permanentCount} tools</strong>
+
+            <ul className="mc-circuit__groups">
+              {groups.map((group) => (
+                <li
+                  className={`mc-circuit__group mc-circuit__group--${group.tone}`}
+                  key={group.id}
+                >
+                  <span className="mc-circuit__group-copy">
+                    <strong>{group.label}</strong>
+                    <small>{group.detail}</small>
+                  </span>
+                  <ul
+                    className="mc-circuit__tools"
+                    aria-label={`${group.label}: ${group.toolNames.length} ${group.toolNames.length === 1 ? 'tool' : 'tools'}`}
+                  >
+                    {group.toolNames.map((toolName) => (
+                      <li key={toolName}>
+                        <code>{toolName}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <div className="mc-circuit__connector" aria-hidden="true">
+            <span>exact approval</span>
+            <i />
           </div>
 
-          <ul className="mc-circuit__groups">
-            {groups.map((group) => (
-              <li
-                className={`mc-circuit__group mc-circuit__group--${group.tone}`}
-                key={group.id}
-              >
-                <span className="mc-circuit__group-copy">
-                  <strong>{group.label}</strong>
-                  <small>{group.detail}</small>
-                </span>
-                <ul
-                  className="mc-circuit__tools"
-                  aria-label={`${group.label}: ${group.toolNames.length} ${group.toolNames.length === 1 ? 'tool' : 'tools'}`}
-                >
-                  {group.toolNames.map((toolName) => (
-                    <li key={toolName}>
-                      <code>{toolName}</code>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </section>
+          <section
+            className={`mc-circuit__temporary mc-circuit__temporary--${temporaryCopy.tone}`}
+            aria-label={`Temporary capability: ${temporaryToolName}`}
+          >
+            <span className="mc-kicker">Temporary capability</span>
+            <code>{temporaryToolName}</code>
+            <strong aria-live="polite" aria-atomic="true">
+              {temporaryCopy.status}
+            </strong>
+            <small>{temporaryCopy.detail}</small>
+          </section>
 
-        <div className="mc-circuit__connector" aria-hidden="true">
-          <span>exact approval</span>
-          <i />
+          <div
+            className="mc-circuit__connector mc-circuit__connector--final"
+            aria-hidden="true"
+          >
+            <span>separate control</span>
+            <i />
+          </div>
+
+          <section
+            className="mc-circuit__launch"
+            aria-label={`${launchLabel}, not exposed through WebMCP`}
+          >
+            <span className="mc-kicker">Visible page control</span>
+            <h3>{launchLabel}</h3>
+            <strong>Not exposed through WebMCP</strong>
+            <small>
+              Complete the final command with the visible button on this page.
+            </small>
+          </section>
         </div>
-
-        <section
-          className={`mc-circuit__temporary mc-circuit__temporary--${temporaryCopy.tone}`}
-          aria-label={`Temporary capability: ${temporaryToolName}`}
-        >
-          <span className="mc-kicker">Temporary capability</span>
-          <code>{temporaryToolName}</code>
-          <strong aria-live="polite" aria-atomic="true">
-            {temporaryCopy.status}
-          </strong>
-          <small>{temporaryCopy.detail}</small>
-        </section>
-
-        <div className="mc-circuit__connector mc-circuit__connector--final" aria-hidden="true">
-          <span>separate control</span>
-          <i />
-        </div>
-
-        <section
-          className="mc-circuit__launch"
-          aria-label={`${launchLabel}, not exposed through WebMCP`}
-        >
-          <span className="mc-kicker">Visible page control</span>
-          <h3>{launchLabel}</h3>
-          <strong>Not exposed through WebMCP</strong>
-          <small>Complete the final command with the visible button on this page.</small>
-        </section>
-      </div>
-    </section>
+      </section>
+    </details>
   )
 }

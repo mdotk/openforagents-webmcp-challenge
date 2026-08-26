@@ -816,8 +816,83 @@
 
 /* Capability and authority lifecycle */
 
-.mc-circuit {
+.mc-circuit-disclosure {
   margin-bottom: clamp(16px, 2vw, 24px);
+}
+
+.mc-circuit-disclosure > summary {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.55fr) minmax(260px, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  min-width: 0;
+  padding: 13px 16px;
+  color: var(--mc-text);
+  background:
+    linear-gradient(105deg, rgba(89, 227, 218, 0.075), transparent 38%),
+    rgba(6, 18, 23, 0.96);
+  border: 1px solid rgba(89, 227, 218, 0.27);
+  cursor: pointer;
+  list-style: none;
+}
+
+.mc-circuit-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mc-circuit-disclosure > summary:focus-visible {
+  outline: 3px solid #fff4c9;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 7px rgba(89, 227, 218, 0.25);
+}
+
+.mc-circuit-disclosure__title,
+.mc-circuit-disclosure__title strong,
+.mc-circuit-disclosure__detail,
+.mc-circuit-disclosure__action {
+  display: block;
+  min-width: 0;
+}
+
+.mc-circuit-disclosure__title .mc-kicker {
+  margin-bottom: 1px;
+  font-size: 0.55rem;
+}
+
+.mc-circuit-disclosure__title strong {
+  color: var(--mc-text);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.mc-circuit-disclosure__detail {
+  color: var(--mc-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.mc-circuit-disclosure__action {
+  color: var(--mc-cyan);
+  font: 700 0.59rem/1.3 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.mc-circuit-disclosure__action::after {
+  content: " +";
+}
+
+.mc-circuit-disclosure[open] .mc-circuit-disclosure__action::after {
+  content: " −";
+}
+
+.mc-circuit-disclosure[open] > summary {
+  border-bottom-color: rgba(89, 227, 218, 0.12);
+}
+
+.mc-circuit {
+  margin-bottom: 0;
   padding: clamp(15px, 1.7vw, 21px);
   background:
     linear-gradient(105deg, rgba(89, 227, 218, 0.075), transparent 34%),
@@ -1680,6 +1755,15 @@
     align-items: start;
   }
 
+  .mc-circuit-disclosure > summary {
+    grid-template-columns: minmax(180px, 0.7fr) minmax(220px, 1.3fr);
+  }
+
+  .mc-circuit-disclosure__action {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
   .mc-circuit__surface {
     grid-template-columns: 1fr;
   }
@@ -1717,6 +1801,16 @@
   .mc-circuit__heading {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .mc-circuit-disclosure > summary {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .mc-circuit-disclosure__action {
+    grid-column: auto;
+    margin-top: 4px;
   }
 
   .mc-circuit__inventory {
