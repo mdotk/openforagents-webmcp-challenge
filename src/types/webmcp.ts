@@ -10,6 +10,7 @@ export interface WebMcpToolResult {
     readonly type: 'text'
     readonly text: string
   }[]
+  readonly structuredContent?: unknown
 }
 
 export interface WebMcpTool {

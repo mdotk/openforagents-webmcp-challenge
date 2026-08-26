@@ -63,6 +63,23 @@ function result(value: unknown): WebMcpToolResult {
   }
 }
 
+function structuredResult(summary: string, value: unknown): WebMcpToolResult {
+  return {
+    content: [{ type: 'text', text: summary }],
+    structuredContent: value,
+  }
+}
+
+function missionStatusSummary(snapshot: MissionSnapshot): string {
+  const systems = snapshot.systems
+    .map(
+      (system) =>
+        `${system.label}: ${system.status}; ${system.reading.label}: ${system.reading.value}`,
+    )
+    .join('. ')
+  return `Mission status read successfully. Revision ${snapshot.revision}. Phase: ${snapshot.phase}. Launch ready: ${snapshot.launchReady ? 'yes' : 'no'}. ${systems}.`
+}
+
 function getExpectedRevision(args: Record<string, unknown>): number {
   const revision = args.expected_revision
   if (!Number.isInteger(revision) || (revision as number) < 0) {
@@ -145,10 +162,14 @@ function createPermanentTools(control: MissionControl): readonly WebMcpTool[] {
   return [
     {
       name: 'mission_status',
-      description: 'Read the current simulated mission state and revision.',
+      description:
+        'Read the current simulated mission status once. On success, report the returned summary and do not call this tool again in the same turn.',
       inputSchema: emptySchema,
       annotations: readOnlyAnnotations,
-      execute: () => result(control.getSnapshot()),
+      execute: () => {
+        const snapshot = control.getSnapshot()
+        return structuredResult(missionStatusSummary(snapshot), snapshot)
+      },
     },
     {
       name: 'inspect_subsystem',

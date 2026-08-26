@@ -139,6 +139,25 @@ describe('registerMissionTools', () => {
     await registration.dispose()
   })
 
+  it('returns a terminal mission summary plus the complete structured state', async () => {
+    const control = createMissionControl()
+    const modelContext = new FakeModelContext()
+    const registration = await registerMissionTools(control, { modelContext })
+
+    const status = await modelContext.invoke('mission_status')
+
+    expect(status.content).toEqual([
+      {
+        type: 'text',
+        text: 'Mission status read successfully. Revision 0. Phase: checks. Launch ready: no. Communications relay: attention; Signal: Offline. Navigation array: attention; Alignment: +2.40°. Guidance power: attention; Available: 70 kW.',
+      },
+    ])
+    expect(status.content[0]?.text).not.toMatch(/^\s*\{/)
+    expect(status.structuredContent).toEqual(control.getSnapshot())
+
+    await registration.dispose()
+  })
+
   it('settles the one-use result before legacy unregister cancellation, then removes the tool', async () => {
     const control = createMissionControl()
     const modelContext = new FakeModelContext(true)
