@@ -17,12 +17,12 @@ const launchCopy: Record<
 > = {
   locked: {
     title: 'Launch is locked',
-    description: 'Complete every repair. Launch is not exposed through WebMCP.',
+    description: 'Finish all three repairs first.',
     button: 'Awaiting approval',
   },
   ready: {
-    title: 'Launch stays on this page',
-    description: 'The repairs are complete. Use the visible button when you are ready.',
+    title: 'Your turn to launch',
+    description: 'The agent is done. You choose when to launch.',
     button: 'Launch now',
   },
   launching: {

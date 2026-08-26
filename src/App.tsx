@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react'
@@ -25,17 +26,15 @@ import { permanentMissionToolNames, registerMissionTools } from './webmcp'
 import './App.css'
 
 const approvalRequest = {
-  title: 'Reroute power to guidance',
+  title: 'Approve a 15 kW power reroute?',
   description:
-    'Guidance needs one exact 15 kW transfer from the reserve bus. Approval creates a temporary repair tool; it does not launch the vehicle.',
+    'Approval gives the agent one temporary repair tool. It can use it once.',
   fields: [
-    { label: 'Scope', value: 'Guidance power only' },
+    { label: 'Changes', value: 'Guidance power only' },
     { label: 'Amount', value: '15 kW', emphasis: true },
-    { label: 'Authority', value: 'One use' },
-    { label: 'Final command', value: 'Visible page control' },
+    { label: 'Expires', value: 'After one use' },
   ],
-  confirmation:
-    'The tool disappears after use or revocation. Launch is not exposed through WebMCP.',
+  confirmation: 'This does not launch the rocket.',
 } as const
 
 const capabilityGroups: readonly CapabilityGroup[] = [
@@ -69,40 +68,102 @@ const phaseLabels: Record<MissionSnapshot['phase'], string> = {
   launched: 'Launch complete',
 }
 
-function finalActivity(snapshot: MissionSnapshot) {
-  return snapshot.activity.at(-1)?.message ?? 'Mission state is ready.'
+function routineRepairsAreComplete(snapshot: MissionSnapshot) {
+  return ['communications-relay', 'navigation-array'].every(
+    (id) => snapshot.systems.find((system) => system.id === id)?.status === 'ready',
+  )
 }
 
 function heroTitle(snapshot: MissionSnapshot) {
   if (snapshot.phase === 'launched') {
-    return 'Launch complete. The systems were repaired. You approved. You launched.'
+    return 'Aster has launched.'
   }
   if (snapshot.launchReady) {
-    return 'The repairs are complete. Launch stays in your hands.'
+    return 'Aster is ready. You launch it.'
   }
   if (snapshot.activeGrant) {
-    return 'Approved: one exact repair is available now.'
+    return 'One approved repair is ready.'
   }
   if (snapshot.pendingAuthority) {
-    return 'The routine repairs are done. Power is your decision.'
+    return 'The agent is waiting for your decision.'
   }
-  return 'Repair a rocket with an agent. Approve one consequential step. Launch it yourself.'
+  if (routineRepairsAreComplete(snapshot)) {
+    return 'Two systems are repaired. One decision remains.'
+  }
+  return 'Get Aster ready for launch.'
 }
 
 function heroDescription(snapshot: MissionSnapshot) {
   if (snapshot.phase === 'launched') {
-    return 'The one-use repair tool is gone. Seven WebMCP tools remain, and launch was completed only through the visible page control.'
+    return 'The agent repaired the systems. You approved the power reroute. You launched.'
   }
   if (snapshot.launchReady) {
-    return 'The approved repair ran once and disappeared. Seven WebMCP tools remain. Launch Aster is available only from this page.'
+    return 'All three systems are ready. Launch is a page control, not an agent tool.'
   }
   if (snapshot.activeGrant) {
-    return 'Your approval created one temporary tool for this exact 15 kW repair. Use it or revoke it before continuing.'
+    return 'The agent can use this exact repair once. Then the tool disappears.'
   }
   if (snapshot.pendingAuthority) {
-    return 'The agent can ask for the 15 kW decision, but it cannot reroute the power until you approve it.'
+    return 'Routine repairs are complete. Approve or reject the 15 kW power reroute.'
   }
-  return 'Seven WebMCP tools let an agent inspect the mission, make two routine repairs and ask for the 15 kW power decision. Your approval creates one temporary repair tool. Launch stays on this page.'
+  if (routineRepairsAreComplete(snapshot)) {
+    return 'The agent can now ask for permission to reroute power.'
+  }
+  return 'The agent repairs two systems. You approve the power reroute. You launch.'
+}
+
+function currentMissionStep(
+  snapshot: MissionSnapshot,
+  agentToolsAvailable: boolean,
+) {
+  if (snapshot.phase === 'launched') {
+    return {
+      number: 3,
+      label: 'Complete',
+      actor: 'Mission complete',
+      detail: 'The one-use repair tool is gone.',
+    }
+  }
+  if (snapshot.launchReady) {
+    return {
+      number: 3,
+      label: 'Step 3 of 3 · You',
+      actor: 'Launch Aster',
+      detail: 'Launch is not one of the agent tools.',
+    }
+  }
+  if (snapshot.activeGrant) {
+    return {
+      number: 2,
+      label: 'Step 2 of 3 · Agent',
+      actor: 'Apply the approved power reroute',
+      detail: 'This repair is available once.',
+    }
+  }
+  if (snapshot.pendingAuthority) {
+    return {
+      number: 2,
+      label: 'Step 2 of 3 · You',
+      actor: 'Decide whether to reroute power',
+      detail: 'Nothing happens until you choose.',
+    }
+  }
+  if (routineRepairsAreComplete(snapshot)) {
+    return {
+      number: 2,
+      label: 'Step 2 of 3 · Agent',
+      actor: 'Ask for your power decision',
+      detail: 'You choose whether to reroute 15 kW.',
+    }
+  }
+  return {
+    number: 1,
+    label: 'Step 1 of 3 · Agent',
+    actor: 'Repair communications and navigation',
+    detail: agentToolsAvailable
+      ? 'Try asking: “Get Aster ready for launch.”'
+      : 'Use the controls below to repair both systems.',
+  }
 }
 
 function approvalState(snapshot: MissionSnapshot): ApprovalState {
@@ -166,6 +227,10 @@ function App() {
   >([])
   const [registrationPending, setRegistrationPending] = useState(true)
   const [actionError, setActionError] = useState<string | null>(null)
+  const relayActionRef = useRef<HTMLButtonElement>(null)
+  const navigationActionRef = useRef<HTMLButtonElement>(null)
+  const requestPowerActionRef = useRef<HTMLButtonElement>(null)
+  const previousRevisionRef = useRef(snapshot.revision)
 
   useEffect(() => {
     let cancelled = false
@@ -261,82 +326,100 @@ function App() {
     !snapshot.pendingAuthority &&
     !snapshot.activeGrant
 
-  const routineRepairsComplete =
-    communications?.status === 'ready' && navigation?.status === 'ready'
-  const powerRepairComplete = guidance?.status === 'ready'
+  const routineRepairsComplete = routineRepairsAreComplete(snapshot)
+  const currentStep = currentMissionStep(
+    snapshot,
+    registration?.supported === true,
+  )
+  const showApproval =
+    snapshot.pendingAuthority !== null ||
+    snapshot.activeGrant !== null ||
+    snapshot.proposal !== null
 
-  const journeySteps = [
-    {
-      number: '01',
-      actor: 'Agent',
-      title: 'Inspect and repair',
-      detail: 'Restore communications and navigation.',
-      state: routineRepairsComplete ? 'complete' : 'active',
-    },
-    {
-      number: '02',
-      actor: snapshot.activeGrant ? 'Agent' : 'You',
-      title: snapshot.activeGrant ? 'Use approved repair' : 'Approve power',
-      detail: snapshot.activeGrant
-        ? 'Apply the exact, one-use power reroute.'
-        : 'Create one exact, one-use repair.',
-      state: powerRepairComplete
-        ? 'complete'
-        : routineRepairsComplete
-          ? 'active'
-          : 'waiting',
-    },
-    {
-      number: '03',
-      actor: 'You',
-      title: 'Launch Aster',
-      detail: 'Use the page control—not an agent tool.',
-      state:
-        snapshot.phase === 'launched'
-          ? 'complete'
-          : snapshot.launchReady
-            ? 'active'
-            : 'waiting',
-    },
-  ] as const
+  useEffect(() => {
+    const previousRevision = previousRevisionRef.current
+    previousRevisionRef.current = snapshot.revision
+
+    if (
+      previousRevision === snapshot.revision ||
+      showApproval ||
+      snapshot.phase === 'launched' ||
+      document.activeElement !== document.body
+    ) {
+      return
+    }
+
+    if (communications?.status !== 'ready') {
+      relayActionRef.current?.focus()
+      return
+    }
+    if (navigation?.status !== 'ready') {
+      navigationActionRef.current?.focus()
+      return
+    }
+    if (canRequestPower) requestPowerActionRef.current?.focus()
+  }, [
+    canRequestPower,
+    communications?.status,
+    navigation?.status,
+    showApproval,
+    snapshot.phase,
+    snapshot.revision,
+  ])
+
+  const operatorPrompt = snapshot.phase === 'launched'
+    ? 'Restart the demo to run the mission again.'
+    : snapshot.launchReady
+      ? 'All systems are ready. Launch below.'
+      : snapshot.activeGrant
+        ? 'Use or revoke the approved repair below.'
+        : snapshot.pendingAuthority
+          ? 'Make the power decision below.'
+          : routineRepairsComplete
+            ? 'Request the power decision.'
+            : 'Repair the routine faults.'
 
   const operatorControls = (
     <section className="operator-console" aria-labelledby="operator-title">
       <div className="operator-console__copy">
-        <span className="experience__eyebrow">Manual fallback</span>
-        <strong id="operator-title">
-          No agent connected? Use the visible controls.
-        </strong>
-        <p aria-live="polite">
-          {actionError ? `Action stopped: ${actionError}` : finalActivity(snapshot)}
-        </p>
+        <span className="experience__eyebrow">Without an agent</span>
+        <strong id="operator-title">{operatorPrompt}</strong>
+        {actionError ? (
+          <p aria-live="polite">Action stopped: {actionError}</p>
+        ) : null}
       </div>
       <div className="operator-console__actions">
-        <button
-          type="button"
-          onClick={() =>
-            act(() => control.restartCommunicationsRelay(snapshot.revision))
-          }
-          disabled={communications?.status === 'ready' || snapshot.phase === 'launched'}
-        >
-          Restart relay
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            act(() => control.recalibrateNavigationArray(snapshot.revision))
-          }
-          disabled={navigation?.status === 'ready' || snapshot.phase === 'launched'}
-        >
-          Recalibrate navigation
-        </button>
-        <button
-          type="button"
-          onClick={() => act(() => control.requestPowerReroute(snapshot.revision))}
-          disabled={!canRequestPower || snapshot.phase === 'launched'}
-        >
-          Request power approval
-        </button>
+        {communications?.status !== 'ready' && snapshot.phase !== 'launched' ? (
+          <button
+            ref={relayActionRef}
+            type="button"
+            onClick={() =>
+              act(() => control.restartCommunicationsRelay(snapshot.revision))
+            }
+          >
+            Restart relay
+          </button>
+        ) : null}
+        {navigation?.status !== 'ready' && snapshot.phase !== 'launched' ? (
+          <button
+            ref={navigationActionRef}
+            type="button"
+            onClick={() =>
+              act(() => control.recalibrateNavigationArray(snapshot.revision))
+            }
+          >
+            Recalibrate navigation
+          </button>
+        ) : null}
+        {canRequestPower && snapshot.phase !== 'launched' ? (
+          <button
+            ref={requestPowerActionRef}
+            type="button"
+            onClick={() => act(() => control.requestPowerReroute(snapshot.revision))}
+          >
+            Request power approval
+          </button>
+        ) : null}
         <button
           className="operator-console__action--quiet"
           type="button"
@@ -374,31 +457,31 @@ function App() {
           </div>
         </div>
 
-        <ol className="experience__journey" aria-label="Mission sequence">
-          {journeySteps.map((step) => (
-            <li
-              className={`experience__journey-step experience__journey-step--${step.state}`}
-              key={step.number}
-              aria-current={step.state === 'active' ? 'step' : undefined}
-            >
-              <span className="experience__journey-number" aria-hidden="true">
-                {step.number}
-              </span>
-              <span className="experience__journey-copy">
-                <small>{step.actor}</small>
-                <strong>{step.title}</strong>
-                <span>{step.detail}</span>
-              </span>
-              <span className="experience__journey-state">
-                {step.state === 'complete'
-                  ? 'Done'
-                  : step.state === 'active'
-                    ? 'Current'
-                    : 'Next'}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <section
+          className="experience__current-step"
+          aria-labelledby="current-step-title"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <span className="experience__current-step-label">
+            {currentStep.label}
+          </span>
+          <strong id="current-step-title">{currentStep.actor}</strong>
+          <span className="experience__current-step-detail">
+            {currentStep.detail}
+          </span>
+          <span
+            className="experience__current-step-progress"
+            aria-label={`${currentStep.number} of 3 steps reached`}
+          >
+            {[1, 2, 3].map((step) => (
+              <i
+                className={step <= currentStep.number ? 'is-reached' : ''}
+                key={step}
+              />
+            ))}
+          </span>
+        </section>
       </header>
 
       <main>
@@ -433,53 +516,53 @@ function App() {
             launchLabel: 'Launch Aster',
           }}
           controls={operatorControls}
-          approval={{
-            request: approvalRequest,
-            state: approvalState(snapshot),
-            stateMessage: approvalMessage(snapshot),
-            onApprove: snapshot.pendingAuthority
-              ? () =>
-                  act(() =>
-                    control.approvePowerReroute(
-                      snapshot.pendingAuthority?.proposalId ?? '',
-                    ),
-                  )
-              : undefined,
-            onDecline: snapshot.pendingAuthority
-              ? () =>
-                  act(() =>
-                    control.denyPowerReroute(
-                      snapshot.pendingAuthority?.proposalId ?? '',
-                    ),
-                  )
-              : undefined,
-            onUseAuthority: snapshot.activeGrant
-              ? () =>
-                  act(() =>
-                    control.applyPowerReroute(
-                      snapshot.activeGrant?.id ?? '',
-                      snapshot.revision,
-                    ),
-                  )
-              : undefined,
-            onRevokeAuthority: snapshot.activeGrant
-              ? () =>
-                  act(() =>
-                    control.revokePowerReroute(snapshot.activeGrant?.id ?? ''),
-                  )
-              : undefined,
-            onRequestAgain:
-              canRequestPower &&
-              (snapshot.proposal?.status === 'denied' ||
-                snapshot.proposal?.status === 'revoked')
-                ? () => act(() => control.requestPowerReroute(snapshot.revision))
+          approval={showApproval ? {
+              request: approvalRequest,
+              state: approvalState(snapshot),
+              stateMessage: approvalMessage(snapshot),
+              onApprove: snapshot.pendingAuthority
+                ? () =>
+                    act(() =>
+                      control.approvePowerReroute(
+                        snapshot.pendingAuthority?.proposalId ?? '',
+                      ),
+                    )
                 : undefined,
-            approveLabel: 'Authorize one repair',
-            declineLabel: 'Keep power unchanged',
-            useAuthorityLabel: 'Use one-use reroute',
-            revokeAuthorityLabel: 'Revoke authority',
-            requestAgainLabel: 'Request a new approval',
-          }}
+              onDecline: snapshot.pendingAuthority
+                ? () =>
+                    act(() =>
+                      control.denyPowerReroute(
+                        snapshot.pendingAuthority?.proposalId ?? '',
+                      ),
+                    )
+                : undefined,
+              onUseAuthority: snapshot.activeGrant
+                ? () =>
+                    act(() =>
+                      control.applyPowerReroute(
+                        snapshot.activeGrant?.id ?? '',
+                        snapshot.revision,
+                      ),
+                    )
+                : undefined,
+              onRevokeAuthority: snapshot.activeGrant
+                ? () =>
+                    act(() =>
+                      control.revokePowerReroute(snapshot.activeGrant?.id ?? ''),
+                    )
+                : undefined,
+              onRequestAgain:
+                canRequestPower &&
+                (snapshot.proposal?.status === 'denied' ||
+                  snapshot.proposal?.status === 'revoked')
+                  ? () => act(() => control.requestPowerReroute(snapshot.revision))
+                  : undefined,
+              approveLabel: 'Approve one repair',
+              declineLabel: 'Do not reroute power',
+              useAuthorityLabel: 'Apply approved repair',
+              revokeAuthorityLabel: 'Revoke authority',
+              requestAgainLabel: 'Request a new approval',
+            } : undefined}
           ledger={{ entries: ledgerEntries }}
           launch={{
             state: launchState,

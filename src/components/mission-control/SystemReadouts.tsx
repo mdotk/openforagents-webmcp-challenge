@@ -68,7 +68,7 @@ export function SystemReadouts({
                   {statusLabels[system.status]}
                 </span>
               </span>
-              <span className="mc-system__detail">{system.detail}</span>
+              <span className="mc-visually-hidden">{system.detail}</span>
             </span>
             {system.reading ? (
               <span className="mc-system__reading">

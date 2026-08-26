@@ -82,8 +82,11 @@ export function HumanApprovalPanel({
     const previousState = previousStateRef.current
     previousStateRef.current = state
     if (
-      previousState !== state &&
-      (state === 'approved' || state === 'declined' || state === 'revoked') &&
+      (state === 'required' ||
+        (previousState !== state &&
+          (state === 'approved' ||
+            state === 'declined' ||
+            state === 'revoked'))) &&
       document.activeElement === document.body
     ) {
       primaryActionRef.current?.focus()

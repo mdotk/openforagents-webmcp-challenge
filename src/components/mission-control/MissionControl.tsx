@@ -30,7 +30,7 @@ export interface MissionControlProps {
   systems: SystemReadoutsProps
   circuit: CapabilityCircuitProps
   controls?: ReactNode
-  approval: HumanApprovalPanelProps
+  approval?: HumanApprovalPanelProps
   ledger: ActivityLedgerProps
   launch: LaunchControlProps
   className?: string
@@ -63,23 +63,10 @@ export function MissionControl({
       aria-describedby={descriptionId}
     >
       <header className="mc-header">
-        <div className="mc-header__identity">
-          <span className="mc-header__insignia" aria-hidden="true">
-            <svg viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="17" />
-              <path d="m20 8 4 9 9 3-9 3-4 9-4-9-9-3 9-3Z" />
-              <circle cx="20" cy="20" r="3" />
-            </svg>
-          </span>
-          <span>
-            <span className="mc-kicker">{missionLabel}</span>
-            <strong>OFA / 01</strong>
-          </span>
-        </div>
-
         <div className="mc-header__title">
+          <span className="mc-kicker">{missionLabel}</span>
           <h2 id={titleId}>{title}</h2>
-          <p id={descriptionId}>{description}</p>
+          <p className="mc-visually-hidden" id={descriptionId}>{description}</p>
         </div>
 
         <div className="mc-header__phase" aria-label={`Current status: ${phaseLabel}`}>
@@ -88,8 +75,6 @@ export function MissionControl({
           <strong>{phaseLabel}</strong>
         </div>
       </header>
-
-      <CapabilityCircuit {...circuit} />
 
       <div className="mc-primary-grid">
         <section className="mc-flight-window" aria-label={sceneLabel}>
@@ -116,12 +101,24 @@ export function MissionControl({
 
       {controls}
 
-      <div className="mc-decision-grid">
-        <HumanApprovalPanel {...approval} />
-        <ActivityLedger {...ledger} />
-      </div>
+      {approval ? <HumanApprovalPanel {...approval} /> : null}
 
       <LaunchControl {...launch} />
+
+      <div className="mc-secondary-details">
+        <details className="mc-log-disclosure">
+          <summary>
+            <span>Mission log</span>
+            <strong>
+              {ledger.entries.length}{' '}
+              {ledger.entries.length === 1 ? 'event' : 'events'}
+            </strong>
+          </summary>
+          <ActivityLedger {...ledger} />
+        </details>
+
+        <CapabilityCircuit {...circuit} />
+      </div>
     </section>
   )
 }

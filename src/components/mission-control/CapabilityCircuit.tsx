@@ -194,14 +194,17 @@ export function CapabilityCircuit({
     <details className={`mc-circuit-disclosure ${className}`.trim()}>
       <summary>
         <span className="mc-circuit-disclosure__title">
-          <span className="mc-kicker">WebMCP details</span>
+          <span className="mc-kicker">Agent tools</span>
           <strong>{disclosureTitle}</strong>
         </span>
-        <span className="mc-circuit-disclosure__detail" aria-live="polite">
+        <span
+          className="mc-circuit-disclosure__detail mc-visually-hidden"
+          aria-live="polite"
+        >
           {disclosureDetail}
         </span>
         <span className="mc-circuit-disclosure__action">
-          View exact tools and lifecycle
+          How the agent tools work
         </span>
       </summary>
 

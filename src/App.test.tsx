@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
@@ -22,28 +22,34 @@ describe('Mission Control experience', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Repair a rocket with an agent. Approve one consequential step. Launch it yourself.',
+        name: 'Get Aster ready for launch.',
       }),
     ).toBeInTheDocument()
-    const sequence = screen.getByRole('list', { name: 'Mission sequence' })
-    expect(sequence).toHaveTextContent('Agent')
-    expect(sequence).toHaveTextContent('Inspect and repair')
-    expect(sequence).toHaveTextContent('Approve power')
-    expect(sequence).toHaveTextContent('Launch Aster')
-    expect(sequence).toHaveTextContent('Current')
-    expect(screen.getByText('7 modeled capabilities')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'The agent repairs two systems. You approve the power reroute. You launch.',
+      ),
+    ).toBeInTheDocument()
     expect(
       await screen.findByText(
         'Native WebMCP is unavailable here. The visible controls use the same mission rules.',
       ),
     ).toBeInTheDocument()
+    const currentStep = screen.getByRole('region', {
+      name: 'Repair communications and navigation',
+    })
+    expect(currentStep).toHaveTextContent('Step 1 of 3 · Agent')
+    expect(currentStep).toHaveTextContent(
+      'Use the controls below to repair both systems.',
+    )
+    expect(screen.getByText('7 modeled capabilities')).toBeInTheDocument()
 
     const disclosure = screen
-      .getByText('View exact tools and lifecycle')
+      .getByText('How the agent tools work')
       .closest('details')
     expect(disclosure).not.toHaveAttribute('open')
 
-    await user.click(screen.getByText('View exact tools and lifecycle'))
+    await user.click(screen.getByText('How the agent tools work'))
     expect(disclosure).toHaveAttribute('open')
     expect(screen.getByText('Permanent WebMCP surface')).toBeVisible()
   })
@@ -63,21 +69,22 @@ describe('Mission Control experience', () => {
     await completeSafeRepairs(user)
     expect(screen.getByText('Your approval is needed')).toBeInTheDocument()
     expect(launch).toBeDisabled()
-    const sequence = screen.getByRole('list', { name: 'Mission sequence' })
-    const approvalStep = within(sequence).getByText('Approve power').closest('li')
-    expect(approvalStep).toHaveAttribute('aria-current', 'step')
-    expect(approvalStep).toHaveTextContent('You')
-    expect(approvalStep).toHaveTextContent('Current')
+    const approvalStep = screen.getByRole('region', {
+      name: 'Decide whether to reroute power',
+    })
+    expect(approvalStep).toHaveTextContent('Step 2 of 3 · You')
+    expect(approvalStep).toHaveTextContent('Nothing happens until you choose.')
 
     await user.click(
-      screen.getByRole('button', { name: 'Authorize one repair' }),
+      screen.getByRole('button', { name: 'Approve one repair' }),
     )
-    const approvedRepairStep = screen.getByText('Use approved repair').closest('li')
-    expect(approvedRepairStep).toHaveAttribute('aria-current', 'step')
-    expect(approvedRepairStep).toHaveTextContent('Agent')
-    expect(approvedRepairStep).toHaveTextContent('Current')
+    const approvedRepairStep = screen.getByRole('region', {
+      name: 'Apply the approved power reroute',
+    })
+    expect(approvedRepairStep).toHaveTextContent('Step 2 of 3 · Agent')
+    expect(approvedRepairStep).toHaveTextContent('This repair is available once.')
     const useAuthority = screen.getByRole('button', {
-      name: 'Use one-use reroute',
+      name: 'Apply approved repair',
     })
     expect(useAuthority).toBeEnabled()
     expect(useAuthority).toHaveFocus()
@@ -85,29 +92,86 @@ describe('Mission Control experience', () => {
 
     await user.click(useAuthority)
     expect(
-      screen.queryByRole('button', { name: 'Use one-use reroute' }),
+      screen.queryByRole('button', { name: 'Apply approved repair' }),
     ).not.toBeInTheDocument()
     expect(launch).toBeEnabled()
     expect(launch).toHaveFocus()
-    const launchStep = within(sequence).getByText('Launch Aster').closest('li')
-    expect(launchStep).toHaveAttribute('aria-current', 'step')
-    expect(launchStep).toHaveTextContent('You')
-    expect(launchStep).toHaveTextContent('Current')
+    const launchStep = screen.getByRole('region', { name: 'Launch Aster' })
+    expect(launchStep).toHaveTextContent('Step 3 of 3 · You')
+    expect(launchStep).toHaveTextContent(
+      'Launch is not one of the agent tools.',
+    )
 
     await user.click(launch)
     expect(
       screen.getByRole('heading', {
-        name: 'Launch complete. The systems were repaired. You approved. You launched.',
+        name: 'Aster has launched.',
       }),
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        'The one-use repair tool is gone. Seven WebMCP tools remain, and launch was completed only through the visible page control.',
+        'The agent repaired the systems. You approved the power reroute. You launched.',
       ),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('img', { name: /vehicle away.*cleared the tower/i }),
     ).toBeInTheDocument()
+  })
+
+  it('moves to the approval-request step after the routine repairs', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Restart relay' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Recalibrate navigation' }),
+    )
+
+    const requestStep = screen.getByRole('region', {
+      name: 'Ask for your power decision',
+    })
+    expect(requestStep).toHaveTextContent('Step 2 of 3 · Agent')
+    expect(requestStep).toHaveTextContent(
+      'You choose whether to reroute 15 kW.',
+    )
+    expect(
+      screen.getByRole('button', { name: 'Request power approval' }),
+    ).toBeEnabled()
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Approve a 15 kW power reroute?',
+      }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('moves keyboard focus through contextual manual actions', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const restartRelay = screen.getByRole('button', { name: 'Restart relay' })
+    restartRelay.focus()
+    await user.click(restartRelay)
+
+    const recalibrate = screen.getByRole('button', {
+      name: 'Recalibrate navigation',
+    })
+    expect(recalibrate).toHaveFocus()
+    await user.click(recalibrate)
+
+    const requestPower = screen.getByRole('button', {
+      name: 'Request power approval',
+    })
+    expect(requestPower).toHaveFocus()
+    await user.click(requestPower)
+
+    expect(
+      screen.getByRole('button', { name: 'Approve one repair' }),
+    ).toHaveFocus()
+    expect(
+      screen.getByRole('region', {
+        name: 'Decide whether to reroute power',
+      }),
+    ).toHaveAttribute('aria-live', 'polite')
   })
 
   it('honors denial and allows a new bounded request', async () => {
@@ -116,7 +180,7 @@ describe('Mission Control experience', () => {
 
     await completeSafeRepairs(user)
     await user.click(
-      screen.getByRole('button', { name: 'Keep power unchanged' }),
+      screen.getByRole('button', { name: 'Do not reroute power' }),
     )
 
     expect(screen.getByText('Not approved')).toBeInTheDocument()
@@ -135,7 +199,7 @@ describe('Mission Control experience', () => {
 
     await completeSafeRepairs(user)
     await user.click(
-      screen.getByRole('button', { name: 'Authorize one repair' }),
+      screen.getByRole('button', { name: 'Approve one repair' }),
     )
     await user.click(screen.getByRole('button', { name: 'Revoke authority' }))
 
