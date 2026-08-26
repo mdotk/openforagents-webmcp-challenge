@@ -252,6 +252,7 @@ export async function registerMissionTools(
   let inventoryWork = Promise.resolve()
   const permanentController = new AbortController()
   let grantController: AbortController | null = null
+  let settlingGrantController: AbortController | null = null
   let registeredGrantId: string | null = null
   let unsubscribe = () => {}
 
@@ -285,48 +286,73 @@ export async function registerMissionTools(
   const createGrantTool = (
     grant: PowerRerouteGrant,
     registrationController: AbortController,
-  ): WebMcpTool => ({
-    name: APPLY_POWER_REROUTE_TOOL_NAME,
-    description:
-      'Use the current one-use authorization to reroute 15 kW to guidance.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        grant_id: { type: 'string', const: grant.id },
+  ): WebMcpTool => {
+    let authorizationConsumed = false
+
+    return {
+      name: APPLY_POWER_REROUTE_TOOL_NAME,
+      description:
+        'Use the current one-use authorization to reroute 15 kW to guidance.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          grant_id: { type: 'string', const: grant.id },
+        },
+        required: ['grant_id'],
+        additionalProperties: false,
       },
-      required: ['grant_id'],
-      additionalProperties: false,
-    },
-    annotations: {
-      readOnlyHint: false,
-      untrustedContentHint: false,
-    },
-    execute: async (args, context) => {
-      if (args.grant_id !== grant.id) {
-        throw new Error('grant_id does not match the active authorization.')
-      }
-      await waitForAbortableCommit(context?.signal)
-      const nextSnapshot = control.applyPowerReroute(
-        grant.id,
-        control.getSnapshot().revision,
-      )
-      registrationController.abort()
-      if (grantController === registrationController) {
-        grantController = null
-        registeredGrantId = null
-      }
-      scheduleInventoryRefresh()
-      return result({
-        applied: true,
-        authorizationConsumed: true,
-        snapshot: nextSnapshot,
-      })
-    },
-  })
+      annotations: {
+        readOnlyHint: false,
+        untrustedContentHint: false,
+      },
+      execute: async (args, context) => {
+        if (args.grant_id !== grant.id) {
+          throw new Error('grant_id does not match the active authorization.')
+        }
+        if (authorizationConsumed) {
+          throw new Error('The one-use power reroute grant is not active.')
+        }
+
+        await waitForAbortableCommit(context?.signal)
+        if (authorizationConsumed) {
+          throw new Error('The one-use power reroute grant is not active.')
+        }
+
+        const nextSnapshot = control.applyPowerReroute(
+          grant.id,
+          control.getSnapshot().revision,
+        )
+        authorizationConsumed = true
+        settlingGrantController = registrationController
+        enqueue(async () => {
+          await new Promise<void>((resolve) => setTimeout(resolve, 0))
+          registrationController.abort()
+          if (grantController === registrationController) {
+            grantController = null
+            registeredGrantId = null
+          }
+          if (settlingGrantController === registrationController) {
+            settlingGrantController = null
+          }
+          await refreshInventory()
+        })
+
+        return result({
+          applied: true,
+          authorizationConsumed: true,
+          snapshot: nextSnapshot,
+        })
+      },
+    }
+  }
 
   const reconcileGrant = async (grant: PowerRerouteGrant | null) => {
     if (disposed || !modelContext) return
     if (grant?.id === registeredGrantId && !grantController?.signal.aborted) {
+      return
+    }
+    if (!grant && grantController === settlingGrantController) {
+      await refreshInventory()
       return
     }
 
@@ -392,6 +418,7 @@ export async function registerMissionTools(
       modelContext?.removeEventListener?.('toolchange', toolChangeListener)
       grantController?.abort()
       grantController = null
+      settlingGrantController = null
       registeredGrantId = null
       permanentController.abort()
       scheduleInventoryRefresh()

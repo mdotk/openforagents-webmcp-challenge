@@ -13,6 +13,12 @@ import {
 class FakeModelContext implements WebMcpModelContext {
   readonly tools = new Map<string, WebMcpTool>()
   readonly listeners = new Set<EventListenerOrEventListenerObject>()
+  readonly registrationSignals = new Map<string, AbortSignal>()
+  private readonly abortInFlightOnUnregister: boolean
+
+  constructor(abortInFlightOnUnregister = false) {
+    this.abortInFlightOnUnregister = abortInFlightOnUnregister
+  }
 
   async registerTool(
     tool: WebMcpTool,
@@ -26,9 +32,11 @@ class FakeModelContext implements WebMcpModelContext {
       throw new Error(`Tool ${tool.name} is already registered.`)
     }
     this.tools.set(tool.name, tool)
+    this.registrationSignals.set(tool.name, options.signal)
     options.signal.addEventListener(
       'abort',
       () => {
+        this.registrationSignals.delete(tool.name)
         if (this.tools.delete(tool.name)) this.emitToolChange()
       },
       { once: true },
@@ -62,7 +70,37 @@ class FakeModelContext implements WebMcpModelContext {
   ) {
     const tool = this.tools.get(name)
     if (!tool) throw new Error(`Tool ${name} is not registered.`)
-    return tool.execute(args, { signal })
+    if (!this.abortInFlightOnUnregister) {
+      return tool.execute(args, { signal })
+    }
+
+    const registrationSignal = this.registrationSignals.get(name)
+    return new Promise<Awaited<ReturnType<WebMcpTool['execute']>>>((resolve, reject) => {
+      const cleanup = () => registrationSignal?.removeEventListener('abort', onAbort)
+      const onAbort = () => {
+        cleanup()
+        reject(
+          new DOMException(
+            'In-flight execution was cancelled when the tool was unregistered.',
+            'AbortError',
+          ),
+        )
+      }
+      registrationSignal?.addEventListener('abort', onAbort, { once: true })
+
+      Promise.resolve()
+        .then(() => tool.execute(args, { signal }))
+        .then(
+          (value) => {
+            cleanup()
+            resolve(value)
+          },
+          (error: unknown) => {
+            cleanup()
+            reject(error)
+          },
+        )
+    })
   }
 
   private emitToolChange() {
@@ -101,15 +139,16 @@ describe('registerMissionTools', () => {
     await registration.dispose()
   })
 
-  it('registers the approved exact one-use tool and removes it after use', async () => {
+  it('settles the one-use result before legacy unregister cancellation, then removes the tool', async () => {
     const control = createMissionControl()
-    const modelContext = new FakeModelContext()
+    const modelContext = new FakeModelContext(true)
     const registration = await registerMissionTools(control, { modelContext })
     const requested = repairAndRequest(control)
     const approved = control.approvePowerReroute(requested.proposal?.id ?? '')
     await registration.whenIdle()
 
     expect(modelContext.tools.has('apply_power_reroute')).toBe(true)
+    expect(await registration.getRegisteredToolNames()).toHaveLength(8)
     const applyTool = modelContext.tools.get('apply_power_reroute')
     expect(applyTool?.inputSchema).toEqual({
       type: 'object',
@@ -120,19 +159,29 @@ describe('registerMissionTools', () => {
       additionalProperties: false,
     })
 
-    await modelContext.invoke('apply_power_reroute', {
+    const applied = await modelContext.invoke('apply_power_reroute', {
       grant_id: approved.activeGrant?.id,
     })
-    await registration.whenIdle()
 
+    expect(JSON.parse(applied.content[0]?.text ?? '')).toMatchObject({
+      applied: true,
+      authorizationConsumed: true,
+    })
     expect(control.getSnapshot().activeGrant).toBeNull()
     expect(control.getSnapshot().launchReady).toBe(true)
-    expect(modelContext.tools.has('apply_power_reroute')).toBe(false)
+    expect(modelContext.tools.has('apply_power_reroute')).toBe(true)
     await expect(
       modelContext.invoke('apply_power_reroute', {
         grant_id: approved.activeGrant?.id,
       }),
-    ).rejects.toThrow('not registered')
+    ).rejects.toThrow('not active')
+
+    await registration.whenIdle()
+
+    expect(modelContext.tools.has('apply_power_reroute')).toBe(false)
+    expect(await registration.getRegisteredToolNames()).toEqual(
+      [...permanentMissionToolNames].sort(),
+    )
 
     await registration.dispose()
   })
