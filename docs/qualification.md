@@ -77,6 +77,16 @@ revision 1 with a ready communications relay and a nominal signal. The visible
 page reflected the same state while launch remained locked. The experience was
 then restarted and returned to revision 0 with seven tools.
 
-This establishes native inventory and one read-only plus one state-changing
-tool invocation in the named Chrome build. It does not establish model-driven
-tool selection or compatibility with every browser or agent.
+The Inspector also observed the complete temporary-capability lifecycle on the
+final deployed application. It listed seven tools before approval, eight after
+approval, and invoked `apply_power_reroute` with the exact active grant ID. The
+tool returned `applied: true` and `authorizationConsumed: true` at revision 5.
+The page cleared the active grant, made all three systems ready and exposed the
+visible **Launch Aster** control. Inspector diagnostics then reported seven
+tools again, and the page confirmed that the temporary tool had been used once
+and removed. No launch tool appeared.
+
+This establishes native inventory, read-only execution, permanent
+state-changing execution and the exact one-use 7 → 8 → 7 lifecycle in the named
+Chrome build. It does not establish model-driven tool selection or
+compatibility with every browser or agent.

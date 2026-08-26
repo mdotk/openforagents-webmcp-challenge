@@ -109,9 +109,14 @@ used or the approval was revoked.
 Chrome's WebMCP Model Context Tool Inspector also listed the seven permanent
 tools with their closed schemas and expected `readOnlyHint` values. It invoked
 `mission_status` and `restart_comms_relay`, and the visible page reflected the
-result. This evidence is limited to the named browser build. It does not
-establish model-driven tool selection or compatibility with every browser or
-agent. The full record is in [qualification.md](qualification.md).
+result. After human approval, the Inspector listed `apply_power_reroute` as the
+eighth tool and invoked it with the active grant ID. The call succeeded,
+consumed the authorization and made the mission ready at revision 5. The
+Inspector then reported seven tools again, while launch remained available
+only through the visible page control. This evidence is limited to the named
+browser build. It does not establish model-driven tool selection or
+compatibility with every browser or agent. The full record is in
+[qualification.md](qualification.md).
 
 ## Testing instructions
 
