@@ -10,7 +10,7 @@ The local acceptance command is:
 npm run check
 ```
 
-It runs lint, 15 deterministic tests and the production TypeScript/Vite build.
+It runs lint, 19 deterministic tests and the production TypeScript/Vite build.
 The tests cover:
 
 - Ordered safe repairs and stale-revision rejection.

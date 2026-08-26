@@ -30,6 +30,22 @@ The source, locked dependency versions and local build commands are kept in
 this repository so the challenge-period work can be inspected and reproduced
 on its own. The README describes the current experience and its limits.
 
+## Proposed experience revision
+
+After qualifying Launch Window A-01, the entrant documented a possible
+replacement experience based on a fictional shared fitting room. The proposal
+keeps the same challenge-period repository and the limited, one-use authority
+idea, but would replace the mission scenario, domain model, tools, interface
+and public entry material.
+
+The proposal is recorded in
+[proposed-shared-fitting-room.md](proposed-shared-fitting-room.md) and its
+[WebMCP contract](proposed-shared-fitting-room-contract.md). It is not the
+current application, has not been deployed or qualified and does not alter the
+existing Launch Window evidence. If implemented, the chronology will identify
+the resulting commits and the README will change only after the replacement is
+the real public experience.
+
 ## Submission status
 
 As of 26 August 2026, Matt Gibbs has joined the challenge on Devpost. No project
