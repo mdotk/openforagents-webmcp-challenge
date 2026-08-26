@@ -48,9 +48,10 @@ Restart the experience for the walkthrough.
 Narration:
 
 > This is Launch Window A-01, a local mission-control simulation for teams
-> designing consequential browser-agent actions. There is no spacecraft,
-> account, backend or external transaction. The point is the permission
-> lifecycle you just saw.
+> designing consequential browser-agent actions. Agent tools are often treated
+> as a fixed inventory. Here, the page exposes only the authority that exists
+> now. There is no spacecraft, account, backend or external transaction. The
+> point is the permission lifecycle you just saw.
 
 ## 0:27–0:53 — Let the agent handle routine work
 
@@ -62,9 +63,9 @@ tool call.
 Narration:
 
 > The page starts with seven typed WebMCP tools. The agent can read the local
-> state, restart communications, recalibrate navigation and request the next
-> decision. Closed schemas and revision checks keep each command tied to the
-> current simulated mission state.
+> state at the level it needs, restart communications, recalibrate navigation
+> and request the next decision. Closed schemas and revision checks keep each
+> command tied to the current simulated mission state.
 
 ## 0:53–1:17 — Show the exact decision
 

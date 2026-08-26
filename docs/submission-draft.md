@@ -15,8 +15,11 @@ tool after a person approves it, then removes the tool after use or revocation.
 ## Who it is for
 
 Launch Window A-01 is for developers and product teams designing consequential
-browser-agent actions. It shows how the set of tools a page exposes can change
-with a person's decision instead of remaining broad and permanent.
+browser-agent actions. Agent tools are often treated as a fixed inventory:
+once a capability is exposed, it stays available whether or not a person has
+approved the action in front of them. Launch Window A-01 shows a narrower
+alternative. The set of tools a page exposes can change with a person's exact
+decision instead of remaining broad and permanent.
 
 ## What it does
 
@@ -57,6 +60,11 @@ inventory change part of the experience:
 - Approval creates one additional tool bound to one grant identifier.
 - Use or revocation removes that tool.
 - Launch remains outside the WebMCP inventory throughout the experience.
+
+The four read tools are intentionally different: one returns the full mission
+snapshot, one inspects a named subsystem, one returns the local procedure for a
+named subsystem, and one returns the ordered repair plan. An agent can request
+the context it needs without every read becoming the same oversized response.
 
 The person can see the scope, 15 kW amount, one-use limit and consequence before
 making the decision. The page's activity record and capability path then show
