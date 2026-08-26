@@ -24,6 +24,31 @@ function money(cents: number) {
   }).format(cents / 100)
 }
 
+function lookVisual(snapshot: FittingRoomSnapshot) {
+  if (snapshot.boardItemIds.includes('FV-409')) {
+    return {
+      src: '/fitting-room/look-final.webp',
+      alt: 'An all-black outfit on a dress form with a tailored vest, satin skirt, bell-sleeve shrug, crystal cuff and black boots.',
+      label: 'Final revised look',
+    }
+  }
+  if (snapshot.boardItemIds.includes('FV-408')) {
+    return {
+      src: '/fitting-room/look-all-black.webp',
+      alt: 'An all-black outfit on a dress form with a tailored vest, satin skirt, sheer organza sleeves, crystal cuff and black boots.',
+      label: 'All-black revision',
+    }
+  }
+  if (snapshot.boardItemIds.includes('FV-206')) {
+    return {
+      src: '/fitting-room/look-first.webp',
+      alt: 'A first-look outfit on a dress form with a black tailored vest, burgundy skirt and black boots.',
+      label: 'First look',
+    }
+  }
+  return null
+}
+
 function FittingRoomApp() {
   const [control, setControl] = useState(createFittingRoomControl)
   const subscribe = useCallback(
@@ -109,19 +134,31 @@ function FittingRoomApp() {
       : registration?.supported
         ? `${registeredToolNames.length} native tools live`
         : `${permanentFittingRoomToolNames.length} modeled tools · native unavailable`
+  const visual = lookVisual(snapshot)
+  const journeyStatus = snapshot.reservation
+    ? 'Look held for pickup'
+    : snapshot.activeGrant
+      ? 'Approved for one exact hold'
+      : reviewIsPending
+        ? 'Waiting for your decision'
+        : snapshot.boardItemIds.length && !snapshot.validation.valid
+          ? 'Stock changed · replanning needed'
+          : snapshot.boardItemIds.length
+            ? 'Look ready to review'
+            : 'Brief saved · fitting room empty'
 
   return (
     <div className="fitting-room-prototype">
       <header className="fitting-room-prototype__header">
         <div>
           <span className="fitting-room-prototype__kicker">
-            Fictional retailer · technical prototype
+            Shared Fitting Room · WebMCP prototype
           </span>
-          <h1>Build one look together. Hold only what you approve.</h1>
+          <h1>Describe the look. Let your agent do the shopping.</h1>
           <p>
-            An external browser agent reads this saved brief, works with the
-            retailer's structured facts and updates the same fitting room you
-            see. Nothing is real stock and no payment is possible here.
+            Your browser agent can search the retailer, compare the facts and
+            build a complete outfit in the same fitting room you see. You keep
+            control of the taste, the approval and anything that follows.
           </p>
         </div>
         <aside aria-live="polite">
@@ -137,8 +174,8 @@ function FittingRoomApp() {
       <main className="fitting-room-prototype__main">
         <section className="fitting-room-prototype__brief" aria-labelledby="brief-title">
           <div>
-            <span className="fitting-room-prototype__kicker">Saved occasion brief</span>
-            <h2 id="brief-title">Couture vampire, not costume shop</h2>
+            <span className="fitting-room-prototype__kicker">Your saved brief</span>
+            <h2 id="brief-title">One request. Six things to get right.</h2>
             <blockquote>{snapshot.shopper.brief}</blockquote>
           </div>
           <ul aria-label="Confirmed shopping constraints">
@@ -152,48 +189,30 @@ function FittingRoomApp() {
         </section>
 
         <section className="fitting-room-prototype__workspace">
-          <div className="fitting-room-prototype__catalogue">
-            <div className="fitting-room-prototype__section-heading">
-              <div>
-                <span className="fitting-room-prototype__kicker">Retailer facts</span>
-                <h2>Fictional catalogue</h2>
+          <figure className="fitting-room-prototype__mirror" aria-live="polite">
+            {visual ? (
+              <img src={visual.src} alt={visual.alt} width="960" height="1200" />
+            ) : (
+              <div className="fitting-room-prototype__mirror-empty">
+                <span>01</span>
+                <strong>Start with the brief</strong>
+                <p>
+                  A compatible agent can read the request, search the six
+                  fictional products and assemble the first complete look.
+                </p>
               </div>
-              <span>{snapshot.products.length} products</span>
-            </div>
-            <div className="fitting-room-prototype__product-grid">
-              {snapshot.products.map((product) => {
-                const selected = snapshot.boardItemIds.includes(product.id)
-                return (
-                  <article
-                    className={selected ? 'is-selected' : ''}
-                    key={product.id}
-                  >
-                    <div
-                      className={`fitting-room-prototype__swatch fitting-room-prototype__swatch--${product.id.toLowerCase()}`}
-                      aria-hidden="true"
-                    />
-                    <span>{product.category}</span>
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <dl>
-                      <div>
-                        <dt>Price</dt>
-                        <dd>{money(product.priceCents)}</dd>
-                      </div>
-                      <div>
-                        <dt>Friday</dt>
-                        <dd>{product.fridayQuantity} left</dd>
-                      </div>
-                      <div>
-                        <dt>Movement</dt>
-                        <dd>{product.movement}</dd>
-                      </div>
-                    </dl>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
+            )}
+            <figcaption>
+              <span>{visual?.label ?? 'Shared mirror'}</span>
+              <strong>{journeyStatus}</strong>
+            </figcaption>
+            {snapshot.demoInventoryUpdateApplied &&
+            snapshot.boardItemIds.includes('FV-408') ? (
+              <div className="fitting-room-prototype__stock-alert" role="status">
+                The organza sleeves just sold out for Friday pickup.
+              </div>
+            ) : null}
+          </figure>
 
           <aside className="fitting-room-prototype__board" aria-labelledby="board-title">
             <div className="fitting-room-prototype__section-heading">
@@ -299,11 +318,11 @@ function FittingRoomApp() {
 
         <section className="fitting-room-prototype__controls" aria-labelledby="controls-title">
           <div>
-            <span className="fitting-room-prototype__kicker">Visible fallback</span>
-            <h2 id="controls-title">Walk through the technical slice</h2>
+            <span className="fitting-room-prototype__kicker">Try the journey</span>
+            <h2 id="controls-title">Shop the brief together</h2>
             <p>
-              These controls use the same browser-local rules. They do not
-              claim that an agent or native WebMCP is connected.
+              Use these visible controls to follow the same browser-local
+              journey when a compatible agent is not connected.
             </p>
           </div>
           <div className="fitting-room-prototype__buttons">
@@ -482,6 +501,47 @@ function FittingRoomApp() {
           {actionError ? <p role="alert">Action stopped: {actionError}</p> : null}
         </section>
 
+        <section className="fitting-room-prototype__catalogue">
+          <details>
+            <summary>
+              <span>
+                <span className="fitting-room-prototype__kicker">Retailer facts</span>
+                View the six fictional products
+              </span>
+              <span>{snapshot.products.length} products</span>
+            </summary>
+            <div className="fitting-room-prototype__product-grid">
+              {snapshot.products.map((product) => {
+                const selected = snapshot.boardItemIds.includes(product.id)
+                return (
+                  <article
+                    className={selected ? 'is-selected' : ''}
+                    key={product.id}
+                  >
+                    <span>{product.category}</span>
+                    <h3>{product.name}</h3>
+                    <p>{product.description}</p>
+                    <dl>
+                      <div>
+                        <dt>Price</dt>
+                        <dd>{money(product.priceCents)}</dd>
+                      </div>
+                      <div>
+                        <dt>Friday</dt>
+                        <dd>{product.fridayQuantity} left</dd>
+                      </div>
+                      <div>
+                        <dt>Movement</dt>
+                        <dd>{product.movement}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                )
+              })}
+            </div>
+          </details>
+        </section>
+
         <section className="fitting-room-prototype__technical" aria-labelledby="technical-title">
           <details>
             <summary id="technical-title">View the exact tool lifecycle</summary>
@@ -519,8 +579,8 @@ function FittingRoomApp() {
 
       <footer className="fitting-room-prototype__footer">
         <p>
-          This is an unqualified technical prototype with fictional products,
-          quantities and holds. It is not the current challenge entry.
+          All products, quantities, reviews and holds in this demonstration are
+          fictional. No payment can be made.
         </p>
         <a href="/">Return to Launch Window A-01</a>
       </footer>

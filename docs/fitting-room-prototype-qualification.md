@@ -25,6 +25,9 @@ The browser-local implementation contains:
   approves that review.
 - One simulated hold with reference `FF-DEMO-001`, no charge and no checkout,
   payment or order tool.
+- Three original fictional fitting-room images showing the first look, the
+  all-black revision and the final substitute. Their creation record is in
+  [fitting-room-visual-provenance.md](fitting-room-visual-provenance.md).
 
 ## Automated checks
 
@@ -65,8 +68,9 @@ Chrome exposed seven native tools at revision 0. The visible journey then:
    inventory to seven tools.
 
 The prototype produced no console warnings or errors. The page had no
-horizontal overflow at desktop, 390 px or 320 px, and the controls remained
-available at both mobile widths.
+horizontal overflow at desktop, 390 px or 320 px. The shared mirror,
+fitting-room contents, human pin, validation state and visible controls
+remained readable and operable at both mobile widths.
 
 This check establishes deployed native registration and the visible 7 to 8 to
 7 lifecycle in that Chrome session. It does not yet establish independent tool

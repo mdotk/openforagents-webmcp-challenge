@@ -11,13 +11,13 @@ describe('Shared fitting-room technical prototype', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Build one look together. Hold only what you approve.',
+        name: 'Describe the look. Let your agent do the shopping.',
       }),
     ).toBeInTheDocument()
     expect(screen.getByText(/couture vampire look for Saturday/i)).toBeVisible()
     expect(await screen.findByText('7 modeled tools · native unavailable')).toBeVisible()
     expect(
-      screen.getByText(/unqualified technical prototype with fictional products/i),
+      screen.getByText(/all products, quantities, reviews and holds/i),
     ).toBeVisible()
     expect(screen.getByRole('link', { name: 'Return to Launch Window A-01' })).toHaveAttribute(
       'href',
@@ -32,6 +32,7 @@ describe('Shared fitting-room technical prototype', () => {
 
     await user.click(screen.getByRole('button', { name: 'Build first look' }))
     expect(screen.getAllByText('Blood Moon Bias Skirt')).toHaveLength(2)
+    expect(screen.getByAltText(/first-look outfit/i)).toBeVisible()
     expect(screen.getByText('Every hard rule passes')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Pin the vest as human' }))
@@ -39,6 +40,7 @@ describe('Shared fitting-room technical prototype', () => {
 
     await user.click(screen.getByRole('button', { name: 'Revise to all black' }))
     expect(screen.getAllByText('Cathedral Black Satin Skirt')).toHaveLength(2)
+    expect(screen.getByAltText(/sheer organza sleeves/i)).toBeVisible()
     expect(screen.getByText('$248')).toBeVisible()
 
     await user.click(
@@ -55,6 +57,7 @@ describe('Shared fitting-room technical prototype', () => {
       screen.getByRole('button', { name: 'Use valid sleeve substitute' }),
     )
     expect(screen.getAllByText('Wraith Bell-Sleeve Shrug')).toHaveLength(2)
+    expect(screen.getByAltText(/bell-sleeve shrug/i)).toBeVisible()
     expect(screen.getByText('$242')).toBeVisible()
     expect(screen.getByText('Every hard rule passes')).toBeVisible()
 

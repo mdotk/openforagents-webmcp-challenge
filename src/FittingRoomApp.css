@@ -152,11 +152,12 @@
 
 .fitting-room-prototype__workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.55fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.65fr);
   gap: 24px;
   margin-top: 32px;
 }
 
+.fitting-room-prototype__mirror,
 .fitting-room-prototype__catalogue,
 .fitting-room-prototype__board,
 .fitting-room-prototype__controls,
@@ -166,6 +167,112 @@
   border: 1px solid #ded1ca;
   border-radius: 18px;
   box-shadow: 0 18px 50px rgba(65, 29, 47, 0.07);
+}
+
+.fitting-room-prototype__mirror {
+  position: relative;
+  min-height: 620px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #25151f;
+}
+
+.fitting-room-prototype__mirror img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 620px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.fitting-room-prototype__mirror::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 58%, rgba(27, 12, 20, 0.9));
+  content: '';
+}
+
+.fitting-room-prototype__mirror-empty {
+  display: grid;
+  min-height: 620px;
+  padding: clamp(28px, 6vw, 72px);
+  place-content: center;
+  color: #f9e8ef;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(224, 130, 169, 0.28), transparent 24%),
+    linear-gradient(145deg, #2b1523, #120c12);
+}
+
+.fitting-room-prototype__mirror-empty span {
+  color: #e7a0bf;
+  font: 700 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.22em;
+}
+
+.fitting-room-prototype__mirror-empty strong {
+  margin: 18px 0 12px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.2rem, 5vw, 4.6rem);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.fitting-room-prototype__mirror-empty p {
+  max-width: 42ch;
+  margin: 0 auto;
+  color: #d5b9c6;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.fitting-room-prototype__mirror figcaption {
+  position: absolute;
+  z-index: 1;
+  right: clamp(18px, 3vw, 34px);
+  bottom: clamp(18px, 3vw, 32px);
+  left: clamp(18px, 3vw, 34px);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  color: #fffaf4;
+}
+
+.fitting-room-prototype__mirror figcaption span,
+.fitting-room-prototype__mirror figcaption strong {
+  display: block;
+}
+
+.fitting-room-prototype__mirror figcaption span {
+  color: #f1b3cf;
+  font: 700 0.7rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fitting-room-prototype__mirror figcaption strong {
+  max-width: 22ch;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  text-align: right;
+}
+
+.fitting-room-prototype__stock-alert {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
+  left: 18px;
+  padding: 12px 14px;
+  color: #45210e;
+  background: rgba(255, 241, 208, 0.96);
+  border-left: 4px solid #d9902e;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(33, 13, 24, 0.2);
+  font-weight: 750;
 }
 
 .fitting-room-prototype__section-heading {
@@ -190,6 +297,36 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.fitting-room-prototype__catalogue {
+  margin-top: 24px;
+}
+
+.fitting-room-prototype__catalogue > details > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  cursor: pointer;
+  color: #3f2634;
+  font-size: 1.05rem;
+  font-weight: 750;
+  list-style-position: inside;
+}
+
+.fitting-room-prototype__catalogue > details > summary span {
+  display: block;
+}
+
+.fitting-room-prototype__catalogue > details > summary > span:last-child {
+  color: #816b75;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.fitting-room-prototype__catalogue details[open] .fitting-room-prototype__product-grid {
+  margin-top: 22px;
 }
 
 .fitting-room-prototype__product-grid article {
@@ -555,20 +692,27 @@
   }
 
   .fitting-room-prototype__product-grid article {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    column-gap: 12px;
-  }
-
-  .fitting-room-prototype__swatch {
-    grid-row: 1 / 6;
-    height: 140px;
-    margin-bottom: 0;
+    display: block;
   }
 
   .fitting-room-prototype__product-grid h3,
   .fitting-room-prototype__product-grid p {
     min-height: 0;
+  }
+
+  .fitting-room-prototype__mirror,
+  .fitting-room-prototype__mirror img,
+  .fitting-room-prototype__mirror-empty {
+    min-height: 520px;
+  }
+
+  .fitting-room-prototype__mirror figcaption {
+    display: block;
+  }
+
+  .fitting-room-prototype__mirror figcaption strong {
+    margin-top: 5px;
+    text-align: left;
   }
 
   .fitting-room-prototype__footer {
