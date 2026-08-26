@@ -1,10 +1,10 @@
 # Proposed shared fitting-room experience
 
-Status: product and interaction proposal, not the current live experience.
+Status: implemented as a separate prototype, not the current live experience.
 
-The live challenge application remains Launch Window A-01 until this proposal
-has been implemented, qualified in a supporting browser and deliberately made
-the entry's public experience.
+The live challenge application at the root URL remains Launch Window A-01. The
+fitting-room implementation is available on a separate query-parameter path
+for evaluation and does not yet replace the entry's public experience.
 
 ## Decision
 

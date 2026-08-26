@@ -32,19 +32,23 @@ on its own. The README describes the current experience and its limits.
 
 ## Proposed experience revision
 
-After qualifying Launch Window A-01, the entrant documented a possible
-replacement experience based on a fictional shared fitting room. The proposal
-keeps the same challenge-period repository and the limited, one-use authority
-idea, but would replace the mission scenario, domain model, tools, interface
-and public entry material.
+After qualifying Launch Window A-01, the entrant documented and implemented a
+possible replacement experience based on a fictional shared fitting room. The
+prototype keeps the same challenge-period repository and the limited, one-use
+authority idea, but uses a separate domain model, tool set and interface.
 
 The proposal is recorded in
 [proposed-shared-fitting-room.md](proposed-shared-fitting-room.md) and its
-[WebMCP contract](proposed-shared-fitting-room-contract.md). It is not the
-current application, has not been deployed or qualified and does not alter the
-existing Launch Window evidence. If implemented, the chronology will identify
-the resulting commits and the README will change only after the replacement is
-the real public experience.
+[WebMCP contract](proposed-shared-fitting-room-contract.md). It is exposed only
+through a separate query-parameter path, is not the root application and does
+not alter the existing Launch Window evidence. The README will change only if
+the replacement becomes the real public experience.
+
+The first implemented slice uses six fictional products, seven permanent
+tools and one temporary reservation tool. Human approval makes the temporary
+tool available for one exact look; successful use removes it again. The local
+Chrome qualification is recorded separately in
+[fitting-room-prototype-qualification.md](fitting-room-prototype-qualification.md).
 
 ## Submission status
 

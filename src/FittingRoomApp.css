@@ -1,0 +1,578 @@
+.fitting-room-prototype {
+  min-height: 100vh;
+  padding: 24px;
+  color: #2e202b;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(197, 116, 149, 0.2), transparent 30%),
+    linear-gradient(145deg, #f7f0e8 0%, #efe4dc 100%);
+}
+
+.fitting-room-prototype button,
+.fitting-room-prototype a,
+.fitting-room-prototype summary {
+  font: inherit;
+}
+
+.fitting-room-prototype button:focus-visible,
+.fitting-room-prototype a:focus-visible,
+.fitting-room-prototype summary:focus-visible {
+  outline: 3px solid #8f2455;
+  outline-offset: 3px;
+}
+
+.fitting-room-prototype__header,
+.fitting-room-prototype__main,
+.fitting-room-prototype__footer {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+}
+
+.fitting-room-prototype__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 310px);
+  gap: 36px;
+  align-items: end;
+  padding: clamp(24px, 4vw, 56px);
+  color: #fffaf4;
+  background: #35172a;
+  border-radius: 24px 24px 0 0;
+}
+
+.fitting-room-prototype__header h1 {
+  max-width: 830px;
+  margin: 8px 0 16px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.35rem, 5vw, 5.4rem);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.fitting-room-prototype__header p {
+  max-width: 70ch;
+  margin: 0;
+  color: #e4cad8;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  line-height: 1.55;
+}
+
+.fitting-room-prototype__header aside {
+  padding: 18px;
+  background: rgba(255, 250, 244, 0.08);
+  border: 1px solid rgba(255, 250, 244, 0.18);
+  border-radius: 14px;
+}
+
+.fitting-room-prototype__header aside small,
+.fitting-room-prototype__header aside strong,
+.fitting-room-prototype__header aside span {
+  display: block;
+}
+
+.fitting-room-prototype__header aside small,
+.fitting-room-prototype__kicker {
+  color: #b74779;
+  font: 750 0.71rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.fitting-room-prototype__header .fitting-room-prototype__kicker,
+.fitting-room-prototype__header aside small {
+  color: #f0a6c6;
+}
+
+.fitting-room-prototype__header aside strong {
+  margin: 7px 0;
+  font-size: 1.05rem;
+}
+
+.fitting-room-prototype__header aside span {
+  color: #d6b9c8;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.fitting-room-prototype__main {
+  padding: clamp(18px, 3vw, 42px);
+  background: rgba(255, 252, 247, 0.92);
+}
+
+.fitting-room-prototype__brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+  padding-bottom: 36px;
+  border-bottom: 1px solid #d9c9c1;
+}
+
+.fitting-room-prototype h2,
+.fitting-room-prototype h3,
+.fitting-room-prototype p,
+.fitting-room-prototype blockquote {
+  margin-top: 0;
+}
+
+.fitting-room-prototype h2 {
+  margin-bottom: 8px;
+  color: #2b1824;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.fitting-room-prototype__brief blockquote {
+  max-width: 72ch;
+  margin-bottom: 0;
+  color: #58424f;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.fitting-room-prototype__brief ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fitting-room-prototype__brief li {
+  padding: 8px 10px;
+  color: #55213b;
+  background: #f3dce6;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.fitting-room-prototype__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.55fr);
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.fitting-room-prototype__catalogue,
+.fitting-room-prototype__board,
+.fitting-room-prototype__controls,
+.fitting-room-prototype__technical {
+  padding: clamp(18px, 2.4vw, 30px);
+  background: #fffdf9;
+  border: 1px solid #ded1ca;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(65, 29, 47, 0.07);
+}
+
+.fitting-room-prototype__section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.fitting-room-prototype__section-heading h2 {
+  margin: 2px 0 0;
+}
+
+.fitting-room-prototype__section-heading > span,
+.fitting-room-prototype__section-heading > strong {
+  color: #725461;
+  font-size: 0.9rem;
+}
+
+.fitting-room-prototype__product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fitting-room-prototype__product-grid article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e5dad4;
+  border-radius: 13px;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.fitting-room-prototype__product-grid article.is-selected {
+  border-color: #a93d6d;
+  box-shadow: inset 0 0 0 2px rgba(169, 61, 109, 0.12);
+  transform: translateY(-2px);
+}
+
+.fitting-room-prototype__swatch {
+  position: relative;
+  height: 130px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: linear-gradient(140deg, #321a2b, #0d0b11);
+  border-radius: 9px;
+}
+
+.fitting-room-prototype__swatch::before,
+.fitting-room-prototype__swatch::after {
+  position: absolute;
+  content: '';
+}
+
+.fitting-room-prototype__swatch::before {
+  inset: 18px 31%;
+  background: linear-gradient(160deg, #171218, #513247);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 45% 45% 14% 14%;
+  transform: rotate(-2deg);
+}
+
+.fitting-room-prototype__swatch::after {
+  inset: auto 18px 14px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.fitting-room-prototype__swatch--fv-206 {
+  background: linear-gradient(155deg, #6e1838, #210b18);
+}
+
+.fitting-room-prototype__swatch--fv-304::before {
+  inset: 42px 28%;
+  border-radius: 50%;
+}
+
+.fitting-room-prototype__swatch--fv-408::before,
+.fitting-room-prototype__swatch--fv-409::before {
+  inset: 24px 12%;
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 68% 72%, 50% 100%, 32% 72%, 0 100%);
+}
+
+.fitting-room-prototype__product-grid article > span {
+  color: #a93d6d;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fitting-room-prototype__product-grid h3 {
+  min-height: 2.5em;
+  margin: 4px 0 6px;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.fitting-room-prototype__product-grid p {
+  min-height: 4.2em;
+  margin-bottom: 10px;
+  color: #755f69;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.fitting-room-prototype__product-grid dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 0;
+}
+
+.fitting-room-prototype__product-grid dl div {
+  min-width: 0;
+}
+
+.fitting-room-prototype__product-grid dt,
+.fitting-room-prototype__product-grid dd {
+  margin: 0;
+  font-size: 0.66rem;
+}
+
+.fitting-room-prototype__product-grid dt {
+  color: #9b828e;
+}
+
+.fitting-room-prototype__product-grid dd {
+  margin-top: 2px;
+  overflow: hidden;
+  color: #3d2532;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+}
+
+.fitting-room-prototype__board ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fitting-room-prototype__board ol li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee5df;
+}
+
+.fitting-room-prototype__board ol li > div:last-child {
+  text-align: right;
+}
+
+.fitting-room-prototype__board ol strong,
+.fitting-room-prototype__board ol span {
+  display: block;
+}
+
+.fitting-room-prototype__board ol span {
+  margin-top: 3px;
+  color: #846e79;
+  font-size: 0.72rem;
+}
+
+.fitting-room-prototype__board .fitting-room-prototype__pin {
+  color: #a12f62;
+  font-weight: 750;
+}
+
+.fitting-room-prototype__owned {
+  background: #f8f2ed;
+}
+
+.fitting-room-prototype__empty {
+  padding: 24px;
+  color: #7c6470;
+  background: #f8f2ed;
+  border-radius: 12px;
+  line-height: 1.55;
+}
+
+.fitting-room-prototype__validation,
+.fitting-room-prototype__review,
+.fitting-room-prototype__hold {
+  margin-top: 18px;
+  padding: 16px;
+  background: #fff3e0;
+  border-left: 4px solid #d9902e;
+  border-radius: 6px 12px 12px 6px;
+}
+
+.fitting-room-prototype__validation.is-valid,
+.fitting-room-prototype__hold {
+  background: #e7f5eb;
+  border-left-color: #338452;
+}
+
+.fitting-room-prototype__validation strong,
+.fitting-room-prototype__validation span,
+.fitting-room-prototype__review strong,
+.fitting-room-prototype__review span {
+  display: block;
+}
+
+.fitting-room-prototype__validation span,
+.fitting-room-prototype__review span,
+.fitting-room-prototype__review p,
+.fitting-room-prototype__hold p {
+  margin: 5px 0 0;
+  color: #705863;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.fitting-room-prototype__validation ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: #704817;
+  font-size: 0.8rem;
+}
+
+.fitting-room-prototype__review h3,
+.fitting-room-prototype__hold h3 {
+  margin: 5px 0;
+}
+
+.fitting-room-prototype__hold button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  color: #5e7163;
+  background: #d9e8dc;
+  border: 0;
+  border-radius: 8px;
+}
+
+.fitting-room-prototype__controls {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.38fr) minmax(0, 0.62fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.fitting-room-prototype__controls h2 {
+  margin: 4px 0 8px;
+  font-size: 1.8rem;
+}
+
+.fitting-room-prototype__controls p {
+  color: #755f69;
+  line-height: 1.5;
+}
+
+.fitting-room-prototype__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-content: start;
+  justify-content: flex-end;
+}
+
+.fitting-room-prototype__buttons button {
+  min-height: 44px;
+  padding: 10px 14px;
+  color: #4b2638;
+  background: #f4e7ed;
+  border: 1px solid #d5afc0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.fitting-room-prototype__buttons button:hover:not(:disabled) {
+  background: #edd6e1;
+}
+
+.fitting-room-prototype__buttons button.is-primary {
+  color: #fff;
+  background: #8f2455;
+  border-color: #8f2455;
+}
+
+.fitting-room-prototype__buttons button.is-quiet {
+  color: #76616b;
+  background: transparent;
+}
+
+.fitting-room-prototype__buttons button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.fitting-room-prototype__controls > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 12px;
+  background: #f8f2ed;
+  border-radius: 8px;
+}
+
+.fitting-room-prototype__technical {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.fitting-room-prototype__technical summary {
+  cursor: pointer;
+  color: #5a2540;
+  font-weight: 800;
+}
+
+.fitting-room-prototype__technical p,
+.fitting-room-prototype__technical li {
+  color: #725d67;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.fitting-room-prototype__technical code {
+  color: #671c40;
+}
+
+.fitting-room-prototype__technical .is-temporary {
+  color: #217044;
+  font-weight: 750;
+}
+
+.fitting-room-prototype__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px clamp(24px, 4vw, 56px);
+  color: #d8bdca;
+  background: #35172a;
+  border-radius: 0 0 24px 24px;
+}
+
+.fitting-room-prototype__footer p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.fitting-room-prototype__footer a {
+  color: #ffd9e9;
+}
+
+@media (max-width: 1040px) {
+  .fitting-room-prototype__workspace,
+  .fitting-room-prototype__brief,
+  .fitting-room-prototype__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .fitting-room-prototype__product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fitting-room-prototype__buttons {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .fitting-room-prototype {
+    padding: 0;
+  }
+
+  .fitting-room-prototype__header {
+    grid-template-columns: 1fr;
+    padding: 24px 18px;
+    border-radius: 0;
+  }
+
+  .fitting-room-prototype__main {
+    padding: 18px 12px;
+  }
+
+  .fitting-room-prototype__product-grid,
+  .fitting-room-prototype__technical {
+    grid-template-columns: 1fr;
+  }
+
+  .fitting-room-prototype__product-grid article {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  .fitting-room-prototype__swatch {
+    grid-row: 1 / 6;
+    height: 140px;
+    margin-bottom: 0;
+  }
+
+  .fitting-room-prototype__product-grid h3,
+  .fitting-room-prototype__product-grid p {
+    min-height: 0;
+  }
+
+  .fitting-room-prototype__footer {
+    flex-direction: column;
+    border-radius: 0;
+  }
+}

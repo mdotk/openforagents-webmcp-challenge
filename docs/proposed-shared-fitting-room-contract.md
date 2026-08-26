@@ -1,10 +1,11 @@
 # Proposed shared fitting-room WebMCP contract
 
-Status: proposed contract, not implemented or qualified.
+Status: implemented as a separate prototype and locally qualified in Chrome;
+not yet the current challenge entry.
 
-This document freezes the minimum technical boundary for the proposed shared
-fitting-room experience. It does not describe the current Launch Window A-01
-application or establish browser compatibility.
+This document records the minimum technical boundary for the shared
+fitting-room prototype. It does not describe the current Launch Window A-01
+application or establish compatibility with every browser or agent.
 
 ## Contract principles
 
