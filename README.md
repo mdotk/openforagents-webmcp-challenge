@@ -87,7 +87,11 @@ The experimental Rack Rescue finalist is available at:
 ```
 
 It remains a candidate rather than the current challenge entry. The root URL
-continues to open Launch Window A-01.
+continues to open Launch Window A-01. Its current
+[qualification record](docs/rack-rescue-qualification.md),
+[submission draft](docs/rack-rescue-submission-draft.md) and
+[video storyboard](docs/rack-rescue-video-storyboard.md) keep the remaining
+external-agent gate explicit.
 
 ## Test and build
 

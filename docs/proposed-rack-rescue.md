@@ -3,8 +3,13 @@
 Status: implemented candidate at `?experience=rack-rescue`. It is not the
 current challenge entry and has not been submitted. Its deterministic domain,
 five WebMCP tools, visible fallback journey and responsive presentation pass
-local automated and rendered-browser checks. A real external-agent reasoning
-journey remains required before it can replace the current entry.
+local automated and rendered-browser checks. The complete thirteen- and
+fourteen-dish journey now also passes through the registered WebMCP tool
+implementations. A real external-agent reasoning journey remains required
+before it can replace the current entry. See the
+[qualification record](rack-rescue-qualification.md),
+[submission draft](rack-rescue-submission-draft.md) and
+[video storyboard](rack-rescue-video-storyboard.md).
 
 ## The experience
 
