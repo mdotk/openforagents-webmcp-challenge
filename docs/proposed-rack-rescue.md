@@ -1,7 +1,10 @@
 # Proposed Rack Rescue
 
-Status: finalist concept. It is not the current challenge entry and has not
-been implemented or qualified.
+Status: implemented candidate at `?experience=rack-rescue`. It is not the
+current challenge entry and has not been submitted. Its deterministic domain,
+five WebMCP tools, visible fallback journey and responsive presentation pass
+local automated and rendered-browser checks. A real external-agent reasoning
+journey remains required before it can replace the current entry.
 
 ## The experience
 
@@ -176,9 +179,11 @@ without replacing the human interface.
 ## Acceptance before selection as the entry
 
 - A compatible external browser agent constructs a valid plan from the
-  structured rack state; the application does not supply the solution.
+  structured rack state; the application does not supply the solution. This
+  remains pending.
 - At least one first preview fails for a clear, current constraint and the
-  agent repairs its plan from the returned conflict.
+  agent repairs its plan from the returned conflict. The site-controlled
+  fallback proves this contract; external-agent proof remains pending.
 - The human pin remains unchanged through both plans.
 - Introducing the roasting tray invalidates the earlier revision.
 - The second plan fits the tray while minimizing changes to unlocked dishes.
@@ -187,4 +192,4 @@ without replacing the human interface.
 - Undo restores one eligible plan and refuses replay.
 - The arrangement and movement are understandable without reading a technical
   log.
-- The page works at desktop, 390 px and 320 px widths.
+- The page works at desktop, 390 px and 320 px widths. Passed.

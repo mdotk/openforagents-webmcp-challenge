@@ -27,6 +27,10 @@ under the following MIT License:
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
+The production application also includes Phosphor Icons for React 2.1.10.
+Phosphor Icons is Copyright (c) 2020 Phosphor Icons and is provided under the
+same MIT License terms reproduced above.
+
 Development dependencies are installed from the versions recorded in
 `package-lock.json`. Their licence texts remain available in their respective
 packages.

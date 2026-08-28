@@ -50,3 +50,19 @@ export type {
   ReservationReviewStatus,
   ShopperContext,
 } from './fitting-room'
+export type {
+  RackConflict,
+  RackConflictCode,
+  RackDish,
+  RackDishId,
+  RackDishKind,
+  RackMoveInput,
+  RackOrientation,
+  RackPlacement,
+  RackPlanPreview,
+  RackRescueControl,
+  RackRescueToolsRegistration,
+  RackSnapshot,
+  RackSubscriber,
+  RackUndoGrant,
+} from './rack-rescue'

@@ -80,6 +80,15 @@ npm run dev
 
 Vite prints the local URL. Open that URL in a browser to use the experience.
 
+The experimental Rack Rescue finalist is available at:
+
+```text
+?experience=rack-rescue
+```
+
+It remains a candidate rather than the current challenge entry. The root URL
+continues to open Launch Window A-01.
+
 ## Test and build
 
 Run the automated tests once:
