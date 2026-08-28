@@ -57,6 +57,12 @@ const moves = [
   ['RR-BLUE-BOWL-2', 5, 1, 'north'],
 ].map(([dish_id, column, row, orientation]) => ({ dish_id, column, row, orientation }))
 
+const movesAfterTray = [
+  ...moves.filter((move) => move.dish_id !== 'RR-IVORY-BOWL-1'),
+  { dish_id: 'RR-IVORY-BOWL-1', column: 6, row: 1, orientation: 'north' },
+  { dish_id: 'RR-ROASTING-TRAY', column: 0, row: 0, orientation: 'north' },
+]
+
 describe('registerRackRescueTools', () => {
   it('registers exactly five closed-schema tools and no hidden solver or commerce tool', async () => {
     const modelContext = new FakeModelContext()
@@ -158,6 +164,71 @@ describe('registerRackRescueTools', () => {
       expected_revision: 4,
       undo_token: 'rack-undo-001',
     }))).rejects.toThrow('unavailable')
+
+    await registration.dispose()
+  })
+
+  it('adapts through the WebMCP tools when the forgotten tray appears', async () => {
+    const control = createRackRescueControl()
+    control.pinRedMug(0)
+    const modelContext = new FakeModelContext()
+    const registration = await registerRackRescueTools(control, { modelContext })
+
+    const firstPreview = await modelContext.invoke('preview_load_plan', {
+      expected_revision: 1,
+      moves,
+    })
+    expect(firstPreview.structuredContent).toMatchObject({
+      id: 'rack-preview-001',
+      valid: true,
+      conflicts: [],
+    })
+    await modelContext.invoke('apply_load_plan', {
+      expected_revision: 2,
+      preview_id: 'rack-preview-001',
+    })
+
+    control.revealRoastingTray(3)
+    const changed = await modelContext.invoke('get_rack_state')
+    expect(changed.structuredContent).toMatchObject({
+      revision: 4,
+      roastingTrayRevealed: true,
+    })
+    expect(
+      (changed.structuredContent as { dishes: { id: string }[] }).dishes,
+    ).toHaveLength(14)
+
+    const secondPreview = await modelContext.invoke('preview_load_plan', {
+      expected_revision: 4,
+      moves: movesAfterTray,
+    })
+    expect(secondPreview.structuredContent).toMatchObject({
+      id: 'rack-preview-002',
+      valid: true,
+      conflicts: [],
+    })
+    const applied = await modelContext.invoke('apply_load_plan', {
+      expected_revision: 5,
+      preview_id: 'rack-preview-002',
+    })
+    expect(applied.structuredContent).toMatchObject({
+      revision: 6,
+      conflictCount: 0,
+    })
+    const final = control.getSnapshot()
+    expect(final.placements).toHaveLength(14)
+    expect(final.placements).toContainEqual({
+      dishId: 'RR-ROASTING-TRAY',
+      column: 0,
+      row: 0,
+      orientation: 'north',
+    })
+    expect(final.placements).toContainEqual({
+      dishId: 'RR-RED-MUG',
+      column: 5,
+      row: 3,
+      orientation: 'north',
+    })
 
     await registration.dispose()
   })
