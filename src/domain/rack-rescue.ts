@@ -82,6 +82,14 @@ function dimensions(dishId: RackDishId, orientation: RackOrientation) {
   return [1, 1]
 }
 
+function placementRules(id: RackDishId): readonly string[] {
+  if (id === 'RR-RED-MUG') return ['Keep the exact human-pinned placement when locked.']
+  if (id === 'RR-CHILD-CUP') return ['Place in columns 6–7 and rows 0–1.']
+  if (id === 'RR-CUTLERY') return ['Place at column 7 and row 2 or lower.']
+  if (id === 'RR-ROASTING-TRAY') return ['The tray is unavailable until the person reveals it.']
+  return ['Keep every occupied cell inside the rack and clear of the spray arm.']
+}
+
 function occupiedCells(placement: RackPlacement): string[] {
   const [width, height] = dimensions(placement.dishId, placement.orientation)
   const cells: string[] = []
@@ -241,16 +249,28 @@ function assertRevision(state: InternalState, expectedRevision: number) {
 }
 
 function toSnapshot(state: InternalState): RackSnapshot {
-  const dishes: RackDish[] = dishDefinitions.map(
-    ([id, label, kind, asset, color]) => ({
+  const dishes: RackDish[] = dishDefinitions
+    .filter(([id]) => id !== 'RR-ROASTING-TRAY' || state.roastingTrayRevealed)
+    .map(
+    ([id, label, kind, asset, color]) => {
+      const [northColumns, northRows] = dimensions(id, 'north')
+      const [eastColumns, eastRows] = dimensions(id, 'east')
+      return {
       id,
       label,
       kind,
       asset: `/rack-rescue/${asset}`,
       color,
-      visible: id !== 'RR-ROASTING-TRAY' || state.roastingTrayRevealed,
+      visible: true,
       lockedByHuman: id === 'RR-RED-MUG' && state.mugLocked,
-    }),
+      allowedOrientations: ['north', 'east'],
+      footprints: {
+        north: { columns: northColumns, rows: northRows },
+        east: { columns: eastColumns, rows: eastRows },
+      },
+      placementRules: placementRules(id),
+    }
+    },
   )
   return {
     revision: state.revision,
@@ -314,6 +334,9 @@ export function createRackRescueControl(): RackRescueControl {
       }
       if (!ids.every((id) => dishIds.has(id))) {
         throw new TypeError('dish_ids contains an unknown dish ID.')
+      }
+      if (!ids.every((id) => currentSnapshot.dishes.some((dish) => dish.id === id))) {
+        throw new RackRescueStateError('A requested dish is not currently visible on the page.')
       }
       return ids.map((id) => currentSnapshot.dishes.find((dish) => dish.id === id)!)
     },

@@ -31,7 +31,7 @@ describe('Rack Rescue domain', () => {
 
     expect(snapshot.revision).toBe(0)
     expect(snapshot.dishes.filter((dish) => dish.visible)).toHaveLength(13)
-    expect(snapshot.dishes.find((dish) => dish.id === 'RR-ROASTING-TRAY')?.visible).toBe(false)
+    expect(snapshot.dishes.find((dish) => dish.id === 'RR-ROASTING-TRAY')).toBeUndefined()
     expect(snapshot.placements).toEqual([])
   })
 

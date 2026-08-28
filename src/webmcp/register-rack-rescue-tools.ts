@@ -41,7 +41,11 @@ const emptySchema = Object.freeze({
   additionalProperties: false as const,
 })
 
-const dishIdSchema = Object.freeze({ type: 'string', enum: dishIds })
+const dishIdSchema = Object.freeze({
+  type: 'string',
+  pattern: '^RR-[A-Z0-9-]+$',
+  description: 'Use a canonical dish ID returned by get_rack_state.',
+})
 const dishIdsSchema = Object.freeze({
   type: 'array',
   items: dishIdSchema,

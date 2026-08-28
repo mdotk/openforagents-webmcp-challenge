@@ -32,6 +32,12 @@ export interface RackDish {
   readonly color: 'red' | 'yellow' | 'ivory' | 'blue' | 'steel'
   readonly visible: boolean
   readonly lockedByHuman: boolean
+  readonly allowedOrientations: readonly RackOrientation[]
+  readonly footprints: {
+    readonly north: { readonly columns: number; readonly rows: number }
+    readonly east: { readonly columns: number; readonly rows: number }
+  }
+  readonly placementRules: readonly string[]
 }
 
 export interface RackPlacement {
