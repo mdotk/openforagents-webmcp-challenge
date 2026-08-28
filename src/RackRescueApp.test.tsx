@@ -25,6 +25,8 @@ describe('Rack Rescue experience', () => {
 
     await user.click(screen.getByRole('button', { name: 'Pin my red mug' }))
     expect(screen.getByLabelText('Pinned by you')).toBeVisible()
+    expect(screen.getByText('Ready for the agent')).toBeVisible()
+    expect(screen.queryByText('First load fitted')).not.toBeInTheDocument()
 
     await user.click(screen.getByText('No compatible agent? Run the same visible prototype journey'))
     await user.click(screen.getByRole('button', { name: 'Show blocked first plan' }))

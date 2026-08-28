@@ -279,7 +279,7 @@ function RackRescueApp() {
               )
             ) : snapshot.roastingTrayRevealed && snapshot.placements.some((placement) => placement.dishId === 'RR-ROASTING-TRAY') ? (
               <><CheckCircle weight="fill" /><div><strong>Everything fits</strong><span>The mug stayed pinned. Zero conflicts.</span></div></>
-            ) : snapshot.placements.length ? (
+            ) : agentPlacedDishCount > 0 ? (
               <><CheckCircle weight="fill" /><div><strong>First load fitted</strong><span>Now add the forgotten tray.</span></div></>
             ) : (
               <><MagicWand weight="fill" /><div><strong>Ready for the agent</strong><span>Pin your mug, then ask it to fit the load.</span></div></>
