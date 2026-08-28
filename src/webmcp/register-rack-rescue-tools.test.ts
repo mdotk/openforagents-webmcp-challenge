@@ -81,14 +81,16 @@ describe('registerRackRescueTools', () => {
     const read = await modelContext.invoke('get_rack_state')
     expect(read.content[0]?.text).toContain('do not repeat the read')
     expect(read.content[0]?.text).toContain('red mug pinned by the person')
-    expect((read.structuredContent as { dishes: unknown[] }).dishes[0]).toMatchObject({
-      id: 'RR-RED-MUG',
-      footprints: {
-        north: { columns: 1, rows: 1 },
-        east: { columns: 1, rows: 1 },
-      },
-      placementRules: ['Keep the exact human-pinned placement when locked.'],
-    })
+    expect(
+      (read.structuredContent as { dishes: unknown[] }).dishes[0],
+    ).toMatchObject({
+        id: 'RR-RED-MUG',
+        footprints: {
+          north: { columns: 1, rows: 1 },
+          east: { columns: 1, rows: 1 },
+        },
+        placementRules: ['Keep the exact human-pinned placement when locked.'],
+      })
 
     const inspected = await modelContext.invoke('inspect_dishes', {
       dish_ids: ['RR-IVORY-PLATE-1', 'RR-CHILD-CUP'],
@@ -97,7 +99,10 @@ describe('registerRackRescueTools', () => {
       {
         id: 'RR-IVORY-PLATE-1',
         allowedOrientations: ['north', 'east'],
-        footprints: { north: { columns: 1, rows: 2 }, east: { columns: 2, rows: 1 } },
+        footprints: {
+          north: { columns: 1, rows: 2 },
+          east: { columns: 2, rows: 1 },
+        },
       },
       {
         id: 'RR-CHILD-CUP',
