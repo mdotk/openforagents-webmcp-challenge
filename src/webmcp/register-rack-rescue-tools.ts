@@ -112,6 +112,39 @@ function structuredResult(summary: string, value: unknown): WebMcpToolResult {
   return { content: [{ type: 'text', text: summary }], structuredContent: value }
 }
 
+function agentRackState(control: RackRescueControl) {
+  const snapshot = control.getSnapshot()
+  const dishTypes = Object.fromEntries(
+    [...new Set(snapshot.dishes.map((dish) => dish.kind))].map((kind) => {
+      const representative = snapshot.dishes.find((dish) => dish.kind === kind)!
+      return [
+        kind,
+        {
+          allowedOrientations: representative.allowedOrientations,
+          footprints: representative.footprints,
+          placementRules: representative.placementRules,
+        },
+      ]
+    }),
+  )
+  return {
+    revision: snapshot.revision,
+    rack: snapshot.rack,
+    dishes: snapshot.dishes.map((dish) => ({
+      id: dish.id,
+      kind: dish.kind,
+      lockedByHuman: dish.lockedByHuman,
+      placement:
+        snapshot.placements.find((placement) => placement.dishId === dish.id) ??
+        null,
+    })),
+    dishTypes,
+    preview: snapshot.preview,
+    undo: snapshot.undo,
+    roastingTrayRevealed: snapshot.roastingTrayRevealed,
+  }
+}
+
 function expectedRevision(args: Record<string, unknown>) {
   if (!Number.isInteger(args.expected_revision) || (args.expected_revision as number) < 0) {
     throw new TypeError('expected_revision must be a non-negative integer.')
@@ -219,10 +252,11 @@ function createTools(control: RackRescueControl): readonly WebMcpTool[] {
       annotations: read,
       execute: () => {
         const snapshot = control.getSnapshot()
+        const agentState = agentRackState(control)
         const visible = snapshot.dishes.filter((dish) => dish.visible).length
         return structuredResult(
           `Rack read successfully. Revision ${snapshot.revision}; ${visible} visible dishes; ${snapshot.placements.length} placed; ${snapshot.conflictCount} preview conflicts; red mug ${snapshot.dishes.find((dish) => dish.id === 'RR-RED-MUG')?.lockedByHuman ? 'pinned by the person' : 'not pinned'}; forgotten tray ${snapshot.roastingTrayRevealed ? 'revealed' : 'not yet revealed'}. Use this result and do not repeat the read in the same turn.`,
-          snapshot,
+          agentState,
         )
       },
     },

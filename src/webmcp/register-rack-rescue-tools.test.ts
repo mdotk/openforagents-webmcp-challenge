@@ -81,16 +81,23 @@ describe('registerRackRescueTools', () => {
     const read = await modelContext.invoke('get_rack_state')
     expect(read.content[0]?.text).toContain('do not repeat the read')
     expect(read.content[0]?.text).toContain('red mug pinned by the person')
+    expect((read.structuredContent as { dishes: unknown[] }).dishes[0]).toMatchObject({
+      id: 'RR-RED-MUG',
+      kind: 'mug',
+      lockedByHuman: true,
+      placement: { dishId: 'RR-RED-MUG', column: 5, row: 3 },
+    })
     expect(
-      (read.structuredContent as { dishes: unknown[] }).dishes[0],
+      (read.structuredContent as { dishTypes: Record<string, unknown> })
+        .dishTypes.mug,
     ).toMatchObject({
-        id: 'RR-RED-MUG',
         footprints: {
           north: { columns: 1, rows: 1 },
           east: { columns: 1, rows: 1 },
         },
         placementRules: ['Keep the exact human-pinned placement when locked.'],
-      })
+    })
+    expect(JSON.stringify(read.structuredContent).length).toBeLessThan(7500)
 
     const inspected = await modelContext.invoke('inspect_dishes', {
       dish_ids: ['RR-IVORY-PLATE-1', 'RR-CHILD-CUP'],
