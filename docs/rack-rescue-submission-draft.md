@@ -9,9 +9,9 @@ Rack Rescue
 
 ## One-line description
 
-A person pins the dish that matters, then a browser agent fits the whole load,
-repairs an unsafe plan and adapts when a forgotten roasting tray changes the
-problem.
+A person chooses exactly where their red mug must stay, then a browser agent
+fits the whole load, repairs an unsafe plan and adapts when a forgotten
+roasting tray changes the problem.
 
 ## The problem
 
@@ -22,10 +22,10 @@ physical constraints and preserves the choices another person has already
 made.
 
 Rack Rescue begins with thirteen visible dishes beside an empty dishwasher
-rack. The person pins their red mug in one exact position. The child's cup must
-remain in its safe zone, the cutlery must stay in its basket zone, two cells
-above the spray arm must remain clear and a six-cell area is reserved for a
-roasting tray.
+rack. The person drags their red mug into one of three qualified rack positions
+or chooses the position directly. The child's cup must remain in its safe zone,
+the cutlery must stay in its basket zone, two cells above the spray arm must
+remain clear and a six-cell area is reserved for a roasting tray.
 
 The agent must construct the arrangement itself. The website does not expose a
 `solve_rack` tool or return a prepared answer. It exposes the current shared
@@ -62,9 +62,10 @@ safely allowed.
 
 ## What the person and agent do together
 
-The person starts by selecting the boundary that matters to them: **Keep this
-mug here**. They then ask the agent to fit every visible dish while preserving
-that pin and the household rules.
+The person starts by dragging the red mug into the rack or choosing one of the
+three marked spots. That exact position becomes the boundary the agent cannot
+move. They then ask the agent to fit every visible dish while preserving the
+mug and the household rules.
 
 The agent reads the live rack and dish geometry, constructs a plan and previews
 it. Nothing moves during preview. If a plate blocks the spray arm or two dishes
@@ -104,15 +105,17 @@ data behind the experience.
 
 ## Current evidence and limit
 
-The candidate passes lint, TypeScript, the production build and 44
+The candidate passes lint, TypeScript, the production build and 47
 deterministic tests. Those tests cover the five registered tools, closed
 schemas, hidden-tray boundary, structured conflicts, full thirteen- and
-fourteen-dish plans, human locks, stale revisions, cancellation and one-use
-Undo.
+fourteen-dish plans, human-selected mug placement, pointer cancellation, human
+locks, stale revisions, cancellation and one-use Undo.
 
-The deployed route has been checked at desktop, 390 px and 320 px with no
-horizontal overflow or console errors. In the tested Chrome session the page
-completed registration and reported five native tools.
+The current interaction has been checked at desktop, 390 px and 320 px with no
+horizontal overflow or console errors. On the canonical deployed route, a real
+pointer drag selected a non-default mug position and the guided thirteen- then
+fourteen-dish journey completed without moving it. In the tested Chrome session
+the page completed registration and reported five native tools.
 
 Two deliberately small local models were also given the real tool contract.
 Their invalid calls were rejected without changing the rack or moving the red
@@ -126,7 +129,8 @@ through the deployed WebMCP tools. That qualification remains pending.
 ## Testing instructions
 
 1. Open the Rack Rescue URL in a compatible browser agent.
-2. Select **Keep this mug here** on the page.
+2. Drag the red mug onto a marked rack spot, or choose one of the three spots
+   directly.
 3. Ask the agent to fit every visible dish, preserve the mug, keep the child's
    cup and cutlery in their required zones, keep the spray arm clear and leave
    room for the roasting tray.

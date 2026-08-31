@@ -17,7 +17,8 @@ The browser-local candidate contains:
 - Thirteen initially visible dishes with finite footprints and orientations.
 - One genuinely hidden tray that is absent from the WebMCP state until the
   person reveals it.
-- A person-controlled red-mug pin that the agent cannot move.
+- Three qualified rack positions the person can choose for the red mug by
+  dragging it or selecting a spot directly. The agent cannot move that choice.
 - Separate safe-zone and basket-zone rules for the child's cup and cutlery.
 - Five permanent closed-schema WebMCP tools with revision checks.
 - Preview without movement, structured conflicts, exact apply and one-use
@@ -29,8 +30,9 @@ model credential.
 
 ## Automated checks
 
-At commit `51dc1720a65f6e2f8b321eb62fef95c78072a85e`, `npm run check`
-passes lint, 44 deterministic tests and the production TypeScript/Vite build.
+At behavior commit `99a12afada3b8e7c95b7ad718763ba9b4fb503b9`, the full
+`npm run check` command passes lint, 47 deterministic tests and the production
+TypeScript/Vite build.
 
 The Rack Rescue tests cover:
 
@@ -43,6 +45,8 @@ The Rack Rescue tests cover:
 - Complete zero-conflict thirteen-dish and fourteen-dish plans through the
   registered WebMCP tool implementations.
 - Preservation of the human-pinned red mug across both plans.
+- Pointer dragging, direct spot selection, cancelled-drag recovery and
+  keyboard focus transfer.
 - Stale revisions, overlaps, blocked spray cells, invalid zones and locked
   movement.
 - Exact preview application, one-use Undo and replay rejection.
@@ -52,9 +56,16 @@ The Rack Rescue tests cover:
 
 ## Rendered browser checks
 
-The deployed candidate has been inspected in the user's existing Chrome
-session at desktop, 390 px and 320 px. The page remained legible and produced
-no horizontal overflow, console warning or console error at the tested widths.
+The corrected interaction was inspected in the user's existing Chrome session
+at desktop, 390 px and 320 px. The page remained legible and produced no
+horizontal overflow, console warning or console error at the tested widths.
+
+Vercel production deployment `dpl_2PAD3mGCzYfjB7XFXQxCEuu26dcd` is bound to
+behavior commit `99a12afada3b8e7c95b7ad718763ba9b4fb503b9`. On the canonical
+URL, a real pointer drag placed the mug at the non-default lower position. The
+guided flow then rejected a spray-blocking layout, applied a safe thirteen-dish
+layout, revealed the tray and applied a safe fourteen-dish layout. The final
+mug remained at the selected position and the tray was present.
 
 The deployed page completed its own native registration and reported five
 native tools. Chrome automation's isolated execution world did not expose the
