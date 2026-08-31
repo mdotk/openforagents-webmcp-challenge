@@ -80,7 +80,7 @@ describe('registerRackRescueTools', () => {
 
   it('returns a terminal rack read and structured visible conflicts', async () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 0, 5)
     const modelContext = new FakeModelContext()
     const registration = await registerRackRescueTools(control, { modelContext })
 
@@ -91,7 +91,7 @@ describe('registerRackRescueTools', () => {
       id: 'RR-RED-MUG',
       kind: 'mug',
       lockedByHuman: true,
-      placement: { dishId: 'RR-RED-MUG', column: 5, row: 3 },
+      placement: { dishId: 'RR-RED-MUG', column: 0, row: 5 },
     })
     expect(
       (read.structuredContent as { dishTypes: Record<string, unknown> })
@@ -123,9 +123,11 @@ describe('registerRackRescueTools', () => {
       },
     ])
 
-    const blockedMoves = moves.map((move) =>
-      move.dish_id === 'RR-IVORY-PLATE-3' ? { ...move, column: 3 } : move,
-    )
+    const blockedMoves = moves.map((move) => {
+      if (move.dish_id === 'RR-RED-MUG') return { ...move, column: 0, row: 5 }
+      if (move.dish_id === 'RR-IVORY-PLATE-3') return { ...move, column: 3 }
+      return move
+    })
     const blocked = await modelContext.invoke('preview_load_plan', {
       expected_revision: 1,
       moves: blockedMoves,
@@ -134,12 +136,24 @@ describe('registerRackRescueTools', () => {
     expect(blocked.structuredContent).toMatchObject({ valid: false })
     expect(control.getSnapshot().placements).toHaveLength(1)
 
+    const movedLockedMug = await modelContext.invoke('preview_load_plan', {
+      expected_revision: 2,
+      moves,
+    })
+    expect(
+      (movedLockedMug.structuredContent as { conflicts: { code: string }[] })
+        .conflicts.map((conflict) => conflict.code),
+    ).toContain('LOCKED_DISH')
+    expect(control.getSnapshot().placements).toEqual([
+      { dishId: 'RR-RED-MUG', column: 0, row: 5, orientation: 'north' },
+    ])
+
     await registration.dispose()
   })
 
   it('applies only an exact valid preview and creates a one-use Undo', async () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     const modelContext = new FakeModelContext()
     const registration = await registerRackRescueTools(control, { modelContext })
 
@@ -170,7 +184,7 @@ describe('registerRackRescueTools', () => {
 
   it('adapts through the WebMCP tools when the forgotten tray appears', async () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     const modelContext = new FakeModelContext()
     const registration = await registerRackRescueTools(control, { modelContext })
 
@@ -235,7 +249,7 @@ describe('registerRackRescueTools', () => {
 
   it('does not mutate when an execution is cancelled before commit', async () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     const modelContext = new FakeModelContext()
     const registration = await registerRackRescueTools(control, { modelContext })
     const abort = new AbortController()

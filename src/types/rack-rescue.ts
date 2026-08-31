@@ -107,7 +107,7 @@ export interface RackRescueControl {
   getSnapshot(): RackSnapshot
   subscribe(subscriber: RackSubscriber): () => void
   inspectDishes(dishIds: readonly RackDishId[]): readonly RackDish[]
-  pinRedMug(expectedRevision: number): RackSnapshot
+  pinRedMug(expectedRevision: number, column: number, row: number): RackSnapshot
   revealRoastingTray(expectedRevision: number): RackSnapshot
   previewLoadPlan(
     expectedRevision: number,

@@ -9,5 +9,6 @@ export {
 } from './fitting-room'
 export {
   createRackRescueControl,
+  rackRescueMugTargets,
   RackRescueStateError,
 } from './rack-rescue'

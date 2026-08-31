@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import RackRescueApp from './RackRescueApp'
 
 afterEach(cleanup)
@@ -11,8 +11,10 @@ describe('Rack Rescue experience', () => {
 
     expect(screen.getByRole('heading', { name: 'Keep my mug here. Fit everything else.' })).toBeVisible()
     expect(screen.getByText(/your browser agent works out how to load every other dish/i)).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Keep this mug here.' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Keep this mug here' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Put your mug in the rack.' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Choose a marked spot' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Move your red mug' })).toBeVisible()
+    expect(screen.getAllByRole('button', { name: /put the red mug in the .* rack spot/i })).toHaveLength(3)
     expect(await screen.findByText('Agent tools are unavailable — try the guided demo below')).toBeVisible()
     expect(screen.queryByText('Revision 0')).not.toBeVisible()
     expect(screen.queryByText('5 modeled tools · native unavailable')).not.toBeVisible()
@@ -24,8 +26,12 @@ describe('Rack Rescue experience', () => {
     render(<RackRescueApp />)
     await screen.findByText('Agent tools are unavailable — try the guided demo below')
 
-    await user.click(screen.getByRole('button', { name: 'Keep this mug here' }))
+    await user.click(screen.getByRole('button', { name: 'Put the red mug in the lower rack spot' }))
     expect(screen.getByLabelText('Pinned by you')).toBeVisible()
+    expect(screen.getByAltText('Your red mug').closest('[data-dish-id="RR-RED-MUG"]')).toHaveStyle({
+      left: '51.8%',
+      top: '74%',
+    })
     expect(screen.getByRole('heading', { name: 'Your mug is safe.' })).toBeVisible()
     expect(screen.getByText(/fit every visible dish into the rack/i)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Copy request' })).toBeVisible()
@@ -48,5 +54,72 @@ describe('Rack Rescue experience', () => {
     expect(screen.getByText('14 dishes loaded. Your mug never moved. The spray arm is clear.')).toBeVisible()
     expect(screen.getByAltText('Your red mug')).toBeVisible()
     expect(screen.getByAltText('Forgotten roasting tray')).toBeVisible()
+  })
+
+  it('lets a person drag the mug from the counter onto a marked rack spot', async () => {
+    render(<RackRescueApp />)
+    await screen.findByText('Agent tools are unavailable — try the guided demo below')
+
+    const stage = screen.getByRole('region', { name: 'Dishwasher rack and dishes' })
+    vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({
+      bottom: 562,
+      height: 562,
+      left: 0,
+      right: 1000,
+      top: 0,
+      width: 1000,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+    const mug = screen.getByRole('button', { name: 'Move your red mug' })
+    Object.assign(mug, {
+      hasPointerCapture: () => false,
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    })
+
+    fireEvent.pointerDown(mug, { clientX: 80, clientY: 96, pointerId: 1 })
+    fireEvent.pointerMove(mug, { clientX: 790, clientY: 70, pointerId: 1 })
+    fireEvent.pointerUp(mug, { clientX: 790, clientY: 70, pointerId: 1 })
+
+    expect(screen.getByRole('heading', { name: 'Your mug is safe.' })).toBeVisible()
+    expect(screen.getByAltText('Your red mug').closest('[data-dish-id="RR-RED-MUG"]')).toHaveStyle({
+      left: '79.05%',
+      top: '12.5%',
+    })
+  })
+
+  it('returns a cancelled drag to the counter without swallowing keyboard selection', async () => {
+    render(<RackRescueApp />)
+    await screen.findByText('Agent tools are unavailable — try the guided demo below')
+
+    const stage = screen.getByRole('region', { name: 'Dishwasher rack and dishes' })
+    vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({
+      bottom: 562,
+      height: 562,
+      left: 0,
+      right: 1000,
+      top: 0,
+      width: 1000,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+    const mug = screen.getByRole('button', { name: 'Move your red mug' })
+    Object.assign(mug, {
+      hasPointerCapture: () => false,
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    })
+
+    fireEvent.pointerDown(mug, { clientX: 80, clientY: 96, pointerId: 1 })
+    fireEvent.pointerMove(mug, { clientX: 790, clientY: 70, pointerId: 1 })
+    fireEvent.pointerCancel(mug, { clientX: 790, clientY: 70, pointerId: 1 })
+    expect(screen.getByRole('button', { name: 'Move your red mug' })).toBeVisible()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    fireEvent.click(mug)
+    expect(screen.getByRole('button', { name: 'Put the red mug in the upper rack spot' })).toHaveFocus()
   })
 })

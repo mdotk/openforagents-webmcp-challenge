@@ -22,6 +22,12 @@ const RESERVED_TRAY_CELLS = Object.freeze([
   '2:1',
 ])
 
+export const rackRescueMugTargets = Object.freeze([
+  Object.freeze({ column: 5, row: 0 }),
+  Object.freeze({ column: 5, row: 3 }),
+  Object.freeze({ column: 0, row: 5 }),
+] as const)
+
 const dishDefinitions = Object.freeze([
   ['RR-RED-MUG', 'Your red mug', 'mug', 'red-mug.webp', 'red'],
   ['RR-CHILD-CUP', "Child's cup", 'child-cup', 'child-cup.webp', 'yellow'],
@@ -348,18 +354,41 @@ export function createRackRescueControl(): RackRescueControl {
       }
       return ids.map((id) => currentSnapshot.dishes.find((dish) => dish.id === id)!)
     },
-    pinRedMug(expectedRevision) {
+    pinRedMug(expectedRevision, column, row) {
       assertRevision(state, expectedRevision)
       if (state.mugLocked) throw new RackRescueStateError('The red mug is already pinned.')
+      if (!Number.isInteger(column) || !Number.isInteger(row)) {
+        throw new TypeError('The mug position requires integer column and row values.')
+      }
+      if (column < 0 || column >= COLUMNS || row < 0 || row >= ROWS) {
+        throw new RackRescueStateError('That mug position is outside the rack.')
+      }
+      const cell = `${column}:${row}`
+      if (SPRAY_CELLS.includes(cell as (typeof SPRAY_CELLS)[number])) {
+        throw new RackRescueStateError('The mug cannot block the central spray arm.')
+      }
+      if (!state.roastingTrayRevealed && RESERVED_TRAY_CELLS.includes(cell)) {
+        throw new RackRescueStateError('That spot is being kept clear for the forgotten roasting tray.')
+      }
+      if (!rackRescueMugTargets.some((target) => target.column === column && target.row === row)) {
+        throw new RackRescueStateError('Choose one of the three marked mug spots.')
+      }
+      const occupiedByAnotherDish = state.placements.some(
+        (placement) =>
+          placement.dishId !== 'RR-RED-MUG' && occupiedCells(placement).includes(cell),
+      )
+      if (occupiedByAnotherDish) {
+        throw new RackRescueStateError('That mug spot is already occupied.')
+      }
       state.placements = [
         ...state.placements.filter((placement) => placement.dishId !== 'RR-RED-MUG'),
-        { dishId: 'RR-RED-MUG', column: 5, row: 3, orientation: 'north' },
+        { dishId: 'RR-RED-MUG', column, row, orientation: 'north' },
       ]
       state.mugLocked = true
       state.preview = null
       state.undo = null
       state.revision += 1
-      state.activity.push('You pinned the red mug. The agent must work around it.')
+      state.activity.push(`You placed the red mug at column ${column}, row ${row}. The agent must work around it.`)
       return publish()
     },
     revealRoastingTray(expectedRevision) {

@@ -6,17 +6,20 @@ import {
   Plus,
 } from '@phosphor-icons/react'
 import {
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react'
-import { createRackRescueControl } from './domain'
+import { createRackRescueControl, rackRescueMugTargets } from './domain'
 import type {
   RackDish,
   RackDishId,
   RackMoveInput,
+  RackPlacement,
   RackRescueToolsRegistration,
   RackSnapshot,
 } from './types'
@@ -57,6 +60,22 @@ const planAfterTray: readonly RackMoveInput[] = Object.freeze([
   { dishId: 'RR-IVORY-BOWL-1', column: 6, row: 1, orientation: 'north' },
   { dishId: 'RR-ROASTING-TRAY', column: 0, row: 0, orientation: 'north' },
 ])
+
+const mugTargetLabels = ['Upper rack', 'Middle rack', 'Lower rack'] as const
+const rackColumnLeft = (column: number) => 51.8 + column * 5.45
+const rackRowTop = (row: number) => 12.5 + row * 12.3
+
+function planForPinnedMug(
+  plan: readonly RackMoveInput[],
+  mug: RackPlacement | undefined,
+): readonly RackMoveInput[] {
+  if (!mug) return plan
+  return plan.map((move) =>
+    move.dishId === 'RR-RED-MUG'
+      ? { ...move, column: mug.column, row: mug.row }
+      : move,
+  )
+}
 
 const firstAgentRequest =
   'Fit every visible dish into the rack. Keep my red mug exactly where it is, keep the spray arm clear, and leave room for a roasting tray. Preview a safe plan before moving anything.'
@@ -99,6 +118,12 @@ function RackRescueApp() {
   const [registrationPending, setRegistrationPending] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copiedRequest, setCopiedRequest] = useState<string | null>(null)
+  const [dragPosition, setDragPosition] = useState<{ left: number; top: number } | null>(null)
+  const [activeMugTarget, setActiveMugTarget] = useState<number | null>(null)
+  const stageRef = useRef<HTMLElement | null>(null)
+  const firstMugTargetRef = useRef<HTMLButtonElement | null>(null)
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
+  const dragMovedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -154,6 +179,9 @@ function RackRescueApp() {
   )
   const visibleDishes = snapshot.dishes.filter((dish) => dish.visible)
   const mugLocked = snapshot.dishes.find((dish) => dish.id === 'RR-RED-MUG')?.lockedByHuman
+  const pinnedMug = snapshot.placements.find(
+    (placement) => placement.dishId === 'RR-RED-MUG',
+  )
   const agentPlacedDishCount = snapshot.placements.filter(
     (placement) => placement.dishId !== 'RR-RED-MUG',
   ).length
@@ -169,12 +197,20 @@ function RackRescueApp() {
         : `${permanentRackRescueToolNames.length} modeled tools · native unavailable`
 
   const showBlocked = () =>
-    act(() => control.previewLoadPlan(snapshot.revision, blockedFirstPlan))
+    act(() =>
+      control.previewLoadPlan(
+        snapshot.revision,
+        planForPinnedMug(blockedFirstPlan, pinnedMug),
+      ),
+    )
   const previewGood = () =>
     act(() =>
       control.previewLoadPlan(
         snapshot.revision,
-        snapshot.roastingTrayRevealed ? planAfterTray : planBeforeTray,
+        planForPinnedMug(
+          snapshot.roastingTrayRevealed ? planAfterTray : planBeforeTray,
+          pinnedMug,
+        ),
       ),
     )
   const applyCurrent = () => {
@@ -188,6 +224,96 @@ function RackRescueApp() {
     setRegistrationPending(true)
     setRegistration(null)
     setToolNames([])
+    setDragPosition(null)
+    setActiveMugTarget(null)
+    dragStartRef.current = null
+    dragMovedRef.current = false
+  }
+
+  const nearestMugTarget = useCallback((clientX: number, clientY: number) => {
+    const bounds = stageRef.current?.getBoundingClientRect()
+    if (!bounds || bounds.width === 0 || bounds.height === 0) return null
+    const left = ((clientX - bounds.left) / bounds.width) * 100
+    const top = ((clientY - bounds.top) / bounds.height) * 100
+    if (left < 47 || left > 101 || top < -1 || top > 101) return null
+    let closestIndex = 0
+    let closestDistance = Number.POSITIVE_INFINITY
+    rackRescueMugTargets.forEach((target, index) => {
+      const xDistance = (left - rackColumnLeft(target.column)) * bounds.width / 100
+      const yDistance = (top - rackRowTop(target.row)) * bounds.height / 100
+      const distance = Math.hypot(xDistance, yDistance)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        closestIndex = index
+      }
+    })
+    return closestIndex
+  }, [])
+
+  const placeMug = useCallback((targetIndex: number) => {
+    const target = rackRescueMugTargets[targetIndex]
+    if (!target) return
+    act(() => control.pinRedMug(snapshot.revision, target.column, target.row))
+    setDragPosition(null)
+    setActiveMugTarget(null)
+  }, [act, control, snapshot.revision])
+
+  const updateMugDrag = useCallback((clientX: number, clientY: number) => {
+    const bounds = stageRef.current?.getBoundingClientRect()
+    if (!bounds || bounds.width === 0 || bounds.height === 0) return
+    setDragPosition({
+      left: Math.max(2, Math.min(98, ((clientX - bounds.left) / bounds.width) * 100)),
+      top: Math.max(3, Math.min(97, ((clientY - bounds.top) / bounds.height) * 100)),
+    })
+    setActiveMugTarget(nearestMugTarget(clientX, clientY))
+  }, [nearestMugTarget])
+
+  const handleMugPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (mugLocked) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    dragStartRef.current = { x: event.clientX, y: event.clientY }
+    dragMovedRef.current = false
+    setError(null)
+    updateMugDrag(event.clientX, event.clientY)
+  }
+
+  const handleMugPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const start = dragStartRef.current
+    if (!start) return
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) {
+      dragMovedRef.current = true
+    }
+    updateMugDrag(event.clientX, event.clientY)
+  }
+
+  const finishMugDrag = (event: ReactPointerEvent<HTMLButtonElement>, cancelled = false) => {
+    if (!dragStartRef.current) return
+    const moved = dragMovedRef.current
+    const targetIndex = cancelled ? null : nearestMugTarget(event.clientX, event.clientY)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    dragStartRef.current = null
+    setDragPosition(null)
+    setActiveMugTarget(null)
+    if (cancelled) {
+      dragMovedRef.current = false
+      return
+    }
+    if (!moved) return
+    if (targetIndex === null) {
+      setError('Drop the red mug on one of the three marked rack spots.')
+      return
+    }
+    placeMug(targetIndex)
+  }
+
+  const handleMugClick = () => {
+    if (dragMovedRef.current) {
+      dragMovedRef.current = false
+      return
+    }
+    firstMugTargetRef.current?.focus()
   }
   const copyRequest = (request: string) => {
     if (!navigator.clipboard?.writeText) {
@@ -225,16 +351,16 @@ function RackRescueApp() {
             {!mugLocked ? (
               <>
                 <span className="rack-rescue__step">Your choice</span>
-                <h2>Keep this mug here.</h2>
+                <h2>Put your mug in the rack.</h2>
                 <p>
-                  The red mug stays exactly where you put it. The agent must
-                  work around your choice.
+                  Drag the red mug onto a marked spot—or choose a spot
+                  directly. The agent must fit everything else around it.
                 </p>
                 <button
                   className="rack-rescue__primary-action"
-                  onClick={() => act(() => control.pinRedMug(snapshot.revision))}
+                  onClick={() => firstMugTargetRef.current?.focus()}
                 >
-                  <LockKey weight="bold" /> Keep this mug here
+                  Choose a marked spot
                 </button>
               </>
             ) : finalFit ? (
@@ -326,7 +452,11 @@ function RackRescueApp() {
             </div>
           </section>
 
-          <section className="rack-rescue__stage" aria-label="Dishwasher rack and dishes">
+          <section
+            className="rack-rescue__stage"
+            aria-label="Dishwasher rack and dishes"
+            ref={stageRef}
+          >
             <img
               className="rack-rescue__stage-background"
               src="/rack-rescue/rack-background.webp"
@@ -337,13 +467,41 @@ function RackRescueApp() {
             ) : null}
             <div className="rack-rescue__spray-zone" aria-hidden="true" />
 
+            {!mugLocked ? (
+              <div className="rack-rescue__mug-targets" role="group" aria-label="Choose where the red mug stays">
+                {rackRescueMugTargets.map((target, index) => (
+                  <button
+                    aria-label={`Put the red mug in the ${mugTargetLabels[index].toLowerCase()} spot`}
+                    className={`rack-rescue__mug-target${activeMugTarget === index ? ' is-active' : ''}`}
+                    key={`${target.column}:${target.row}`}
+                    onClick={() => placeMug(index)}
+                    ref={index === 0 ? firstMugTargetRef : undefined}
+                    style={{
+                      left: `${rackColumnLeft(target.column)}%`,
+                      top: `${rackRowTop(target.row)}%`,
+                    }}
+                    type="button"
+                  >
+                    <span>Drop here</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
           {visibleDishes.map((dish) => {
             const placement = placementMap.get(dish.id)
             const [left, top, rotation] = counterPositions[dish.id]
-            const style = placement
+            const isMovableMug = dish.id === 'RR-RED-MUG' && !mugLocked
+            const style = isMovableMug && dragPosition
               ? {
-                  left: `${51.8 + placement.column * 5.45}%`,
-                  top: `${12.5 + placement.row * 12.3}%`,
+                  left: `${dragPosition.left}%`,
+                  top: `${dragPosition.top}%`,
+                  transform: 'translate(-50%, -50%) rotate(-4deg)',
+                }
+              : placement
+              ? {
+                  left: `${rackColumnLeft(placement.column)}%`,
+                  top: `${rackRowTop(placement.row)}%`,
                   transform: `translate(-50%, -50%) rotate(${placement.orientation === 'east' ? 90 : 0}deg)`,
                 }
               : {
@@ -351,9 +509,29 @@ function RackRescueApp() {
                   top: `${top}%`,
                   transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
                 }
+            const className = `${dishClass(dish)}${placement ? ' is-in-rack' : ''}${snapshot.preview ? ' is-preview' : ''}${isMovableMug ? ' is-movable' : ''}${dragPosition && isMovableMug ? ' is-dragging' : ''}`
+            if (isMovableMug) {
+              return (
+                <button
+                  aria-label="Move your red mug"
+                  className={className}
+                  data-dish-id={dish.id}
+                  key={dish.id}
+                  onClick={handleMugClick}
+                  onPointerCancel={(event) => finishMugDrag(event, true)}
+                  onPointerDown={handleMugPointerDown}
+                  onPointerMove={handleMugPointerMove}
+                  onPointerUp={finishMugDrag}
+                  style={style}
+                  type="button"
+                >
+                  <img src={dish.asset} alt="" draggable="false" />
+                </button>
+              )
+            }
             return (
               <div
-                className={`${dishClass(dish)}${placement ? ' is-in-rack' : ''}${snapshot.preview ? ' is-preview' : ''}`}
+                className={className}
                 key={dish.id}
                 style={style}
                 data-dish-id={dish.id}
@@ -367,7 +545,8 @@ function RackRescueApp() {
           })}
 
             <div className={`rack-rescue__mug-tag${mugLocked ? ' is-locked' : ''}`}>
-              <LockKey weight="fill" /> {mugLocked ? 'Stays here' : 'Your red mug'}
+              {mugLocked ? <LockKey weight="fill" /> : null}
+              {mugLocked ? 'Stays here' : 'Drag this mug →'}
             </div>
           </section>
         </section>
@@ -378,7 +557,7 @@ function RackRescueApp() {
           <summary>No browser agent? Try the guided demo</summary>
           <div className="rack-rescue__guided-actions">
             {!mugLocked ? (
-              <p>Keep the red mug in place using the main button above.</p>
+              <p>Drag the red mug into the rack, or choose one of the marked spots.</p>
             ) : finalFit ? (
               <button onClick={restart}>Start again</button>
             ) : agentPlacedDishCount > 0 && !snapshot.roastingTrayRevealed ? (

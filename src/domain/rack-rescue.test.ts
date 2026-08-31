@@ -37,7 +37,7 @@ describe('Rack Rescue domain', () => {
 
   it('shows a blocked preview without moving dishes, then applies a corrected plan', () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     const blocked = control.previewLoadPlan(
       1,
       firstPlan.map((move) =>
@@ -67,7 +67,7 @@ describe('Rack Rescue domain', () => {
 
   it('invalidates the old plan when the tray appears and safely replans all fourteen dishes', () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     control.previewLoadPlan(1, firstPlan)
     control.applyLoadPlan(2, 'rack-preview-001')
     const revealed = control.revealRoastingTray(3)
@@ -93,7 +93,7 @@ describe('Rack Rescue domain', () => {
 
   it('rejects stale revisions, locked-mug movement and replayed Undo', () => {
     const control = createRackRescueControl()
-    control.pinRedMug(0)
+    control.pinRedMug(0, 5, 3)
     expect(() => control.previewLoadPlan(0, firstPlan)).toThrow('Stale revision')
 
     const movedMug = firstPlan.map((move) =>
@@ -108,5 +108,31 @@ describe('Rack Rescue domain', () => {
     const undone = control.undoLoadPlan(4, token)
     expect(undone.placements).toHaveLength(1)
     expect(() => control.undoLoadPlan(5, token)).toThrow('unavailable')
+  })
+
+  it('pins a chosen safe spot and rejects invalid positions without changing state', () => {
+    const control = createRackRescueControl()
+
+    for (const [column, row, message] of [
+      [1.5, 5, 'integer column and row'],
+      [8, 5, 'outside the rack'],
+      [3, 2, 'spray arm'],
+      [0, 0, 'roasting tray'],
+      [6, 0, 'three marked mug spots'],
+    ] as const) {
+      expect(() => control.pinRedMug(0, column, row)).toThrow(message)
+      expect(control.getSnapshot()).toMatchObject({ revision: 0, placements: [] })
+    }
+
+    const pinned = control.pinRedMug(0, 0, 5)
+    expect(pinned).toMatchObject({
+      revision: 1,
+      placements: [
+        { dishId: 'RR-RED-MUG', column: 0, row: 5, orientation: 'north' },
+      ],
+    })
+    expect(pinned.dishes.find((dish) => dish.id === 'RR-RED-MUG')).toMatchObject({
+      lockedByHuman: true,
+    })
   })
 })
