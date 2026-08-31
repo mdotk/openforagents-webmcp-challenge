@@ -62,9 +62,9 @@ safely allowed.
 
 ## What the person and agent do together
 
-The person starts by selecting the boundary that matters to them: **Pin my red
-mug**. They then ask the agent to fit every visible dish while preserving that
-pin and the household rules.
+The person starts by selecting the boundary that matters to them: **Keep this
+mug here**. They then ask the agent to fit every visible dish while preserving
+that pin and the household rules.
 
 The agent reads the live rack and dish geometry, constructs a plan and previews
 it. Nothing moves during preview. If a plate blocks the spray arm or two dishes
@@ -126,7 +126,7 @@ through the deployed WebMCP tools. That qualification remains pending.
 ## Testing instructions
 
 1. Open the Rack Rescue URL in a compatible browser agent.
-2. Select **Pin my red mug** on the page.
+2. Select **Keep this mug here** on the page.
 3. Ask the agent to fit every visible dish, preserve the mug, keep the child's
    cup and cutlery in their required zones, keep the spray arm clear and leave
    room for the roasting tray.
@@ -134,7 +134,7 @@ through the deployed WebMCP tools. That qualification remains pending.
    and apply only a zero-conflict preview.
 5. Confirm that thirteen dishes are placed, the page reports zero conflicts
    and the mug has not moved.
-6. Select **Add forgotten tray**.
+6. Select **Add the roasting tray**.
 7. Ask the agent to read the changed rack and fit all fourteen dishes while
    preserving the mug and minimizing unnecessary movement.
 8. Confirm that the tray is present, all fourteen dishes fit, the page reports

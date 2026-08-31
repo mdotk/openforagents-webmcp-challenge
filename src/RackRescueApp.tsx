@@ -1,11 +1,9 @@
 import {
   ArrowCounterClockwise,
   CheckCircle,
-  ForkKnife,
+  CopySimple,
   LockKey,
-  MagicWand,
   Plus,
-  WarningCircle,
 } from '@phosphor-icons/react'
 import {
   useCallback,
@@ -60,6 +58,12 @@ const planAfterTray: readonly RackMoveInput[] = Object.freeze([
   { dishId: 'RR-ROASTING-TRAY', column: 0, row: 0, orientation: 'north' },
 ])
 
+const firstAgentRequest =
+  'Fit every visible dish into the rack. Keep my red mug exactly where it is, keep the spray arm clear, and leave room for a roasting tray. Preview a safe plan before moving anything.'
+
+const trayAgentRequest =
+  'Fit the roasting tray too. Keep my red mug exactly where I put it and keep the spray arm clear. Preview the new plan before moving anything.'
+
 const counterPositions: Record<RackDishId, [number, number, number]> = {
   'RR-RED-MUG': [8, 17, -8],
   'RR-CHILD-CUP': [36, 13, 7],
@@ -94,6 +98,7 @@ function RackRescueApp() {
   const [toolNames, setToolNames] = useState<readonly string[]>([])
   const [registrationPending, setRegistrationPending] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [copiedRequest, setCopiedRequest] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -152,16 +157,9 @@ function RackRescueApp() {
   const agentPlacedDishCount = snapshot.placements.filter(
     (placement) => placement.dishId !== 'RR-RED-MUG',
   ).length
-  const canApply = Boolean(snapshot.preview?.valid)
-  const journeyStep = !mugLocked
-    ? 1
-    : agentPlacedDishCount === 0
-      ? 2
-      : !snapshot.roastingTrayRevealed
-        ? 3
-        : snapshot.placements.some((placement) => placement.dishId === 'RR-ROASTING-TRAY')
-          ? 4
-          : 3
+  const finalFit = snapshot.placements.some(
+    (placement) => placement.dishId === 'RR-ROASTING-TRAY',
+  )
   const nativeStatus = registrationPending
     ? 'Checking this browser…'
     : registration?.getLastError()
@@ -183,63 +181,161 @@ function RackRescueApp() {
     if (!snapshot.preview) return
     act(() => control.applyLoadPlan(snapshot.revision, snapshot.preview!.id))
   }
+  const restart = () => {
+    setControl(createRackRescueControl())
+    setError(null)
+    setCopiedRequest(null)
+    setRegistrationPending(true)
+    setRegistration(null)
+    setToolNames([])
+  }
+  const copyRequest = (request: string) => {
+    if (!navigator.clipboard?.writeText) {
+      setError('Copy is unavailable in this browser. Select the request and copy it instead.')
+      return
+    }
+    void navigator.clipboard.writeText(request).then(
+      () => {
+        setCopiedRequest(request)
+        setError(null)
+      },
+      () => setError('Copy did not work in this browser. Select the request and copy it instead.'),
+    )
+  }
 
   return (
     <div className="rack-rescue">
       <header className="rack-rescue__header">
-        <a className="rack-rescue__brand" href="/">Open for Agents experiment</a>
-        <div className="rack-rescue__badges" aria-live="polite">
-          <span><ForkKnife weight="bold" /> {visibleDishes.length} dishes</span>
-          <span className={snapshot.conflictCount ? 'has-conflicts' : ''}>
-            {snapshot.conflictCount ? <WarningCircle weight="fill" /> : <CheckCircle weight="fill" />}
-            {snapshot.conflictCount} conflicts
-          </span>
-        </div>
+        <a className="rack-rescue__brand" href="/">Open for Agents</a>
+        <span className="rack-rescue__name">Rack Rescue</span>
       </header>
 
       <main>
         <section className="rack-rescue__intro">
-          <div>
-            <span className="rack-rescue__eyebrow">Rack Rescue · WebMCP prototype</span>
-            <h1>Can it all fit?</h1>
-            <p>
-              Pin the one thing the agent must not move. Then watch it reason
-              through space, safety and the dish you forgot.
-            </p>
-          </div>
-          <aside>
-            <small>Browser agent</small>
-            <strong>{nativeStatus}</strong>
-            <span>Revision {snapshot.revision}</span>
-          </aside>
+          <h1>Keep my mug here. Fit everything else.</h1>
+          <p>
+            You choose what must stay. Your browser agent works out how to load
+            every other dish, keep the spray arm clear and adapt when one more
+            tray appears.
+          </p>
         </section>
 
-        <ol className="rack-rescue__steps" aria-label="Rack Rescue journey">
-          <li className={journeyStep === 1 ? 'is-current' : journeyStep > 1 ? 'is-done' : ''}>
-            <span>1</span><div><strong>Pin one thing</strong><small>You set the boundary.</small></div>
-          </li>
-          <li className={journeyStep === 2 ? 'is-current' : journeyStep > 2 ? 'is-done' : ''}>
-            <span>2</span><div><strong>Agent fits the load</strong><small>It previews before moving.</small></div>
-          </li>
-          <li className={journeyStep === 3 ? 'is-current' : journeyStep > 3 ? 'is-done' : ''}>
-            <span>3</span><div><strong>Add the forgotten tray</strong><small>The plan must adapt.</small></div>
-          </li>
-        </ol>
+        <section className="rack-rescue__workspace">
+          <section className="rack-rescue__action" aria-live="polite">
+            {!mugLocked ? (
+              <>
+                <span className="rack-rescue__step">Your choice</span>
+                <h2>Keep this mug here.</h2>
+                <p>
+                  The red mug stays exactly where you put it. The agent must
+                  work around your choice.
+                </p>
+                <button
+                  className="rack-rescue__primary-action"
+                  onClick={() => act(() => control.pinRedMug(snapshot.revision))}
+                >
+                  <LockKey weight="bold" /> Keep this mug here
+                </button>
+              </>
+            ) : finalFit ? (
+              <>
+                <span className="rack-rescue__step is-complete">Done</span>
+                <h2>Everything fits.</h2>
+                <p>14 dishes loaded. Your mug never moved. The spray arm is clear.</p>
+                <div className="rack-rescue__result-list" aria-label="Final checks">
+                  <span><CheckCircle weight="fill" /> Mug stayed put</span>
+                  <span><CheckCircle weight="fill" /> Spray arm clear</span>
+                  <span><CheckCircle weight="fill" /> Roasting tray loaded</span>
+                </div>
+                <div className="rack-rescue__secondary-actions">
+                  {snapshot.undo ? (
+                    <button onClick={() => act(() => control.undoLoadPlan(snapshot.revision, snapshot.undo!.token))}>
+                      <ArrowCounterClockwise weight="bold" /> Undo last load
+                    </button>
+                  ) : null}
+                  <button onClick={restart}>Start again</button>
+                </div>
+              </>
+            ) : agentPlacedDishCount > 0 && !snapshot.roastingTrayRevealed ? (
+              <>
+                <span className="rack-rescue__step">Your turn</span>
+                <h2>Wait—one more thing.</h2>
+                <p>
+                  A roasting tray was left on the bench. Can the agent make
+                  room without moving your mug?
+                </p>
+                <button
+                  className="rack-rescue__primary-action"
+                  onClick={() => act(() => control.revealRoastingTray(snapshot.revision))}
+                >
+                  <Plus weight="bold" /> Add the roasting tray
+                </button>
+              </>
+            ) : snapshot.preview ? (
+              snapshot.preview.valid ? (
+                <>
+                  <span className="rack-rescue__step is-complete">Safe to load</span>
+                  <h2>This plan fits.</h2>
+                  <p>Every rule passed. Nothing moved until the plan was checked.</p>
+                  <div className="rack-rescue__result-list">
+                    <span><CheckCircle weight="fill" /> Mug stays put</span>
+                    <span><CheckCircle weight="fill" /> Spray arm clear</span>
+                    <span><CheckCircle weight="fill" /> Every dish has a place</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="rack-rescue__step is-blocked">Needs another try</span>
+                  <h2>That layout blocks the wash.</h2>
+                  <p>{snapshot.preview.conflicts[0]?.message}</p>
+                  <p className="rack-rescue__reassurance">Nothing moved. The agent can revise the plan safely.</p>
+                </>
+              )
+            ) : (
+              <>
+                <span className="rack-rescue__step">Ask your agent</span>
+                <h2>{snapshot.roastingTrayRevealed ? 'Make room for the tray.' : 'Your mug is safe.'}</h2>
+                <p>
+                  {snapshot.roastingTrayRevealed
+                    ? 'Send this request to your browser agent:'
+                    : 'Now send this request to your browser agent:'}
+                </p>
+                <blockquote>
+                  {snapshot.roastingTrayRevealed ? trayAgentRequest : firstAgentRequest}
+                </blockquote>
+                <button
+                  className="rack-rescue__primary-action"
+                  onClick={() => copyRequest(snapshot.roastingTrayRevealed ? trayAgentRequest : firstAgentRequest)}
+                >
+                  <CopySimple weight="bold" />{
+                    copiedRequest === (snapshot.roastingTrayRevealed ? trayAgentRequest : firstAgentRequest)
+                      ? 'Request copied'
+                      : 'Copy request'
+                  }
+                </button>
+              </>
+            )}
 
-        <section className="rack-rescue__stage" aria-label="Shared dishwasher rack">
-          <img
-            className="rack-rescue__stage-background"
-            src="/rack-rescue/rack-background.webp"
-            alt="A marble counter beside an empty open dishwasher rack, viewed from above."
-          />
-          <div className="rack-rescue__counter-label">Waiting on the counter</div>
-          <div className="rack-rescue__rack-label">Shared rack</div>
-          {!snapshot.roastingTrayRevealed ? (
-            <div className="rack-rescue__reserved-zone" aria-hidden="true">
-              <span>Keep room for a pan</span>
+            <div className={`rack-rescue__connection${registration?.supported ? ' is-ready' : ''}`}>
+              <span aria-hidden="true" />
+              {registrationPending
+                ? 'Checking agent tools…'
+                : registration?.supported
+                  ? 'Agent tools are ready'
+                  : 'Agent tools are unavailable — try the guided demo below'}
             </div>
-          ) : null}
-          <div className="rack-rescue__spray-zone" aria-hidden="true"><span>Spray arm</span></div>
+          </section>
+
+          <section className="rack-rescue__stage" aria-label="Dishwasher rack and dishes">
+            <img
+              className="rack-rescue__stage-background"
+              src="/rack-rescue/rack-background.webp"
+              alt="A marble counter beside an empty open dishwasher rack, viewed from above."
+            />
+            {!snapshot.roastingTrayRevealed ? (
+              <div className="rack-rescue__reserved-zone" aria-hidden="true" />
+            ) : null}
+            <div className="rack-rescue__spray-zone" aria-hidden="true" />
 
           {visibleDishes.map((dish) => {
             const placement = placementMap.get(dish.id)
@@ -270,84 +366,56 @@ function RackRescueApp() {
             )
           })}
 
-          <div className={`rack-rescue__story-card ${snapshot.conflictCount ? 'is-blocked' : ''}`} aria-live="polite">
-            {snapshot.preview ? (
-              snapshot.preview.valid ? (
-                <><CheckCircle weight="fill" /><div><strong>Plan fits</strong><span>Preview only. Nothing moved yet.</span></div></>
+            <div className={`rack-rescue__mug-tag${mugLocked ? ' is-locked' : ''}`}>
+              <LockKey weight="fill" /> {mugLocked ? 'Stays here' : 'Your red mug'}
+            </div>
+          </section>
+        </section>
+
+        {error ? <p className="rack-rescue__error" role="alert">{error}</p> : null}
+
+        <details className="rack-rescue__guided-demo">
+          <summary>No browser agent? Try the guided demo</summary>
+          <div className="rack-rescue__guided-actions">
+            {!mugLocked ? (
+              <p>Keep the red mug in place using the main button above.</p>
+            ) : finalFit ? (
+              <button onClick={restart}>Start again</button>
+            ) : agentPlacedDishCount > 0 && !snapshot.roastingTrayRevealed ? (
+              <p>Add the roasting tray using the main button above.</p>
+            ) : !snapshot.preview ? (
+              !snapshot.roastingTrayRevealed ? (
+                <button onClick={showBlocked}>Try a layout that blocks the spray arm</button>
               ) : (
-                <><WarningCircle weight="fill" /><div><strong>Blocked plan</strong><span>{snapshot.preview.conflicts[0]?.message}</span></div></>
+                <button onClick={previewGood}>Find room for the roasting tray</button>
               )
-            ) : snapshot.roastingTrayRevealed && snapshot.placements.some((placement) => placement.dishId === 'RR-ROASTING-TRAY') ? (
-              <><CheckCircle weight="fill" /><div><strong>Everything fits</strong><span>The mug stayed pinned. Zero conflicts.</span></div></>
-            ) : agentPlacedDishCount > 0 ? (
-              <><CheckCircle weight="fill" /><div><strong>First load fitted</strong><span>Now add the forgotten tray.</span></div></>
-            ) : mugLocked ? (
-              <><MagicWand weight="fill" /><div><strong>Ready for the agent</strong><span>Mug pinned. Ask the agent to fit the load.</span></div></>
+            ) : snapshot.preview.valid ? (
+              <button onClick={applyCurrent}>Load this safe layout</button>
             ) : (
-              <><MagicWand weight="fill" /><div><strong>Ready for the agent</strong><span>Pin your mug, then ask it to fit the load.</span></div></>
+              <button onClick={previewGood}>Try a safer layout</button>
             )}
+            {snapshot.undo && !finalFit ? (
+              <button onClick={() => act(() => control.undoLoadPlan(snapshot.revision, snapshot.undo!.token))}>
+                <ArrowCounterClockwise weight="bold" /> Undo last load
+              </button>
+            ) : null}
           </div>
-        </section>
-
-        <section className="rack-rescue__controls" aria-label="Human and prototype controls">
-          <div>
-            <span className="rack-rescue__eyebrow">Your controls</span>
-            <div className="rack-rescue__button-row">
-              <button disabled={Boolean(mugLocked)} onClick={() => act(() => control.pinRedMug(snapshot.revision))}>
-                <LockKey weight="bold" /> {mugLocked ? 'Red mug pinned' : 'Pin my red mug'}
-              </button>
-              <button
-                disabled={agentPlacedDishCount === 0 || snapshot.roastingTrayRevealed}
-                onClick={() => act(() => control.revealRoastingTray(snapshot.revision))}
-              >
-                <Plus weight="bold" /> {snapshot.roastingTrayRevealed ? 'Tray added' : 'Add forgotten tray'}
-              </button>
-              {snapshot.undo ? (
-                <button onClick={() => act(() => control.undoLoadPlan(snapshot.revision, snapshot.undo!.token))}>
-                  <ArrowCounterClockwise weight="bold" /> Undo plan
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          <details>
-            <summary>No compatible agent? Run the same visible prototype journey</summary>
-            <div className="rack-rescue__button-row">
-              {!snapshot.roastingTrayRevealed ? (
-                <button disabled={!mugLocked || agentPlacedDishCount > 0} onClick={showBlocked}>
-                  Show blocked first plan
-                </button>
-              ) : null}
-              <button disabled={!mugLocked || canApply} onClick={previewGood}>
-                {snapshot.roastingTrayRevealed ? 'Preview adapted plan' : 'Correct the plan'}
-              </button>
-              <button disabled={!canApply} onClick={applyCurrent}>Apply valid preview</button>
-              <button
-                onClick={() => {
-                  setControl(createRackRescueControl())
-                  setError(null)
-                  setRegistrationPending(true)
-                  setRegistration(null)
-                  setToolNames([])
-                }}
-              >
-                Restart
-              </button>
-            </div>
-          </details>
-          {error ? <p className="rack-rescue__error" role="alert">{error}</p> : null}
-        </section>
+        </details>
 
         <details className="rack-rescue__webmcp-details">
-          <summary>View the five WebMCP tools and safety boundary</summary>
+          <summary>How Rack Rescue uses WebMCP</summary>
           <div>
             <p>
-              The browser agent can read the rack, inspect dishes, preview a
-              complete plan, apply a conflict-free preview and Undo its last
-              plan. It cannot override your mug lock, hide conflicts, start a
-              dishwasher cycle, order products or call a hidden solver.
+              A compatible browser agent can inspect the rack, study every
+              dish, preview a complete layout, load a layout only after it
+              passes the rack rules and undo its last load. It cannot move your
+              locked mug, hide a failed check or start the dishwasher.
             </p>
-            <ul>{permanentRackRescueToolNames.map((name) => <li key={name}><code>{name}</code></li>)}</ul>
+            <aside>
+              <strong>{nativeStatus}</strong>
+              <span>Revision {snapshot.revision}</span>
+              <ul>{permanentRackRescueToolNames.map((name) => <li key={name}><code>{name}</code></li>)}</ul>
+            </aside>
           </div>
         </details>
       </main>

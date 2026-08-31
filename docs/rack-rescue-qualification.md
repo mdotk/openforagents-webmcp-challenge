@@ -22,7 +22,7 @@ The browser-local candidate contains:
 - Five permanent closed-schema WebMCP tools with revision checks.
 - Preview without movement, structured conflicts, exact apply and one-use
   Undo.
-- A visible manual prototype journey for browsers without WebMCP.
+- A guided demo for browsers without WebMCP.
 
 There is no hidden solver, appliance control, checkout, payment, order or
 model credential.

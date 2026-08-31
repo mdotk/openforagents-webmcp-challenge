@@ -25,7 +25,7 @@ Narration:
 ## 0:09–0:27 — Make the problem instantly legible
 
 Restart the experience. Show the dishes beside the empty rack and select
-**Pin my red mug**.
+**Keep this mug here**.
 
 Narration:
 
@@ -52,7 +52,7 @@ specific conflict and its affected cells while the committed rack remains
 unchanged. Then show the agent submit a corrected preview.
 
 If the real agent's first preview is valid, do not manufacture a failure.
-Instead, briefly use the clearly labelled visible prototype control after the
+Instead, briefly use the clearly labelled guided demo after the
 agent journey to demonstrate that an invalid spray-arm plan is rejected. Keep
 that supplementary demonstration separate from the agent's result.
 
@@ -75,7 +75,7 @@ Narration:
 
 ## 1:31–1:55 — Let the human change reality
 
-Select **Add forgotten tray**. Show the tray appear, the revision advance and
+Select **Add the roasting tray**. Show the tray appear, the revision advance and
 the earlier authority disappear. Ask the agent to adapt rather than start from
 a prepared answer.
 
