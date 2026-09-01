@@ -1,6 +1,6 @@
 # Adaptive Shopping Canvas implementation blueprint
 
-Status: implemented and deployed as the separate `?experience=shopping` candidate; deterministic, responsive, native-tool and unfilmed budget-variation qualification pass. The final human-approved external-agent cart application remains before Stage 3 can close. The root route remains unchanged.
+Status: implemented, deployed and Stage 3 qualified as the separate `?experience=shopping` candidate. Deterministic, responsive, native-tool, external-agent, one-use authority and unfilmed budget-variation gates pass. The root route remains unchanged and Stage 4 is not authorized.
 
 Date: 1 September 2026.
 
