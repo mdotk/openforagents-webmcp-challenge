@@ -12,3 +12,9 @@ export {
   rackRescueMugTargets,
   RackRescueStateError,
 } from './rack-rescue'
+export {
+  createShoppingControl,
+  shoppingCatalogue,
+  ShoppingStateError,
+} from './shopping'
+export type { ShoppingClock } from './shopping'
