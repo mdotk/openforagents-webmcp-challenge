@@ -1,6 +1,9 @@
 # Proposed shared fitting-room experience
 
 Status: implemented as a separate prototype, not the current live experience.
+It is now the technical predecessor to the
+[Adaptive Shopping Canvas](adaptive-shopping-canvas-implementation-blueprint.md),
+not the active product direction to promote unchanged.
 
 The live challenge application at the root URL remains Launch Window A-01. The
 fitting-room implementation is available on a separate query-parameter path

@@ -1,7 +1,9 @@
 # Proposed shared fitting-room WebMCP contract
 
 Status: implemented as a separately addressed prototype and qualified in
-Chrome; not yet the current challenge entry.
+Chrome; not the current challenge entry. Its evidence remains scoped to that
+prototype. New implementation work follows the
+[Adaptive Shopping Canvas blueprint](adaptive-shopping-canvas-implementation-blueprint.md).
 
 This document records the minimum technical boundary for the shared
 fitting-room prototype. It does not describe the current Launch Window A-01

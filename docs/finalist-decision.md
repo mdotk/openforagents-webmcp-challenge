@@ -1,7 +1,8 @@
 # WebMCP Challenge finalist decision
 
-Status: two concepts remain under consideration. The current public entry has
-not been replaced.
+Status: historical finalist decision. The current public entry has not been
+replaced. New implementation work follows the
+[Adaptive Shopping Canvas blueprint](adaptive-shopping-canvas-implementation-blueprint.md).
 
 ## The two finalists
 
