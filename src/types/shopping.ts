@@ -45,7 +45,7 @@ export interface ShoppingContext {
   readonly brief: string
   readonly clothingSize: 'M'
   readonly shoeSize: '8'
-  readonly budgetCents: 35000
+  readonly budgetCents: number
   readonly neededBy: '2026-09-04'
   readonly eventOn: '2026-09-05'
   readonly destinationId: ShoppingDestinationId
@@ -195,6 +195,7 @@ export interface ShoppingCartReview {
   readonly patch: ShoppingCartPatch
   readonly proposedCart: ShoppingCart
   readonly quoteIds: readonly string[]
+  readonly fulfilmentQuotes: readonly FulfilmentQuote[]
   readonly boundRevisions: ShoppingRevisions
   readonly requiresHumanApproval: true
   readonly cartChanged: boolean

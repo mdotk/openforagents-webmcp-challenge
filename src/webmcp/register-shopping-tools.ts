@@ -293,7 +293,7 @@ function createPermanentTools(control: ShoppingControl): readonly WebMcpTool[] {
       execute: () => {
         const current = control.getSnapshot()
         return structuredResult(
-          `Shopper context read. Size M; owned cobalt-blue boots; $350 retailer-item budget; needed by Friday; destination ${current.context.destinationId}.`,
+          `Shopper context read. Size M; owned cobalt-blue boots; $${(current.context.budgetCents / 100).toFixed(0)} retailer-item budget; needed by Friday; destination ${current.context.destinationId}.`,
           { context: current.context, shopperContextRevision: current.shopperContextRevision, fulfilmentContextRevision: current.fulfilmentContextRevision },
         )
       },

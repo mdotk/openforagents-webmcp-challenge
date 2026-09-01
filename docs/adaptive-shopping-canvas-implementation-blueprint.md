@@ -1,6 +1,6 @@
 # Adaptive Shopping Canvas implementation blueprint
 
-Status: adopted replacement direction; implementation has not started.
+Status: implemented and deployed as the separate `?experience=shopping` candidate; deterministic, responsive, native-tool and unfilmed budget-variation qualification pass. The final human-approved external-agent cart application remains before Stage 3 can close. The root route remains unchanged.
 
 Date: 1 September 2026.
 

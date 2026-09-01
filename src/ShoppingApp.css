@@ -102,6 +102,7 @@
 .shopping-canvas__tool-status strong { display: block; }
 .shopping-canvas__tool-status small { color: var(--muted); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; }
 .shopping-canvas__tool-status strong { margin-top: 2px; font-size: .83rem; }
+.shopping-canvas__status-compact { display: none; }
 
 .shopping-canvas__intro {
   display: grid;
@@ -350,6 +351,9 @@
 .shopping-canvas__review-heading > strong { font: 800 clamp(2rem, 4vw, 4rem)/1 'Manrope'; }
 .shopping-canvas__review ul { margin: 26px 0; padding: 0; border-top: 1px solid #3b3b40; list-style: none; }
 .shopping-canvas__review li { display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid #3b3b40; }
+.shopping-canvas__review li > span strong,
+.shopping-canvas__review li > span small { display: block; }
+.shopping-canvas__review li > span small { margin-top: 3px; color: #a9a9af; font-size: .74rem; }
 .shopping-canvas__review-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .shopping-canvas__review-actions button, .shopping-canvas__fallback button { display: inline-flex; gap: 8px; align-items: center; padding: 12px 16px; color: var(--ink); background: white; border: 0; border-radius: 9px; font-weight: 700; }
 .shopping-canvas__review-actions button.is-approve { color: white; background: var(--blue); }
@@ -421,6 +425,11 @@
   .shopping-canvas__cart { grid-template-columns: 1fr; }
   .shopping-canvas__cart > svg { width: 42px; height: 42px; }
   .shopping-canvas__footer { flex-direction: column; gap: 8px; }
+}
+
+@media (max-width: 360px) {
+  .shopping-canvas__status-full { display: none; }
+  .shopping-canvas__status-compact { display: block; }
 }
 
 @media (prefers-reduced-motion: reduce) {

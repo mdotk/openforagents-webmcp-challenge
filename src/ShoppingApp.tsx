@@ -39,12 +39,39 @@ const replacedHomeItems = [
   'variant-graphite-frame-bag-one',
 ] as const
 
+const tighterBudgetFirstLook = [
+  'variant-ink-satin-jumpsuit-m',
+  'variant-silver-cropped-blazer-m',
+  'variant-ink-slim-clutch-one',
+  'variant-architectural-earrings-one',
+] as const
+
+const tighterBudgetHotelReplacements = [
+  'variant-ink-sculpted-jacket-m',
+  'variant-oxblood-silk-scarf-one',
+] as const
+
+const tighterBudgetReplacedHomeItems = [
+  'variant-silver-cropped-blazer-m',
+  'variant-architectural-earrings-one',
+] as const
+
 function money(cents: number) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
   }).format(cents / 100)
+}
+
+function shortDate(value: string) {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1, day)))
 }
 
 function productForVariant(snapshot: ShoppingSnapshot, variantId: string) {
@@ -72,8 +99,16 @@ function stageFor(snapshot: ShoppingSnapshot) {
   return 'brief'
 }
 
+function initialBudgetForLocation() {
+  if (typeof window === 'undefined') return 35000
+  return new URLSearchParams(window.location.search).get('scenario') === 'tighter-budget'
+    ? 32500
+    : 35000
+}
+
 function ShoppingApp() {
-  const [control, setControl] = useState(createShoppingControl)
+  const [initialBudgetCents] = useState(initialBudgetForLocation)
+  const [control, setControl] = useState(() => createShoppingControl({ now: () => new Date(), budgetCents: initialBudgetCents }))
   const subscribe = useCallback(
     (onStoreChange: () => void) => control.subscribe(() => onStoreChange()),
     [control],
@@ -147,7 +182,23 @@ function ShoppingApp() {
     () => Object.fromEntries(selected.map((item) => [item.product.slot, item])) as Partial<Record<'base' | 'layer' | 'bag' | 'accent', (typeof selected)[number]>>,
     [selected],
   )
+  const deliveryByVariant = useMemo(() => Object.fromEntries(
+    snapshot.lookVariantIds.map((variantId) => {
+      const result = control.checkFulfilment(
+        [variantId],
+        snapshot.context.destinationId,
+        snapshot.context.neededBy,
+      )
+      if (result.ok) return [variantId, result.data.quotes[0]?.arrivesOn]
+      const current = result.error.details?.current
+      const arrivesOn = current && typeof current === 'object' && 'arrivesOn' in current
+        ? String(current.arrivesOn)
+        : undefined
+      return [variantId, arrivesOn]
+    }),
+  ) as Readonly<Record<string, string | undefined>>, [control, snapshot.context.destinationId, snapshot.context.neededBy, snapshot.lookVariantIds])
   const stage = stageFor(snapshot)
+  const isTighterBudget = initialBudgetCents === 32500
   const isLate = stage === 'conflict'
   const isRepaired = ['repaired', 'review', 'approved', 'cart'].includes(stage)
   const nativeStatus = registrationPending
@@ -157,6 +208,13 @@ function ShoppingApp() {
       : registration?.supported
         ? `${registeredToolNames.length} native tools live`
         : `${permanentShoppingToolNames.length} modeled tools · native unavailable`
+  const compactNativeStatus = registrationPending
+    ? 'Checking…'
+    : registration?.getLastError()
+      ? 'Tools need attention'
+      : registration?.supported
+        ? `${registeredToolNames.length} tools live`
+        : 'Native unavailable'
 
   const requestReview = () => {
     const fulfilment = control.checkFulfilment(
@@ -191,7 +249,7 @@ function ShoppingApp() {
 
   const reset = () => {
     void registration?.dispose()
-    setControl(createShoppingControl())
+    setControl(createShoppingControl({ now: () => new Date(), budgetCents: initialBudgetCents }))
     setRegistration(null)
     setRegisteredToolNames([])
     setRegistrationPending(true)
@@ -210,7 +268,7 @@ function ShoppingApp() {
           <span className="shopping-canvas__pulse" />
           <div>
             <small>WebMCP</small>
-            <strong>{nativeStatus}</strong>
+            <strong><span className="shopping-canvas__status-full">{nativeStatus}</span><span className="shopping-canvas__status-compact" aria-hidden="true">{compactNativeStatus}</span></strong>
           </div>
         </div>
       </header>
@@ -222,11 +280,11 @@ function ShoppingApp() {
             <h1>Your agent shops.<br />You make the call.</h1>
           </div>
           <div className="shopping-canvas__brief">
-            <blockquote>“Style a sharp evening look around my cobalt-blue boots. Size M, under $350, delivered by Friday. Show me before changing my cart.”</blockquote>
+            <blockquote>“{snapshot.context.brief}”</blockquote>
             <ul aria-label="Confirmed shopping constraints">
               <li>Size M</li>
               <li>By Friday</li>
-              <li>Under $350</li>
+              <li>Under {money(snapshot.context.budgetCents)}</li>
               <li>Keep my boots</li>
             </ul>
           </div>
@@ -320,7 +378,7 @@ function ShoppingApp() {
                     <span>Jacket</span><strong>+$18</strong><small>Arrives Friday</small>
                   </div>
                   <div className="shopping-canvas__repair-row">
-                    <span>Bag</span><strong>−$16</strong><small>Keeps total under budget</small>
+                    <span>{isTighterBudget ? 'Scarf' : 'Bag'}</span><strong>{isTighterBudget ? '−$6' : '−$16'}</strong><small>Keeps total under budget</small>
                   </div>
                   <dl>
                     <div><dt>Total</dt><dd>{money(snapshot.validation.subtotalCents)}</dd></div>
@@ -349,13 +407,13 @@ function ShoppingApp() {
               {selected.map(({ product, variant }) => (
                 <li key={variant.id}>
                   <img src={product.assetPath} alt="" width="900" height="900" />
-                  <div><strong>{product.name}</strong><span>{product.sku} · Size {variant.size}</span></div>
+                  <div><strong>{product.name}</strong><span>{product.sku} · {product.color}</span><small>Size {variant.size}{deliveryByVariant[variant.id] ? ` · Arrives ${shortDate(deliveryByVariant[variant.id]!)}` : ''}</small></div>
                   <div><span>{money(variant.priceCents)}</span><small>{product.slot}</small></div>
                 </li>
               ))}
               <li className="is-owned">
                 <img src={snapshot.context.ownedItems[0].assetPath} alt="" width="900" height="900" />
-                <div><strong>Cobalt-blue ankle boots</strong><span>Owned by you · Size 8</span></div>
+                <div><strong>Cobalt-blue ankle boots</strong><span>Owned item · Size 8</span><small>Provided for this demo</small></div>
                 <div><span>$0</span><small>never carted</small></div>
               </li>
             </ol>
@@ -374,7 +432,7 @@ function ShoppingApp() {
             </div>
             <ul>
               {snapshot.review.proposedCart.lines.map((line) => (
-                <li key={line.variantId}><span>{line.name} · {line.size}</span><strong>{money(line.unitPriceCents)}</strong></li>
+                <li key={line.variantId}><span><strong>{line.name} · {line.size}</strong><small>{line.sku} · Arrives {shortDate(snapshot.review!.fulfilmentQuotes.find((quote) => quote.variantId === line.variantId)!.arrivesOn)}</small></span><strong>{money(line.unitPriceCents)}</strong></li>
               ))}
             </ul>
             <div className="shopping-canvas__review-actions">
@@ -403,9 +461,9 @@ function ShoppingApp() {
         <details className="shopping-canvas__fallback">
           <summary>No compatible agent? Run the same visible demo journey</summary>
           <div>
-            {stage === 'brief' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, firstLook, []))}>Build the first look</button> : null}
+            {stage === 'brief' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetFirstLook : firstLook, []))}>Build the first look</button> : null}
             {stage === 'first-look' ? <button type="button" onClick={() => act(() => control.setDestination('event-hotel'))}>Change delivery to the event hotel</button> : null}
-            {stage === 'conflict' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, hotelReplacements, replacedHomeItems))}>Repair delivery and budget</button> : null}
+            {stage === 'conflict' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetHotelReplacements : hotelReplacements, isTighterBudget ? tighterBudgetReplacedHomeItems : replacedHomeItems))}>Repair delivery and budget</button> : null}
             {stage === 'repaired' && !snapshot.review ? <button type="button" onClick={() => act(requestReview)}>Prepare exact cart review</button> : null}
             {stage === 'approved' && snapshot.activeGrant ? <button type="button" onClick={() => act(() => control.applyApprovedCart(snapshot.activeGrant!.id))}>Simulate the approved one-use tool</button> : null}
             <button type="button" className="is-secondary" onClick={reset}>Reset demo</button>

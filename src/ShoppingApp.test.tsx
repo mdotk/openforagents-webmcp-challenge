@@ -1,9 +1,47 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import ShoppingApp from './ShoppingApp'
+import type { WebMcpTool } from './types'
+import { APPLY_APPROVED_CART_TOOL_NAME } from './webmcp'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  delete (document as Document & { modelContext?: unknown }).modelContext
+  window.history.replaceState({}, '', '/')
+})
+
+function installRejectingModelContext() {
+  const tools = new Map<string, WebMcpTool>()
+  const listeners = new Set<EventListenerOrEventListenerObject>()
+  const emit = () => {
+    const event = new Event('toolchange')
+    for (const listener of listeners) {
+      if (typeof listener === 'function') listener(event)
+      else listener.handleEvent(event)
+    }
+  }
+  const modelContext = {
+    async registerTool(tool: WebMcpTool, options: { readonly signal: AbortSignal }) {
+      if (tool.name === APPLY_APPROVED_CART_TOOL_NAME) throw new Error('Temporary tool registration rejected.')
+      tools.set(tool.name, tool)
+      options.signal.addEventListener('abort', () => {
+        if (tools.delete(tool.name)) emit()
+      }, { once: true })
+      emit()
+    },
+    async getTools() {
+      return [...tools.values()].map(({ name }) => ({ name }))
+    },
+    addEventListener(_type: 'toolchange', listener: EventListenerOrEventListenerObject) {
+      listeners.add(listener)
+    },
+    removeEventListener(_type: 'toolchange', listener: EventListenerOrEventListenerObject) {
+      listeners.delete(listener)
+    },
+  }
+  Object.defineProperty(document, 'modelContext', { configurable: true, value: modelContext })
+}
 
 describe('Adaptive Shopping Canvas', () => {
   it('opens with one legible human story and an honest unsupported-browser state', async () => {
@@ -12,7 +50,7 @@ describe('Adaptive Shopping Canvas', () => {
     expect(document.title).toBe('Morrow — Adaptive Shopping Canvas')
     expect(screen.getByRole('heading', { name: /your agent shops/i })).toBeVisible()
     expect(screen.getByText('Fictional retailer demo')).toBeVisible()
-    expect(screen.getByText(/style a sharp evening look around my cobalt-blue boots/i)).toBeVisible()
+    expect(screen.getByText(/wedding saturday\. make it unforgettable/i)).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Ready for the agent' })).toBeVisible()
     expect(screen.getByText(/one request\. thirty variants/i)).toBeVisible()
     expect(await screen.findByText('7 modeled tools · native unavailable')).toBeVisible()
@@ -47,8 +85,10 @@ describe('Adaptive Shopping Canvas', () => {
     expect(screen.getByText('$345')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Prepare exact cart review' }))
-    expect(screen.getByRole('heading', { name: 'Review the exact cart change' })).toBeVisible()
+    const review = screen.getByRole('heading', { name: 'Review the exact cart change' }).closest('section')
+    expect(review).not.toBeNull()
     expect(screen.getByText(/no item is in the cart and no payment has been taken/i)).toBeVisible()
+    expect(within(review!).getAllByText(/arrives fri, sep 4/i)).toHaveLength(4)
 
     await user.click(screen.getByRole('button', { name: 'Approve exact cart' }))
     expect(screen.getByText(/you approved one exact cart patch/i)).toBeVisible()
@@ -75,5 +115,48 @@ describe('Adaptive Shopping Canvas', () => {
     expect(screen.queryByRole('heading', { name: 'Your cart is ready.' })).not.toBeInTheDocument()
     expect(screen.queryByText(/you approved one exact cart patch/i)).not.toBeInTheDocument()
     expect(screen.getAllByText('Still empty')).toHaveLength(1)
+  })
+
+  it('reports temporary-tool registration failure while keeping authority revocable and the cart empty', async () => {
+    installRejectingModelContext()
+    const user = userEvent.setup()
+    render(<ShoppingApp />)
+    await screen.findByText('7 native tools live')
+
+    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
+    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    await user.click(screen.getByRole('button', { name: 'Change delivery to the event hotel' }))
+    await user.click(screen.getByRole('button', { name: 'Repair delivery and budget' }))
+    await user.click(screen.getByRole('button', { name: 'Prepare exact cart review' }))
+    await user.click(screen.getByRole('button', { name: 'Approve exact cart' }))
+
+    expect(await screen.findByText('Tool registration needs attention')).toBeVisible()
+    expect(screen.getByText('You approved one exact cart patch.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Revoke' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Your cart is ready.' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Revoke' }))
+    expect(screen.queryByText('You approved one exact cart patch.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Your cart is ready.' })).not.toBeInTheDocument()
+  })
+
+  it('runs the unfilmed tighter-budget variation to a different valid result', async () => {
+    window.history.replaceState({}, '', '/?experience=shopping&scenario=tighter-budget')
+    const user = userEvent.setup()
+    render(<ShoppingApp />)
+    await screen.findByText('7 modeled tools · native unavailable')
+
+    expect(screen.getByText('Under $325')).toBeVisible()
+    expect(screen.getByText(/retailer items under \$325/i)).toBeVisible()
+
+    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
+    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    expect(screen.getByAltText('Ink Satin Jumpsuit')).toBeVisible()
+    expect(screen.getByText('$313')).toBeVisible()
+
+    await user.click(screen.getByRole('button', { name: 'Change delivery to the event hotel' }))
+    await user.click(screen.getByRole('button', { name: 'Repair delivery and budget' }))
+    expect(screen.getByAltText('Oxblood Silk Scarf')).toBeVisible()
+    expect(screen.getByText('$325')).toBeVisible()
   })
 })

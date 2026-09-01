@@ -40,6 +40,7 @@ interface ShoppingState {
   lookRevision: number
   cartRevision: number
   destinationId: ShoppingDestinationId
+  budgetCents: number
   lookVariantIds: string[]
   cart: ShoppingCart
   review: ShoppingCartReview | null
@@ -54,8 +55,9 @@ interface ShoppingRuntime {
   readonly subscribers: Set<ShoppingSubscriber>
 }
 
-export interface ShoppingClock {
+export interface ShoppingControlOptions {
   now(): Date
+  budgetCents?: number
 }
 
 export class ShoppingStateError extends Error {
@@ -242,7 +244,7 @@ const ownedBoots = {
 
 const baseContext: Omit<ShoppingContext, 'destinationId'> = {
   brief:
-    'Style a sharp evening look around my cobalt-blue boots. I wear M, need it at my destination by Friday, and want the retailer items under $350. Show me the exact cart before changing it.',
+    'Wedding Saturday. Make it unforgettable, not costume. I wear M, need it at my destination by Friday, want the retailer items under $350, and want to keep my cobalt-blue boots. Show me the exact cart before changing it.',
   clothingSize: 'M',
   shoeSize: '8',
   budgetCents: 35000,
@@ -288,7 +290,12 @@ function success<T>(state: ShoppingState, data: T): ShoppingOperationResult<T> {
 }
 
 function context(state: ShoppingState): ShoppingContext {
-  return { ...baseContext, destinationId: state.destinationId }
+  return {
+    ...baseContext,
+    brief: baseContext.brief.replace('$350', `$${(state.budgetCents / 100).toFixed(0)}`),
+    budgetCents: state.budgetCents,
+    destinationId: state.destinationId,
+  }
 }
 
 function allVariants(): readonly { product: ShoppingProduct; variant: ShoppingVariant }[] {
@@ -335,8 +342,8 @@ function validation(state: ShoppingState): ShoppingValidation {
       issues.push({ code: 'OUT_OF_STOCK', slot: product.slot, variantId: variant.id, message: `${product.name} is not currently available.` })
     }
   }
-  if (subtotalCents > baseContext.budgetCents) {
-    issues.push({ code: 'BUDGET_EXCEEDED', message: `The retailer-item subtotal is $${(subtotalCents / 100).toFixed(2)}, above the $350.00 budget.` })
+  if (subtotalCents > state.budgetCents) {
+    issues.push({ code: 'BUDGET_EXCEEDED', message: `The retailer-item subtotal is $${(subtotalCents / 100).toFixed(2)}, above the $${(state.budgetCents / 100).toFixed(2)} budget.` })
   }
   return { valid: issues.length === 0, subtotalCents, issues }
 }
@@ -390,6 +397,7 @@ function snapshot(state: ShoppingState): ShoppingSnapshot {
           },
           proposedCart: { ...state.review.proposedCart, lines: state.review.proposedCart.lines.map((line) => ({ ...line })) },
           quoteIds: [...state.review.quoteIds],
+          fulfilmentQuotes: state.review.fulfilmentQuotes.map((quote) => ({ ...quote })),
           boundRevisions: { ...state.review.boundRevisions },
         }
       : null,
@@ -455,13 +463,17 @@ function boundRevisionsMatch(current: ShoppingRevisions, bound: ShoppingRevision
   return Object.entries(current).every(([key, value]) => bound[key as keyof ShoppingRevisions] === value)
 }
 
-function grantExpired(grant: ShoppingGrant, clock: ShoppingClock): boolean {
+function grantExpired(grant: ShoppingGrant, clock: ShoppingControlOptions): boolean {
   return clock.now().getTime() >= new Date(grant.expiresAt).getTime()
 }
 
 export function createShoppingControl(
-  clock: ShoppingClock = { now: () => new Date() },
+  options: ShoppingControlOptions = { now: () => new Date() },
 ): ShoppingControl {
+  const budgetCents = options.budgetCents ?? 35000
+  if (!Number.isInteger(budgetCents) || budgetCents < 25000 || budgetCents > 35000) {
+    throw new ShoppingStateError('Initial budget must be an integer from $250.00 to $350.00.')
+  }
   const initialState: ShoppingState = {
     revision: 0,
     availabilityRevision: 1,
@@ -471,6 +483,7 @@ export function createShoppingControl(
     lookRevision: 0,
     cartRevision: 0,
     destinationId: 'home',
+    budgetCents,
     lookVariantIds: [],
     cart: emptyCart,
     review: null,
@@ -611,6 +624,7 @@ export function createShoppingControl(
         if (compareIso(currentQuote.arrivesOn, baseContext.neededBy) > 0) return conflict(state, { code: 'DELIVERY_CHANGED', message: `${found.product.name} no longer reaches the destination by Friday.` })
       }
       const proposed = proposedCart(state.lookVariantIds)
+      const fulfilmentQuotes = state.lookVariantIds.map((variantId) => quote(state, variantId, state.destinationId))
       const reviewNumber = String(state.nextReviewNumber).padStart(3, '0')
       const bound = revisionsAfterNextMutation(state)
       const review: ShoppingCartReview = {
@@ -621,6 +635,7 @@ export function createShoppingControl(
         patch: patchFrom(state.cart, proposed),
         proposedCart: proposed,
         quoteIds: [...request.quoteIds],
+        fulfilmentQuotes,
         boundRevisions: bound,
         requiresHumanApproval: true,
         cartChanged: false,
@@ -643,7 +658,7 @@ export function createShoppingControl(
       const state = runtime.state
       if (!state.review || state.review.id !== reviewId || state.review.status !== 'pending') throw new ShoppingStateError('That cart review is not pending.')
       if (!boundRevisionsMatch(revisions(state), state.review.boundRevisions)) throw new ShoppingStateError('The review is stale and cannot be approved.')
-      const expiresAt = new Date(clock.now().getTime() + 5 * 60 * 1000).toISOString()
+      const expiresAt = new Date(options.now().getTime() + 5 * 60 * 1000).toISOString()
       return replaceState(runtime, {
         review: { ...state.review, status: 'approved' },
         activeGrant: { id: `cart-grant-${reviewId.slice(-3)}`, reviewId, expiresAt, usesRemaining: 1, boundRevisions: revisionsAfterNextMutation(state) },
@@ -664,7 +679,7 @@ export function createShoppingControl(
       const state = runtime.state
       const grant = state.activeGrant
       if (!grant || grant.id !== grantId || grant.usesRemaining !== 1) return conflict(state, { code: 'GRANT_INVALID', message: 'No matching one-use cart authority is active.' })
-      if (grantExpired(grant, clock)) return conflict(state, { code: 'GRANT_EXPIRED', message: 'The cart authority expired before use.' })
+      if (grantExpired(grant, options)) return conflict(state, { code: 'GRANT_EXPIRED', message: 'The cart authority expired before use.' })
       if (!state.review || state.review.id !== grant.reviewId || state.review.status !== 'approved') return conflict(state, { code: 'REVIEW_INVALIDATED', message: 'The approved cart review is no longer valid.' })
       if (!boundRevisionsMatch(revisions(state), grant.boundRevisions)) return conflict(state, { code: 'STALE_REVISION', message: 'The shopping state changed after approval.' })
       for (const variantId of state.lookVariantIds) {

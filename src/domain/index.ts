@@ -17,4 +17,4 @@ export {
   shoppingCatalogue,
   ShoppingStateError,
 } from './shopping'
-export type { ShoppingClock } from './shopping'
+export type { ShoppingControlOptions } from './shopping'

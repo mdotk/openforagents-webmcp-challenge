@@ -17,14 +17,17 @@ class FakeModelContext implements WebMcpModelContext {
   readonly listeners = new Set<EventListenerOrEventListenerObject>()
   readonly registrationSignals = new Map<string, AbortSignal>()
   private readonly abortInFlightOnUnregister: boolean
+  private readonly rejectedRegistrationName: string | null
 
-  constructor(abortInFlightOnUnregister = false) {
+  constructor(abortInFlightOnUnregister = false, rejectedRegistrationName: string | null = null) {
     this.abortInFlightOnUnregister = abortInFlightOnUnregister
+    this.rejectedRegistrationName = rejectedRegistrationName
   }
 
   async registerTool(tool: WebMcpTool, options: { readonly signal: AbortSignal }) {
     await Promise.resolve()
     if (options.signal.aborted) throw new DOMException('Registration was cancelled.', 'AbortError')
+    if (tool.name === this.rejectedRegistrationName) throw new Error(`Registration rejected for ${tool.name}.`)
     if (this.tools.has(tool.name)) throw new Error(`Tool ${tool.name} is already registered.`)
     this.tools.set(tool.name, tool)
     this.registrationSignals.set(tool.name, options.signal)
@@ -201,6 +204,42 @@ describe('registerShoppingTools', () => {
     expect(control.getSnapshot().activeGrant).not.toBeNull()
     expect(modelContext.tools.has(APPLY_APPROVED_CART_TOOL_NAME)).toBe(true)
 
+    await registration.dispose()
+  })
+
+  it('settles the committed cart result even if cancellation arrives after commit', async () => {
+    const control = createShoppingControl({ now: () => new Date(Date.now() + 60_000) })
+    const modelContext = new FakeModelContext()
+    const registration = await registerShoppingTools(control, { modelContext })
+    approveHotelLook(control)
+    await registration.whenIdle()
+    const invocation = new AbortController()
+
+    const execution = modelContext.invoke(APPLY_APPROVED_CART_TOOL_NAME, {}, invocation.signal)
+    setTimeout(() => invocation.abort(), 100)
+    const result = await execution
+
+    expect(result.structuredContent).toMatchObject({ ok: true, authorityConsumed: true })
+    expect(control.getSnapshot()).toMatchObject({ cartRevision: 1, cart: { subtotalCents: 34500 }, activeGrant: null })
+    await registration.whenIdle()
+    expect(modelContext.tools.has(APPLY_APPROVED_CART_TOOL_NAME)).toBe(false)
+    await registration.dispose()
+  })
+
+  it('retains revocable authority and an empty cart when temporary registration fails', async () => {
+    const control = createShoppingControl({ now: () => new Date(Date.now() + 60_000) })
+    const modelContext = new FakeModelContext(false, APPLY_APPROVED_CART_TOOL_NAME)
+    const registration = await registerShoppingTools(control, { modelContext })
+    const approved = approveHotelLook(control)
+    await registration.whenIdle()
+
+    expect(registration.getLastError()?.message).toContain('Registration rejected')
+    expect(modelContext.tools.has(APPLY_APPROVED_CART_TOOL_NAME)).toBe(false)
+    expect(control.getSnapshot()).toMatchObject({ activeGrant: { id: approved.activeGrant?.id }, cart: { lines: [] } })
+
+    control.revokeCartGrant(approved.activeGrant?.id ?? '')
+    await registration.whenIdle()
+    expect(control.getSnapshot()).toMatchObject({ activeGrant: null, review: { status: 'revoked' }, cart: { lines: [] } })
     await registration.dispose()
   })
 

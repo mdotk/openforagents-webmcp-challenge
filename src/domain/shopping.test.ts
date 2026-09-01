@@ -15,6 +15,20 @@ const hotelLook = [
   'variant-silver-chain-belt-one',
 ] as const
 
+const tighterBudgetHomeLook = [
+  'variant-ink-satin-jumpsuit-m',
+  'variant-silver-cropped-blazer-m',
+  'variant-ink-slim-clutch-one',
+  'variant-architectural-earrings-one',
+] as const
+
+const tighterBudgetHotelLook = [
+  'variant-ink-satin-jumpsuit-m',
+  'variant-ink-sculpted-jacket-m',
+  'variant-ink-slim-clutch-one',
+  'variant-oxblood-silk-scarf-one',
+] as const
+
 function expectSuccess<T>(result: { ok: boolean; data?: T }): T {
   expect(result.ok).toBe(true)
   if (!result.ok || result.data === undefined) throw new Error('Expected success')
@@ -145,6 +159,25 @@ describe('Adaptive Shopping Canvas domain', () => {
     expectSuccess(control.checkFulfilment(hotelLook, 'event-hotel', '2026-09-04'))
   })
 
+  it('produces a different valid look and coordinated replan for the unfilmed $325 variation', () => {
+    const control = createShoppingControl({ now: () => new Date('2026-09-01T10:00:00.000Z'), budgetCents: 32500 })
+
+    expect(control.getSnapshot().context).toMatchObject({ budgetCents: 32500 })
+    expect(control.getSnapshot().context.brief).toContain('$325')
+
+    const home = expectSuccess(control.updateSharedLook(0, tighterBudgetHomeLook, []))
+    expect(home).toMatchObject({ validation: { valid: true, subtotalCents: 31300 }, lookVariantIds: tighterBudgetHomeLook })
+
+    control.setDestination('event-hotel')
+    const hotel = expectSuccess(control.updateSharedLook(
+      2,
+      ['variant-ink-sculpted-jacket-m', 'variant-oxblood-silk-scarf-one'],
+      ['variant-silver-cropped-blazer-m', 'variant-architectural-earrings-one'],
+    ))
+    expect(hotel).toMatchObject({ validation: { valid: true, subtotalCents: 32500 }, lookVariantIds: tighterBudgetHotelLook })
+    expectSuccess(control.checkFulfilment(tighterBudgetHotelLook, 'event-hotel', '2026-09-04'))
+  })
+
   it('requires fresh delivery quotes and creates an immutable review without cart mutation', () => {
     const control = hotelReadyControl()
     const fulfilment = expectSuccess(
@@ -189,6 +222,9 @@ describe('Adaptive Shopping Canvas domain', () => {
         cartChanged: false,
         chargedCents: 0,
         proposedCart: { subtotalCents: 34500 },
+        fulfilmentQuotes: expect.arrayContaining([
+          expect.objectContaining({ variantId: hotelLook[1], destinationId: 'event-hotel', arrivesOn: '2026-09-04' }),
+        ]),
         patch: { add: expect.arrayContaining([expect.objectContaining({ variantId: hotelLook[1] })]), remove: [] },
       },
       activeGrant: null,
