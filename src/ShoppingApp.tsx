@@ -453,7 +453,20 @@ function ShoppingApp() {
         {snapshot.cart.lines.length ? (
           <section className="shopping-canvas__cart" aria-labelledby="cart-title">
             <ShoppingBagOpen aria-hidden="true" />
-            <div><p className="shopping-canvas__eyebrow">Exact approved result</p><h2 id="cart-title">Your cart is ready.</h2><p>{snapshot.cart.lines.length} items · {money(snapshot.cart.subtotalCents)} · $0 charged. Checkout stays with you.</p></div>
+            <div className="shopping-canvas__cart-body">
+              <p className="shopping-canvas__eyebrow">Exact approved result</p>
+              <h2 id="cart-title">Your cart is ready.</h2>
+              <p>{snapshot.cart.lines.length} items · {money(snapshot.cart.subtotalCents)} · $0 charged. Checkout stays with you.</p>
+              <ul aria-label="Exact cart lines">
+                {snapshot.cart.lines.map((line) => (
+                  <li key={line.variantId}>
+                    <span><strong>{line.name} · {line.size}</strong><small>{line.sku} · Arrives {shortDate(snapshot.review!.fulfilmentQuotes.find((quote) => quote.variantId === line.variantId)!.arrivesOn)}</small></span>
+                    <strong>{money(line.unitPriceCents)}</strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="shopping-canvas__order-boundary">No order has been placed.</p>
+            </div>
             <button type="button" disabled>Continue to checkout</button>
           </section>
         ) : null}

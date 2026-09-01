@@ -366,12 +366,18 @@
 .shopping-canvas__authority small { margin-top: 3px; }
 .shopping-canvas__authority button { padding: 9px 13px; color: #123c2e; background: transparent; border: 1px solid #6ca88d; border-radius: 8px; font-weight: 700; }
 
-.shopping-canvas__cart { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; padding: clamp(28px, 4vw, 48px); color: white; background: var(--blue); border-color: var(--blue); }
+.shopping-canvas__cart { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: start; padding: clamp(28px, 4vw, 48px); color: white; background: var(--blue); border-color: var(--blue); }
 .shopping-canvas__cart > svg { width: 56px; height: 56px; }
 .shopping-canvas__cart h2 { margin-bottom: 5px; font-size: clamp(2rem, 3vw, 3.2rem); letter-spacing: -.05em; }
 .shopping-canvas__cart p:not(.shopping-canvas__eyebrow) { margin-bottom: 0; color: #dbe3ff; }
 .shopping-canvas__cart .shopping-canvas__eyebrow { color: #bfcaff; }
-.shopping-canvas__cart button { padding: 12px 18px; color: #8c94b2; background: #e5e8f3; border: 0; border-radius: 8px; font-weight: 700; }
+.shopping-canvas__cart ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 24px 0 16px; padding: 1px; background: rgba(255, 255, 255, .2); border-radius: 10px; list-style: none; overflow: hidden; }
+.shopping-canvas__cart li { display: flex; gap: 18px; align-items: start; justify-content: space-between; min-width: 0; padding: 14px; background: rgba(21, 13, 112, .78); }
+.shopping-canvas__cart li span strong,
+.shopping-canvas__cart li span small { display: block; }
+.shopping-canvas__cart li span small { margin-top: 3px; color: #cbd4ff; font-size: .72rem; }
+.shopping-canvas__cart .shopping-canvas__order-boundary { font-weight: 700; }
+.shopping-canvas__cart button { align-self: center; padding: 12px 18px; color: #8c94b2; background: #e5e8f3; border: 0; border-radius: 8px; font-weight: 700; }
 
 .shopping-canvas__fallback,
 .shopping-canvas__technical { padding: 0 22px; background: rgba(255, 255, 255, .55); }
@@ -424,6 +430,7 @@
   .shopping-canvas__authority { align-items: flex-start; flex-direction: column; }
   .shopping-canvas__cart { grid-template-columns: 1fr; }
   .shopping-canvas__cart > svg { width: 42px; height: 42px; }
+  .shopping-canvas__cart ul { grid-template-columns: 1fr; }
   .shopping-canvas__footer { flex-direction: column; gap: 8px; }
 }
 
