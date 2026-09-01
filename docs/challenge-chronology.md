@@ -59,7 +59,11 @@ must not be described as the submitted challenge entry.
 
 ## Submission status
 
-As of 26 August 2026, Matt Gibbs has joined the challenge on Devpost. No project
-submission has been created, no entry video has been published to YouTube and
-no final challenge submission has been made. This chronology does not claim a
-challenge result.
+On 1 September 2026, the qualified Adaptive Shopping Canvas was promoted to the
+root route. Launch Window A-01 remains available at
+`?experience=launch-window`; the fitting-room and Rack Rescue prototypes remain
+on their existing routes.
+
+Matt Gibbs has joined the challenge on Devpost. No entry video has been
+published to YouTube and no final challenge submission has been made. This
+chronology does not claim a challenge result.

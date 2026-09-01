@@ -20,7 +20,7 @@ describe('Shared fitting-room technical prototype', () => {
     expect(
       screen.getByText(/all products, quantities, reviews and holds/i),
     ).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Return to Launch Window A-01' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Return to the Morrow shopping demo' })).toHaveAttribute(
       'href',
       '/',
     )

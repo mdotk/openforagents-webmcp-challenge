@@ -1,6 +1,6 @@
 # Adaptive Shopping Canvas implementation blueprint
 
-Status: implemented, deployed and Stage 3 qualified as the separate `?experience=shopping` candidate. Deterministic, responsive, native-tool, external-agent, one-use authority and unfilmed budget-variation gates pass. The root route remains unchanged and Stage 4 is not authorized.
+Status: implemented, deployed, qualified and promoted to the root route. Deterministic, responsive, native-tool, external-agent, one-use authority and unfilmed budget-variation gates pass. Video publication, challenge terms acceptance and final submission remain separately unauthorized.
 
 Date: 1 September 2026.
 
@@ -53,9 +53,9 @@ established external-store and registration patterns into a focused parallel
 shopping slice. It should not rewrite the already-qualified fitting-room files
 or extract a new generic framework merely to share a small amount of code.
 
-The root experience, `?experience=fitting-room` and
-`?experience=rack-rescue` remain unchanged until the new candidate passes its
-own automated, native-browser and external-agent gates.
+The previous Launch Window experience remains available at
+`?experience=launch-window`. The `?experience=fitting-room` and
+`?experience=rack-rescue` prototypes remain separately addressable.
 
 ## Canonical experience
 

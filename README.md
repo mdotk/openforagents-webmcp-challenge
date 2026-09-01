@@ -1,73 +1,91 @@
-# Launch Window A-01
+# Morrow — Adaptive Shopping Canvas
 
-![Launch Window A-01: the WebMCP tool inventory changes from seven to eight and back to seven around one approved repair](public/submission-assets/launch-window-a01-cover.jpg)
-
-Launch Window A-01 is a deterministic, client-only mission-control simulation
-created by Enoki Limited for the WebMCP Challenge. It is for developers and
-product teams designing browser-agent actions with meaningful consequences.
-Matt Gibbs represents Enoki Limited for the entry.
+Morrow is a deterministic fictional retailer demo created by Enoki Limited for
+the WebMCP Challenge. A browser agent shops from exact retailer-authored facts,
+builds a complete look, repairs it when the delivery destination changes and
+prepares one exact cart for the person to review.
 
 [Try the live experience](https://openforagents-webmcp-challenge.vercel.app/) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
 
-## Screenshots
+There is no real retailer, account, payment, order or external inventory behind
+the demonstration. All products, variants, prices, quantities and delivery
+promises are fictional and browser-local.
 
-| Seven permanent tools | One approved tool appears | Launch stays on the page |
-| --- | --- | --- |
-| [![The initial mission view with seven WebMCP tools available](docs/assets/launch-window-a01-01-seven-tools.jpg)](docs/assets/launch-window-a01-01-seven-tools.jpg) | [![The approved repair view with its one-use reroute control and launch still locked](docs/assets/launch-window-a01-02-approved-eighth-tool.jpg)](docs/assets/launch-window-a01-02-approved-eighth-tool.jpg) | [![The launched mission view after the visible Launch Aster page control was used](docs/assets/launch-window-a01-03-launch-page-control.jpg)](docs/assets/launch-window-a01-03-launch-page-control.jpg) |
+## The shopping journey
 
-The central demonstration is simple: a website creates one exact WebMCP
-capability after a person approves one action, then removes that capability
-after it is used or the approval is revoked.
+The person starts with a visible brief:
 
-Launch Window A-01 simulates a grounded launch vehicle and its repair sequence.
-There is no real spacecraft, backend, model, credential, account, transaction
-or external data source behind it. The same capability pattern could be applied
-to refunds, publishing or account changes, but those are possible applications,
-not features implemented by this project.
+> Wedding Saturday. Make it unforgettable, not costume. Under $350. Arrive by
+> Friday. Keep my blue boots.
 
-## How the experience works
+The agent must then:
 
-1. The page begins with seven WebMCP tools for reading the simulated mission,
-   performing two routine repairs and requesting a decision about the final
-   repair.
-2. The 15 kW power reroute is not exposed through WebMCP until a person reviews
-   and approves that exact action on the page.
-3. Approval registers `apply_power_reroute` as an eighth tool. Its schema is
-   bound to the active grant identifier and permits one use.
-4. Using the tool or revoking the approval removes it, returning the inventory
-   from eight tools to the original seven.
-5. Launch is never exposed through WebMCP. After the repairs are complete, it is
-   performed through the visible **Launch Aster** page control.
+1. Read the shopper's confirmed size, budget, deadline, destination and owned
+   boots.
+2. Search twelve fictional product styles and thirty exact variants.
+3. Inspect candidate products and check current destination-specific delivery.
+4. Assemble a complete look on the shared page without changing the cart.
+5. Replan when the person changes delivery from Home to the Event hotel and the
+   selected blazer no longer arrives in time.
+6. Prepare an immutable cart proposal using fresh delivery quotes.
+7. Stop while the person reviews the exact products, sizes, prices and arrival
+   dates.
 
-All state and responses are local and deterministic. Repeating the same flow
-from the same starting state produces the same simulated result. When the
-required WebMCP browser API is unavailable, visible manual controls provide a
-fallback path through the simulation without claiming that tools were
-registered with the browser.
+Approval creates one temporary `apply_approved_cart` capability. It contains no
+editable product arguments, applies only the reviewed cart, works once and then
+disappears. Checkout, payment and order placement are not exposed through
+WebMCP.
+
+The styling canvas uses exact fictional SKU cutouts. It is not a virtual try-on
+and makes no claim about fit or appearance on a person's body.
 
 ## WebMCP implementation
 
-[`registerMissionTools()`](src/webmcp/register-mission-tools.ts) resolves the
-page API from `document.modelContext` through the supplied document scope:
+[`registerShoppingTools()`](src/webmcp/register-shopping-tools.ts) resolves the
+page API from `document.modelContext` and registers seven permanent tools:
+
+1. `read_shopper_context`
+2. `search_products`
+3. `inspect_products`
+4. `check_fulfilment`
+5. `read_shared_look`
+6. `update_shared_look`
+7. `request_cart_review`
+
+Each tool has a closed input schema. Read tools return exact structured facts;
+write tools accept the browser's cancellation signal and check it before
+committing a state change. The shared canvas uses revision numbers so stale
+updates and stale delivery evidence are rejected.
+
+The permanent tools share one registration lifetime:
 
 ```ts
-const modelContext = documentScope?.modelContext
+modelContext.registerTool(tool, { signal: permanentController.signal })
 ```
 
-It registers each permanent tool with one shared lifetime signal:
-
-```ts
-modelContext.registerTool(tool, { signal: permanentController.signal }),
-```
-
-The approved one-use grant is registered separately with its own signal:
+Human approval registers the temporary capability with a separate lifetime:
 
 ```ts
 await modelContext.registerTool(createGrantTool(grant, controller), {
   signal: controller.signal,
 })
 ```
+
+Using, revoking or expiring that authority aborts its registration. The live
+tool inventory therefore changes from seven tools to eight and back to seven.
+
+## Other experiments
+
+The earlier challenge prototypes remain available without changing the main
+shopping experience:
+
+- [Launch Window A-01](https://openforagents-webmcp-challenge.vercel.app/?experience=launch-window)
+- [Shared Fitting Room](https://openforagents-webmcp-challenge.vercel.app/?experience=fitting-room)
+- [Rack Rescue](https://openforagents-webmcp-challenge.vercel.app/?experience=rack-rescue)
+
+Their source and qualification records remain in this repository. They are not
+the current root experience.
 
 ## Run locally
 
@@ -79,19 +97,6 @@ npm run dev
 ```
 
 Vite prints the local URL. Open that URL in a browser to use the experience.
-
-The experimental Rack Rescue finalist is available at:
-
-```text
-?experience=rack-rescue
-```
-
-It remains a candidate rather than the current challenge entry. The root URL
-continues to open Launch Window A-01. Its current
-[qualification record](docs/rack-rescue-qualification.md),
-[submission draft](docs/rack-rescue-submission-draft.md) and
-[video storyboard](docs/rack-rescue-video-storyboard.md) keep the remaining
-external-agent gate explicit.
 
 ## Test and build
 
@@ -110,43 +115,35 @@ npm run check
 The individual lint and build commands are also available as `npm run lint`
 and `npm run build`.
 
-To inspect the production build locally:
+## Browser support and evidence
 
-```sh
-npm run preview
-```
+The WebMCP path requires a browser that exposes the page-level WebMCP API used
+by this project. In other browsers, visible controls provide the same fictional
+journey without claiming that tools were registered with the browser.
 
-## Browser qualification
+Qualification in one supporting browser establishes only the behavior observed
+in that browser and version. It does not claim compatibility with every
+browser, agent or future WebMCP specification. Automated tests do not by
+themselves establish native browser compatibility.
 
-The WebMCP path requires a browser build that exposes the page-level WebMCP API
-used by this project. In other browsers, the manual fallback remains available,
-but that does not qualify native WebMCP registration or execution.
-
-Qualification in one supporting browser build establishes only the behavior
-observed in that build. It is not a claim of compatibility with every browser,
-browser version, operating system, agent or future WebMCP specification.
-Automated tests run in jsdom and do not by themselves qualify native WebMCP in
-a browser. Native and manual checks are recorded separately.
-
-See [docs/qualification.md](docs/qualification.md) for the current evidence and
-its limits, [docs/submission-draft.md](docs/submission-draft.md) for the prepared
-entry description and [docs/video-storyboard.md](docs/video-storyboard.md) for
-the recording plan.
+The current shopping evidence is recorded in
+[`docs/adaptive-shopping-canvas-qualification-2026-09-01.md`](docs/adaptive-shopping-canvas-qualification-2026-09-01.md).
 
 ## Project status and provenance
 
 This is standalone code created during the challenge period. It is not a copy,
 release or renamed edition of another Open for Agents product. The related
-[challenge chronology](docs/challenge-chronology.md) records the limited public
-provenance and current submission status without claiming reuse or a challenge
-result.
+[`challenge chronology`](docs/challenge-chronology.md) records its provenance
+and submission status.
+
+No final challenge submission or public entry video has been made.
 
 ## Licence
 
 The project source is copyright (C) 2026 Enoki Limited and is available under
 the GNU General Public License, version 2 or (at your option) any later version
-(`GPL-2.0-or-later`). See [LICENSE](LICENSE), [NOTICE.md](NOTICE.md) and
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+(`GPL-2.0-or-later`). See [`LICENSE`](LICENSE), [`NOTICE.md`](NOTICE.md) and
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change and
-[SECURITY.md](SECURITY.md) for private vulnerability-reporting guidance.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change and
+[`SECURITY.md`](SECURITY.md) for private vulnerability-reporting guidance.

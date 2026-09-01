@@ -1,7 +1,7 @@
 {
   "name": "openforagents-webmcp-challenge",
   "version": "0.1.0",
-  "description": "A human-authorized WebMCP mission-control experience.",
+  "description": "A shared shopping canvas where an agent plans, repairs and prepares an exact cart for a person.",
   "license": "GPL-2.0-or-later",
   "type": "module",
   "scripts": {

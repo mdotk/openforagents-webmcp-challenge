@@ -259,7 +259,7 @@ function ShoppingApp() {
   return (
     <div className="shopping-canvas">
       <header className="shopping-canvas__header">
-        <a className="shopping-canvas__brand" href="?experience=shopping" aria-label="Morrow fictional retailer demo home">
+        <a className="shopping-canvas__brand" href="/" aria-label="Morrow fictional retailer demo home">
           <span>M</span>
           <strong>Morrow</strong>
         </a>

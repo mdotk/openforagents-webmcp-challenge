@@ -4,17 +4,18 @@ import App from './App.tsx'
 import FittingRoomApp from './FittingRoomApp.tsx'
 import RackRescueApp from './RackRescueApp.tsx'
 import ShoppingApp from './ShoppingApp.tsx'
+import { resolveExperience } from './experience.ts'
 
-const experience = new URLSearchParams(window.location.search).get('experience')
+const experience = resolveExperience(window.location.search)
 
 createRoot(document.getElementById('root')!).render(
   experience === 'rack-rescue' ? (
     <RackRescueApp />
-  ) : experience === 'shopping' ? (
-    <ShoppingApp />
   ) : experience === 'fitting-room' ? (
     <FittingRoomApp />
-  ) : (
+  ) : experience === 'launch-window' ? (
     <App />
+  ) : (
+    <ShoppingApp />
   ),
 )

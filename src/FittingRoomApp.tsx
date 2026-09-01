@@ -590,7 +590,7 @@ function FittingRoomApp() {
           All products, quantities, reviews and holds in this demonstration are
           fictional. No payment can be made.
         </p>
-        <a href="/">Return to Launch Window A-01</a>
+        <a href="/">Return to the Morrow shopping demo</a>
       </footer>
     </div>
   )
