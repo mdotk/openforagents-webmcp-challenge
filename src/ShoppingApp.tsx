@@ -119,6 +119,7 @@ function ShoppingApp() {
   const [registeredToolNames, setRegisteredToolNames] = useState<readonly string[]>([])
   const [registrationPending, setRegistrationPending] = useState(true)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [guidedDemo, setGuidedDemo] = useState(false)
 
   useEffect(() => {
     const previousTitle = document.title
@@ -201,16 +202,18 @@ function ShoppingApp() {
   const isTighterBudget = initialBudgetCents === 32500
   const isLate = stage === 'conflict'
   const isRepaired = ['repaired', 'review', 'approved', 'cart'].includes(stage)
+  const registrationError = registration?.getLastError() ?? null
+  const nativeAvailable = Boolean(registration?.supported && !registrationError)
   const nativeStatus = registrationPending
     ? 'Checking this browser…'
-    : registration?.getLastError()
+    : registrationError
       ? 'Tool registration needs attention'
       : registration?.supported
         ? `${registeredToolNames.length} native tools live`
         : `${permanentShoppingToolNames.length} modeled tools · native unavailable`
   const compactNativeStatus = registrationPending
     ? 'Checking…'
-    : registration?.getLastError()
+    : registrationError
       ? 'Tools need attention'
       : registration?.supported
         ? `${registeredToolNames.length} tools live`
@@ -254,6 +257,12 @@ function ShoppingApp() {
     setRegisteredToolNames([])
     setRegistrationPending(true)
     setActionError(null)
+    setGuidedDemo(false)
+  }
+
+  const startGuidedDemo = () => {
+    setGuidedDemo(true)
+    act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetFirstLook : firstLook, []))
   }
 
   return (
@@ -303,6 +312,70 @@ function ShoppingApp() {
             </div>
           ))}
         </nav>
+
+        {stage === 'brief' ? (
+          <section className={`shopping-canvas__start ${nativeAvailable ? 'is-native' : 'is-guided'}`} aria-labelledby="shopping-start-title">
+            <div className="shopping-canvas__start-copy">
+              <p className="shopping-canvas__eyebrow">Start here</p>
+              <h2 id="shopping-start-title">
+                {registrationPending
+                  ? 'Checking for WebMCP…'
+                  : nativeAvailable
+                    ? 'WebMCP tools are ready.'
+                    : registrationError
+                      ? 'WebMCP tools need attention.'
+                      : 'No compatible WebMCP agent connected.'}
+              </h2>
+              <p>
+                {registrationPending
+                  ? 'You can start the guided version as soon as this browser check finishes.'
+                  : nativeAvailable
+                    ? `This page has registered ${registeredToolNames.length} tools. Open your browser agent and give it the request shown here; the canvas will update as it works.`
+                    : 'You can still run the complete shopping journey here with visible controls. Nothing is purchased or charged.'}
+              </p>
+            </div>
+            {nativeAvailable ? (
+              <div className="shopping-canvas__agent-request">
+                <small>Ask your browser agent</small>
+                <blockquote>“Shop this brief. Build the look here, explain your choices and stop at the exact cart review.”</blockquote>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={startGuidedDemo}
+              disabled={registrationPending}
+            >
+              <ArrowRight aria-hidden="true" />
+              {registrationPending
+                ? 'Checking this browser…'
+                : nativeAvailable
+                  ? 'Run guided demo instead'
+                  : 'Start guided demo'}
+            </button>
+          </section>
+        ) : null}
+
+        {guidedDemo && ['first-look', 'conflict', 'repaired'].includes(stage) ? (
+          <section className="shopping-canvas__guided-step" aria-live="polite">
+            <div>
+              <small>Guided demo</small>
+              <strong>
+                {stage === 'first-look'
+                  ? 'The first look works for Home. Now change the delivery destination.'
+                  : stage === 'conflict'
+                    ? 'The blazer now arrives too late. Repair the look and the budget.'
+                    : 'The repaired look arrives Friday and stays under budget. Prepare the exact cart review.'}
+              </strong>
+            </div>
+            {stage === 'first-look' ? (
+              <button type="button" onClick={() => act(() => control.setDestination('event-hotel'))}>Change delivery to the event hotel</button>
+            ) : stage === 'conflict' ? (
+              <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetHotelReplacements : hotelReplacements, isTighterBudget ? tighterBudgetReplacedHomeItems : replacedHomeItems))}>Repair delivery and budget</button>
+            ) : (
+              <button type="button" onClick={() => act(requestReview)}>Prepare exact cart review</button>
+            )}
+          </section>
+        ) : null}
 
         <section className={`shopping-canvas__workspace is-${stage}`} aria-labelledby="canvas-title">
           <div className="shopping-canvas__canvas-heading">
@@ -446,7 +519,10 @@ function ShoppingApp() {
         {snapshot.activeGrant ? (
           <section className="shopping-canvas__authority" aria-live="polite">
             <div><ShieldCheck /><span><strong>You approved one exact cart patch.</strong><small>{APPLY_APPROVED_CART_TOOL_NAME} is temporarily available to the agent for one use.</small></span></div>
-            <button type="button" onClick={() => act(() => control.revokeCartGrant(snapshot.activeGrant!.id))}>Revoke</button>
+            <div className="shopping-canvas__authority-actions">
+              {guidedDemo ? <button type="button" className="is-apply" onClick={() => act(() => control.applyApprovedCart(snapshot.activeGrant!.id))}>Apply approved cart</button> : null}
+              <button type="button" onClick={() => act(() => control.revokeCartGrant(snapshot.activeGrant!.id))}>Revoke</button>
+            </div>
           </section>
         ) : null}
 
@@ -471,18 +547,10 @@ function ShoppingApp() {
           </section>
         ) : null}
 
-        <details className="shopping-canvas__fallback">
-          <summary>No compatible agent? Run the same visible demo journey</summary>
-          <div>
-            {stage === 'brief' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetFirstLook : firstLook, []))}>Build the first look</button> : null}
-            {stage === 'first-look' ? <button type="button" onClick={() => act(() => control.setDestination('event-hotel'))}>Change delivery to the event hotel</button> : null}
-            {stage === 'conflict' ? <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetHotelReplacements : hotelReplacements, isTighterBudget ? tighterBudgetReplacedHomeItems : replacedHomeItems))}>Repair delivery and budget</button> : null}
-            {stage === 'repaired' && !snapshot.review ? <button type="button" onClick={() => act(requestReview)}>Prepare exact cart review</button> : null}
-            {stage === 'approved' && snapshot.activeGrant ? <button type="button" onClick={() => act(() => control.applyApprovedCart(snapshot.activeGrant!.id))}>Simulate the approved one-use tool</button> : null}
-            <button type="button" className="is-secondary" onClick={reset}>Reset demo</button>
-          </div>
+        <div className="shopping-canvas__reset-row">
+          <button type="button" onClick={reset}>Reset demo</button>
           {actionError ? <p role="alert">{actionError}</p> : null}
-        </details>
+        </div>
 
         <details className="shopping-canvas__technical">
           <summary>How WebMCP changes this experience</summary>

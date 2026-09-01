@@ -54,8 +54,21 @@ describe('Adaptive Shopping Canvas', () => {
     expect(screen.getByRole('heading', { name: 'Ready for the agent' })).toBeVisible()
     expect(screen.getByText(/one request\. thirty variants/i)).toBeVisible()
     expect(await screen.findByText('7 modeled tools · native unavailable')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'No compatible WebMCP agent connected.' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Start guided demo' })).toBeVisible()
     expect(screen.queryByRole('button', { name: /approve exact cart/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /checkout/i })).not.toBeInTheDocument()
+  })
+
+  it('tells a native-WebMCP visitor exactly what to ask and offers a guided alternative', async () => {
+    installRejectingModelContext()
+    render(<ShoppingApp />)
+
+    expect(await screen.findByText('7 native tools live')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'WebMCP tools are ready.' })).toBeVisible()
+    expect(screen.getByText('Ask your browser agent')).toBeVisible()
+    expect(screen.getAllByText(/shop this brief\. build the look here/i)).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Run guided demo instead' })).toBeVisible()
   })
 
   it('runs the visible first-look, delivery failure, coordinated repair and exact approval journey', async () => {
@@ -63,8 +76,7 @@ describe('Adaptive Shopping Canvas', () => {
     render(<ShoppingApp />)
     await screen.findByText('7 modeled tools · native unavailable')
 
-    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
-    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    await user.click(screen.getByRole('button', { name: 'Start guided demo' }))
 
     expect(screen.getByRole('heading', { name: 'First look found' })).toBeVisible()
     expect(screen.getByAltText('Silver Cropped Blazer')).toBeVisible()
@@ -94,7 +106,7 @@ describe('Adaptive Shopping Canvas', () => {
     expect(screen.getByText(/you approved one exact cart patch/i)).toBeVisible()
     expect(screen.getAllByText(/apply_approved_cart/).length).toBeGreaterThan(1)
 
-    await user.click(screen.getByRole('button', { name: 'Simulate the approved one-use tool' }))
+    await user.click(screen.getByRole('button', { name: 'Apply approved cart' }))
     const cart = screen.getByRole('heading', { name: 'Your cart is ready.' }).closest('section')
     expect(cart).not.toBeNull()
     expect(within(cart!).getByText(/4 items · \$345 · \$0 charged/i)).toBeVisible()
@@ -106,15 +118,14 @@ describe('Adaptive Shopping Canvas', () => {
     expect(within(cart!).queryByText(/cobalt-blue ankle boots/i)).not.toBeInTheDocument()
     expect(within(cart!).getByText('No order has been placed.')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Continue to checkout' })).toBeDisabled()
-    expect(screen.queryByRole('button', { name: 'Simulate the approved one-use tool' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Apply approved cart' })).not.toBeInTheDocument()
   })
 
   it('lets the person decline an exact proposal without changing the cart', async () => {
     const user = userEvent.setup()
     render(<ShoppingApp />)
     await screen.findByText('7 modeled tools · native unavailable')
-    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
-    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    await user.click(screen.getByRole('button', { name: 'Start guided demo' }))
     await user.click(screen.getByRole('button', { name: 'Change delivery to the event hotel' }))
     await user.click(screen.getByRole('button', { name: 'Repair delivery and budget' }))
     await user.click(screen.getByRole('button', { name: 'Prepare exact cart review' }))
@@ -131,8 +142,7 @@ describe('Adaptive Shopping Canvas', () => {
     render(<ShoppingApp />)
     await screen.findByText('7 native tools live')
 
-    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
-    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    await user.click(screen.getByRole('button', { name: 'Run guided demo instead' }))
     await user.click(screen.getByRole('button', { name: 'Change delivery to the event hotel' }))
     await user.click(screen.getByRole('button', { name: 'Repair delivery and budget' }))
     await user.click(screen.getByRole('button', { name: 'Prepare exact cart review' }))
@@ -157,8 +167,7 @@ describe('Adaptive Shopping Canvas', () => {
     expect(screen.getByText('Under $325')).toBeVisible()
     expect(screen.getByText(/retailer items under \$325/i)).toBeVisible()
 
-    await user.click(screen.getByText('No compatible agent? Run the same visible demo journey'))
-    await user.click(screen.getByRole('button', { name: 'Build the first look' }))
+    await user.click(screen.getByRole('button', { name: 'Start guided demo' }))
     expect(screen.getByAltText('Ink Satin Jumpsuit')).toBeVisible()
     expect(screen.getByText('$313')).toBeVisible()
 
