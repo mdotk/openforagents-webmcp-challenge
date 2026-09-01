@@ -11,3 +11,8 @@ export {
   permanentRackRescueToolNames,
   registerRackRescueTools,
 } from './register-rack-rescue-tools'
+export {
+  APPLY_APPROVED_CART_TOOL_NAME,
+  permanentShoppingToolNames,
+  registerShoppingTools,
+} from './register-shopping-tools'
