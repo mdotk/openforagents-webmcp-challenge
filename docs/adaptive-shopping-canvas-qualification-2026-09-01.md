@@ -1,33 +1,39 @@
 # Adaptive Shopping Canvas qualification
 
-Date: 1 September 2026
+Initial qualification: 1 September 2026
 
-Status: **GREEN. Stage 3 qualification complete.**
+Current root-experience qualification: 2 September 2026
 
-This receipt covers only the separate `?experience=shopping` candidate. It
-does not promote that candidate to the root route, accept challenge terms,
-publish a video or submit a Devpost entry.
+Status: **GREEN. Current root experience qualified and deployed.**
+
+The shopping candidate was promoted to the root route in a separate reviewed
+change. The 2 September follow-up makes that root experience immediately
+intelligible and runnable both with and without WebMCP. It does not accept
+challenge terms, publish a video or submit a Devpost entry.
 
 ## Exact candidate identity
 
 - Repository: `mdotk/openforagents-webmcp-challenge`.
-- Exact behavioural source revision: `0e640ce265fe7ee5a673c7bbf103baa832520f87`.
+- Exact current behavioural source revision: `725b06cb0f6cd450ce6225e8360d110e7174c8c8`.
 - `HEAD == origin/main` at qualification freeze.
-- Production deployment: `dpl_tsf97YLKbfdBYaTCsgwTT36kf1PQ`.
-- Deployment URL: `https://openforagents-webmcp-challenge-26gchfsrn-enokinz.vercel.app`.
-- Production alias: `https://openforagents-webmcp-challenge.vercel.app/?experience=shopping`.
+- Production deployment: `dpl_5B5qpMD3HaahciphYM4XaNCqKvVc`.
+- Deployment URL: `https://openforagents-webmcp-challenge-7dap4k65j-enokinz.vercel.app`.
+- Production alias: `https://openforagents-webmcp-challenge.vercel.app/`.
 - Deployment state: `Ready`; public response `HTTP 200` with
   `Permissions-Policy: tools=(self)`.
+- The production HTML, JavaScript and CSS bytes matched the exact local
+  production build. SHA-256: HTML `e61d4f5e…c752`, JavaScript
+  `cdcbbc89…92ab`, CSS `e53b0605…6e9f`.
 
-The root Launch Window and the existing `?experience=fitting-room` and
-`?experience=rack-rescue` routes remain separate. No route promotion occurred.
+The earlier Launch Window, fitting-room and Rack Rescue experiments remain at
+their explicit query routes and are not presented as the current entry.
 
 ## Automated qualification
 
 The exact source revision passed:
 
 - `npm run lint`.
-- 12 test files and 67 tests.
+- 13 test files and 72 tests.
 - TypeScript project build.
 - Vite production build.
 - `git diff --check` before the focused commit.
@@ -56,15 +62,32 @@ application, replay rejection, unsupported-browser fallback and the distinct
 ## Responsive and visual qualification
 
 - Desktop: 1440 x 1050.
-- Mobile: 390 x 844 and 320 x 760.
+- Mobile: 390 x 844 and 320 x 800.
 - Empty, conflict, repaired, review, approved and final-cart states exercised.
 - No page-level horizontal overflow at the tested widths.
-- The 320 px header uses the compact `7 tools live` label without clipping.
+- The 320 px opening keeps the human problem and **Start the demo** action in
+  the first viewport, with no page-level horizontal overflow.
 - Exact SKU, size, colour, price and current delivery evidence remain readable
   at review.
 - Browser console warnings and errors: none in the recorded responsive pass.
 - Source-versus-implementation visual comparison and remaining P3 observation
   are recorded in `design-qa.md`; no P0, P1 or P2 finding remains.
+
+## Human-first and agent-visible experience
+
+- The first screen offers **Watch the 45-second demo** and **Use your browser
+  agent** as two explicit paths into the same state.
+- The guided path remains enabled while WebMCP support is being checked and in
+  browsers that do not expose the API.
+- WebMCP support is reported as tool availability, never as a claim that an
+  agent is connected.
+- The guided path labels its actions as a demo. Real WebMCP executions produce
+  a separate factual activity trail showing tool starts and outcomes without
+  exposing private model reasoning.
+- The agent path visibly hands the changed destination back to the person and
+  supplies the bounded follow-up needed to continue the same journey.
+- The exact review receives keyboard focus. The final cart explains the store's
+  work, the person's decision and the checkout boundary in plain language.
 
 ## Native WebMCP surface
 
@@ -187,9 +210,8 @@ All six final gates passed on the exact production deployment:
 6. Checkout remained a disabled person-visible control, with no checkout,
    payment or order WebMCP tool.
 
-Final live screenshot:
-`/Volumes/Dev/CodexScratch/openforagents-shopping-qa/final-live-0e640ce-cart.png`.
-
-Stage 3 is GREEN. Stage 4 remains deliberately unopened: the root route is not
-promoted, challenge terms are not accepted, no public video is published and no
-final entry is submitted.
+The 2 September production rerun repeated the seven-to-eight-to-seven tool
+lifecycle, exact four-line `$345` cart, `$0` charged result and empty browser
+console on the current root route. The root experience is GREEN. Challenge
+terms are not accepted, no public video is published and no final entry is
+submitted.
