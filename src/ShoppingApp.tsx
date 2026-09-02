@@ -1,26 +1,43 @@
 import {
   ArrowRight,
   Check,
+  CopySimple,
   MapPin,
+  Play,
+  Robot,
   ShieldCheck,
   ShoppingBagOpen,
   Sparkle,
   WarningCircle,
   X,
 } from '@phosphor-icons/react'
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { createShoppingControl } from './domain'
 import type {
   FulfilmentQuote,
   ShoppingSnapshot,
+  ShoppingToolActivityEvent,
   ShoppingToolsRegistration,
 } from './types'
 import {
   APPLY_APPROVED_CART_TOOL_NAME,
-  permanentShoppingToolNames,
   registerShoppingTools,
 } from './webmcp'
 import './ShoppingApp.css'
+
+function agentRequestForBudget(budgetCents: number) {
+  return `Shop this wedding brief for the current destination. Build the strongest complete look around my blue boots, stay under ${money(budgetCents)}, explain your choices, and keep the cart empty. If I change the destination, recheck every item, repair only what breaks, and stop at the exact cart review.`
+}
+
+const agentContinuation =
+  'The destination changed. Recheck every item, repair only what broke, and stop at the exact cart review.'
 
 const firstLook = [
   'variant-midnight-column-dress-m',
@@ -55,6 +72,16 @@ const tighterBudgetReplacedHomeItems = [
   'variant-silver-cropped-blazer-m',
   'variant-architectural-earrings-one',
 ] as const
+
+type ExperienceMode = 'guided' | 'agent' | null
+
+interface DisplayActivity {
+  readonly id: string
+  readonly source: 'Demo' | 'Browser agent'
+  readonly status: 'working' | 'complete' | 'attention'
+  readonly title: string
+  readonly detail?: string
+}
 
 function money(cents: number) {
   return new Intl.NumberFormat('en-US', {
@@ -106,9 +133,22 @@ function initialBudgetForLocation() {
     : 35000
 }
 
+function journeyFor(stage: string) {
+  if (stage === 'brief') return { number: 1, label: 'Start with one shopping brief' }
+  if (stage === 'first-look' || stage === 'conflict') {
+    return { number: 2, label: 'Compare the first complete look' }
+  }
+  if (stage === 'repaired' || stage === 'review') {
+    return { number: 3, label: 'Repair the delivery surprise' }
+  }
+  return { number: 4, label: 'Make the exact cart decision' }
+}
+
 function ShoppingApp() {
   const [initialBudgetCents] = useState(initialBudgetForLocation)
-  const [control, setControl] = useState(() => createShoppingControl({ now: () => new Date(), budgetCents: initialBudgetCents }))
+  const [control, setControl] = useState(() =>
+    createShoppingControl({ now: () => new Date(), budgetCents: initialBudgetCents }),
+  )
   const subscribe = useCallback(
     (onStoreChange: () => void) => control.subscribe(() => onStoreChange()),
     [control],
@@ -120,6 +160,13 @@ function ShoppingApp() {
   const [registrationPending, setRegistrationPending] = useState(true)
   const [actionError, setActionError] = useState<string | null>(null)
   const [guidedDemo, setGuidedDemo] = useState(false)
+  const [mode, setMode] = useState<ExperienceMode>(null)
+  const [guidedActivity, setGuidedActivity] = useState<readonly DisplayActivity[]>([])
+  const [agentActivity, setAgentActivity] = useState<readonly DisplayActivity[]>([])
+  const [copied, setCopied] = useState(false)
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null)
+  const cartHeadingRef = useRef<HTMLHeadingElement>(null)
+  const agentRequest = agentRequestForBudget(snapshot.context.budgetCents)
 
   useEffect(() => {
     const previousTitle = document.title
@@ -129,10 +176,34 @@ function ShoppingApp() {
     }
   }, [])
 
+  const observeToolActivity = useCallback((event: ShoppingToolActivityEvent) => {
+    setMode('agent')
+    setGuidedDemo(false)
+    setAgentActivity((current) => {
+      const next: DisplayActivity = {
+        id: event.id,
+        source: 'Browser agent',
+        status: event.status === 'started'
+          ? 'working'
+          : event.status === 'failed'
+            ? 'attention'
+            : 'complete',
+        title: event.message,
+        detail: event.toolName,
+      }
+      if (event.status === 'started') return [...current, next]
+      const runningIndex = current.findLastIndex(
+        (entry) => entry.detail === event.toolName && entry.status === 'working',
+      )
+      if (runningIndex < 0) return [...current, next]
+      return current.map((entry, index) => index === runningIndex ? next : entry)
+    })
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     let active: ShoppingToolsRegistration | null = null
-    void registerShoppingTools(control)
+    void registerShoppingTools(control, undefined, { onActivity: observeToolActivity })
       .then(async (next) => {
         active = next
         if (cancelled) {
@@ -146,13 +217,13 @@ function ShoppingApp() {
       .catch(() => {
         if (cancelled) return
         setRegistrationPending(false)
-        setActionError('Native browser tools did not finish loading. The visible demo controls still work.')
+        setActionError('WebMCP tools did not finish loading. The complete guided demo still works.')
       })
     return () => {
       cancelled = true
       if (active) void active.dispose()
     }
-  }, [control])
+  }, [control, observeToolActivity])
 
   useEffect(() => {
     if (!registration) return
@@ -166,21 +237,42 @@ function ShoppingApp() {
     }
   }, [registration, snapshot.revision])
 
+  useEffect(() => {
+    if (snapshot.review?.status !== 'pending') return
+    const frame = requestAnimationFrame(() => reviewHeadingRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [snapshot.review?.status])
+
+  useEffect(() => {
+    if (!snapshot.cart.lines.length) return
+    const frame = requestAnimationFrame(() => {
+      cartHeadingRef.current?.focus()
+      cartHeadingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [snapshot.cart.lines.length])
+
   const act = useCallback((action: () => unknown) => {
     try {
       action()
       setActionError(null)
+      return true
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'That action could not run.')
+      return false
     }
   }, [])
 
   const selected = useMemo(
-    () => snapshot.lookVariantIds.map((id) => variantFor(snapshot, id)).filter((item): item is NonNullable<typeof item> => Boolean(item)),
+    () => snapshot.lookVariantIds
+      .map((id) => variantFor(snapshot, id))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item)),
     [snapshot],
   )
   const selectedBySlot = useMemo(
-    () => Object.fromEntries(selected.map((item) => [item.product.slot, item])) as Partial<Record<'base' | 'layer' | 'bag' | 'accent', (typeof selected)[number]>>,
+    () => Object.fromEntries(selected.map((item) => [item.product.slot, item])) as Partial<
+      Record<'base' | 'layer' | 'bag' | 'accent', (typeof selected)[number]>
+    >,
     [selected],
   )
   const deliveryByVariant = useMemo(() => Object.fromEntries(
@@ -197,27 +289,46 @@ function ShoppingApp() {
         : undefined
       return [variantId, arrivesOn]
     }),
-  ) as Readonly<Record<string, string | undefined>>, [control, snapshot.context.destinationId, snapshot.context.neededBy, snapshot.lookVariantIds])
+  ) as Readonly<Record<string, string | undefined>>, [
+    control,
+    snapshot.context.destinationId,
+    snapshot.context.neededBy,
+    snapshot.lookVariantIds,
+  ])
+
   const stage = stageFor(snapshot)
+  const journey = journeyFor(stage)
   const isTighterBudget = initialBudgetCents === 32500
   const isLate = stage === 'conflict'
   const isRepaired = ['repaired', 'review', 'approved', 'cart'].includes(stage)
   const registrationError = registration?.getLastError() ?? null
   const nativeAvailable = Boolean(registration?.supported && !registrationError)
   const nativeStatus = registrationPending
-    ? 'Checking this browser…'
+    ? 'Checking WebMCP support'
     : registrationError
-      ? 'Tool registration needs attention'
+      ? 'WebMCP needs attention'
       : registration?.supported
-        ? `${registeredToolNames.length} native tools live`
-        : `${permanentShoppingToolNames.length} modeled tools · native unavailable`
-  const compactNativeStatus = registrationPending
-    ? 'Checking…'
+        ? 'WebMCP ready'
+        : 'Guided demo ready'
+  const nativeDetail = registrationPending
+    ? 'The guided demo works now'
     : registrationError
-      ? 'Tools need attention'
+      ? 'The guided demo still works'
       : registration?.supported
-        ? `${registeredToolNames.length} tools live`
-        : 'Native unavailable'
+        ? `${registeredToolNames.length} tools available to browser agents`
+        : 'This browser does not expose WebMCP'
+  const visibleActivity = mode === 'agent' ? agentActivity : guidedActivity
+
+  const addGuidedActivity = (...entries: readonly Omit<DisplayActivity, 'id' | 'source'>[]) => {
+    setGuidedActivity((current) => [
+      ...current,
+      ...entries.map((entry, index) => ({
+        ...entry,
+        id: `guided-activity-${String(current.length + index + 1).padStart(3, '0')}`,
+        source: 'Demo' as const,
+      })),
+    ])
+  }
 
   const requestReview = () => {
     const fulfilment = control.checkFulfilment(
@@ -227,7 +338,7 @@ function ShoppingApp() {
     )
     if (!fulfilment.ok) {
       setActionError(fulfilment.error.message)
-      return
+      return false
     }
     const quotes: readonly FulfilmentQuote[] = fulfilment.data.quotes
     const result = control.requestCartReview({
@@ -246,8 +357,12 @@ function ShoppingApp() {
               : 'Preserves the sharp evening direction around the owned boots.',
       })),
     })
-    if (!result.ok) setActionError(result.error.message)
-    else setActionError(null)
+    if (!result.ok) {
+      setActionError(result.error.message)
+      return false
+    }
+    setActionError(null)
+    return true
   }
 
   const reset = () => {
@@ -258,11 +373,145 @@ function ShoppingApp() {
     setRegistrationPending(true)
     setActionError(null)
     setGuidedDemo(false)
+    setMode(null)
+    setGuidedActivity([])
+    setAgentActivity([])
+    setCopied(false)
   }
 
   const startGuidedDemo = () => {
     setGuidedDemo(true)
-    act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetFirstLook : firstLook, []))
+    setMode('guided')
+    setAgentActivity([])
+    setGuidedActivity([
+      {
+        id: 'guided-activity-001',
+        source: 'Demo',
+        status: 'complete',
+        title: 'Read the brief and locked the four constraints.',
+        detail: `Size M · Friday · ${money(snapshot.context.budgetCents)} · keep the boots`,
+      },
+      {
+        id: 'guided-activity-002',
+        source: 'Demo',
+        status: 'complete',
+        title: 'Searched 30 exact variants across 12 products.',
+        detail: 'Compared style, size, stock, price and delivery facts',
+      },
+      {
+        id: 'guided-activity-003',
+        source: 'Demo',
+        status: 'complete',
+        title: 'Built the strongest complete first look.',
+        detail: 'Four retailer items around the owned cobalt boots',
+      },
+    ])
+    act(() => control.updateSharedLook(
+      snapshot.revision,
+      isTighterBudget ? tighterBudgetFirstLook : firstLook,
+      [],
+    ))
+  }
+
+  const changeGuidedDestination = () => {
+    if (!act(() => control.setDestination('event-hotel'))) return
+    addGuidedActivity(
+      {
+        status: 'complete',
+        title: 'You changed delivery from Home to the event hotel.',
+        detail: 'The look now has to be checked against a new destination',
+      },
+      {
+        status: 'attention',
+        title: 'Rechecked four promises and found one late item.',
+        detail: 'The silver blazer now arrives Monday—after the wedding',
+      },
+    )
+  }
+
+  const repairGuidedLook = () => {
+    if (!act(() => control.updateSharedLook(
+      snapshot.revision,
+      isTighterBudget ? tighterBudgetHotelReplacements : hotelReplacements,
+      isTighterBudget ? tighterBudgetReplacedHomeItems : replacedHomeItems,
+    ))) return
+    addGuidedActivity(
+      {
+        status: 'complete',
+        title: 'Kept the pieces that still worked.',
+        detail: isTighterBudget ? 'The jumpsuit and clutch stayed' : 'The dress and belt stayed',
+      },
+      {
+        status: 'complete',
+        title: 'Replaced only the two problem pieces.',
+        detail: isTighterBudget
+          ? 'Added the hotel-ready jacket and scarf'
+          : 'Added the hotel-ready jacket and smaller bag',
+      },
+      {
+        status: 'complete',
+        title: `Confirmed Friday delivery at ${money(isTighterBudget ? 32500 : 34500)}.`,
+        detail: 'All four exact variants are available; the cart is still empty',
+      },
+    )
+  }
+
+  const prepareGuidedReview = () => {
+    if (!requestReview()) return
+    addGuidedActivity({
+      status: 'complete',
+      title: 'Prepared one exact four-item cart decision.',
+      detail: 'Nothing has been added and $0 has been charged',
+    })
+  }
+
+  const addGuidedCart = () => {
+    const reviewId = snapshot.review?.id
+    if (!reviewId) return
+    try {
+      const approved = control.approveCartReview(reviewId)
+      const grantId = approved.activeGrant?.id
+      if (!grantId) throw new Error('The demo cart permission was not created.')
+      const applied = control.applyApprovedCart(grantId)
+      if (!applied.ok) throw new Error(applied.error.message)
+      setActionError(null)
+      addGuidedActivity({
+        status: 'complete',
+        title: 'Added the four reviewed items to the demo cart.',
+        detail: `${money(applied.data.cart.subtotalCents)} total · $0 charged · no order placed`,
+      })
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'The demo cart could not be updated.')
+    }
+  }
+
+  const approveAgentCart = () => {
+    const reviewId = snapshot.review?.id
+    if (!reviewId) return
+    act(() => control.approveCartReview(reviewId))
+  }
+
+  const copyAgentRequest = async () => {
+    if (nativeAvailable) setMode('agent')
+    try {
+      await navigator.clipboard.writeText(agentRequest)
+      setCopied(true)
+      setActionError(null)
+    } catch {
+      setCopied(false)
+      setActionError('Copy was unavailable. Select the request text and copy it manually.')
+    }
+  }
+
+  const copyAgentContinuation = async () => {
+    try {
+      await navigator.clipboard.writeText(agentContinuation)
+      setCopied(true)
+      setActionError(null)
+    } catch {
+      setCopied(false)
+      setActionError('Copy was unavailable. Select the follow-up text and copy it manually.')
+    }
   }
 
   return (
@@ -274,10 +523,10 @@ function ShoppingApp() {
         </a>
         <div className="shopping-canvas__demo-label">Fictional retailer demo</div>
         <div className="shopping-canvas__tool-status" aria-live="polite">
-          <span className="shopping-canvas__pulse" />
+          <span className={`shopping-canvas__pulse ${nativeAvailable ? 'is-ready' : ''}`} />
           <div>
-            <small>WebMCP</small>
-            <strong><span className="shopping-canvas__status-full">{nativeStatus}</span><span className="shopping-canvas__status-compact" aria-hidden="true">{compactNativeStatus}</span></strong>
+            <strong>{nativeStatus}</strong>
+            <small>{nativeDetail}</small>
           </div>
         </div>
       </header>
@@ -285,11 +534,13 @@ function ShoppingApp() {
       <main>
         <section className="shopping-canvas__intro">
           <div>
-            <p className="shopping-canvas__eyebrow">A shared shopping canvas for you and your agent</p>
-            <h1>Your agent shops.<br />You make the call.</h1>
+            <p className="shopping-canvas__eyebrow">A 45-second shopping challenge</p>
+            <h1>The outfit works.<br />Then delivery changes.</h1>
+            <p className="shopping-canvas__lede">A wedding look has to arrive by Friday. Then the delivery destination changes. Watch the store recover—or hand the problem to your browser agent.</p>
           </div>
           <div className="shopping-canvas__brief">
-            <blockquote>“{snapshot.context.brief}”</blockquote>
+            <small>The brief</small>
+            <blockquote>“Wedding Saturday. Size M. Under {money(snapshot.context.budgetCents)}. Keep my blue boots. Everything must reach my destination by Friday.”</blockquote>
             <ul aria-label="Confirmed shopping constraints">
               <li>Size M</li>
               <li>By Friday</li>
@@ -299,80 +550,91 @@ function ShoppingApp() {
           </div>
         </section>
 
-        <nav className="shopping-canvas__journey" aria-label="Shopping journey">
-          {[
-            ['1', 'Agent searches', stage === 'brief' ? 'current' : 'done'],
-            ['2', 'Plans the look', ['first-look', 'conflict'].includes(stage) ? 'current' : stage === 'brief' ? '' : 'done'],
-            ['3', 'Repairs the surprise', stage === 'repaired' ? 'current' : ['review', 'approved', 'cart'].includes(stage) ? 'done' : ''],
-            ['4', 'You approve', stage === 'review' || stage === 'approved' ? 'current' : stage === 'cart' ? 'done' : ''],
-          ].map(([number, label, status]) => (
-            <div className={status ? `is-${status}` : ''} key={number}>
-              <span>{status === 'done' ? <Check weight="bold" /> : number}</span>
-              <strong>{label}</strong>
+        {stage === 'brief' ? <section className="shopping-canvas__entry" aria-labelledby="shopping-start-title">
+          <div className="shopping-canvas__entry-heading">
+            <p className="shopping-canvas__eyebrow">Choose how to experience it</p>
+            <h2 id="shopping-start-title">See it work—or delegate it.</h2>
+          </div>
+          <article className="shopping-canvas__entry-card is-demo">
+            <div className="shopping-canvas__entry-icon"><Play weight="fill" /></div>
+            <div>
+              <small>Works in every browser</small>
+              <h3>Watch the 45-second demo</h3>
+              <p>Step through the complete search, surprise, repair and cart result.</p>
             </div>
-          ))}
-        </nav>
-
-        {stage === 'brief' ? (
-          <section className={`shopping-canvas__start ${nativeAvailable ? 'is-native' : 'is-guided'}`} aria-labelledby="shopping-start-title">
-            <div className="shopping-canvas__start-copy">
-              <p className="shopping-canvas__eyebrow">Start here</p>
-              <h2 id="shopping-start-title">
-                {registrationPending
-                  ? 'Checking for WebMCP…'
-                  : nativeAvailable
-                    ? 'WebMCP tools are ready.'
-                    : registrationError
-                      ? 'WebMCP tools need attention.'
-                      : 'No compatible WebMCP agent connected.'}
-              </h2>
-              <p>
-                {registrationPending
-                  ? 'You can start the guided version as soon as this browser check finishes.'
-                  : nativeAvailable
-                    ? `This page has registered ${registeredToolNames.length} tools. Open your browser agent and give it the request shown here; the canvas will update as it works.`
-                    : 'You can still run the complete shopping journey here with visible controls. Nothing is purchased or charged.'}
-              </p>
-            </div>
-            {nativeAvailable ? (
-              <div className="shopping-canvas__agent-request">
-                <small>Ask your browser agent</small>
-                <blockquote>“Shop this brief. Build the look here, explain your choices and stop at the exact cart review.”</blockquote>
-              </div>
-            ) : null}
-            <button
-              type="button"
-              onClick={startGuidedDemo}
-              disabled={registrationPending}
-            >
-              <ArrowRight aria-hidden="true" />
-              {registrationPending
-                ? 'Checking this browser…'
-                : nativeAvailable
-                  ? 'Run guided demo instead'
-                  : 'Start guided demo'}
+            <button type="button" onClick={startGuidedDemo} disabled={stage !== 'brief'}>
+              <Play weight="fill" /> {stage === 'brief' ? 'Start the demo' : 'Demo running'}
             </button>
-          </section>
-        ) : null}
+          </article>
+          <article className={`shopping-canvas__entry-card is-agent ${nativeAvailable ? 'is-ready' : ''}`}>
+            <div className="shopping-canvas__entry-icon"><Robot /></div>
+            <div>
+              <small>{nativeAvailable ? 'WebMCP is ready' : registrationPending ? 'Checking this browser' : 'Requires a WebMCP browser'}</small>
+              <h3>Use your browser agent</h3>
+              <p>{nativeAvailable
+                ? 'Give your agent one objective. Real tool calls will appear live on this page.'
+                : 'The same request is ready to copy. The guided demo remains fully available.'}</p>
+            </div>
+            <div className="shopping-canvas__agent-request">
+              <blockquote>{agentRequest}</blockquote>
+              <button type="button" onClick={() => void copyAgentRequest()}>
+                {copied ? <Check weight="bold" /> : <CopySimple />} {copied ? 'Request copied' : 'Copy agent request'}
+              </button>
+            </div>
+          </article>
+        </section> : null}
+
+        <nav className="shopping-canvas__journey" aria-label="Shopping journey">
+          <span>Step {journey.number} of 4</span>
+          <strong>{journey.label}</strong>
+          <div className="shopping-canvas__journey-dots" aria-hidden="true">
+            {[1, 2, 3, 4].map((step) => <i className={step <= journey.number ? 'is-active' : ''} key={step} />)}
+          </div>
+        </nav>
 
         {guidedDemo && ['first-look', 'conflict', 'repaired'].includes(stage) ? (
           <section className="shopping-canvas__guided-step" aria-live="polite">
             <div>
-              <small>Guided demo</small>
+              <small>Guided demo · your next move</small>
               <strong>
                 {stage === 'first-look'
-                  ? 'The first look works for Home. Now change the delivery destination.'
+                  ? 'The first look works for Home. Now move delivery to the event hotel.'
                   : stage === 'conflict'
-                    ? 'The blazer now arrives too late. Repair the look and the budget.'
-                    : 'The repaired look arrives Friday and stays under budget. Prepare the exact cart review.'}
+                    ? 'One delivery promise broke. Let the demo repair the plan.'
+                    : 'The repaired look works. Open the exact cart decision.'}
               </strong>
             </div>
             {stage === 'first-look' ? (
-              <button type="button" onClick={() => act(() => control.setDestination('event-hotel'))}>Change delivery to the event hotel</button>
+              <button type="button" onClick={changeGuidedDestination}>Change delivery to the hotel</button>
             ) : stage === 'conflict' ? (
-              <button type="button" onClick={() => act(() => control.updateSharedLook(snapshot.revision, isTighterBudget ? tighterBudgetHotelReplacements : hotelReplacements, isTighterBudget ? tighterBudgetReplacedHomeItems : replacedHomeItems))}>Repair delivery and budget</button>
+              <button type="button" onClick={repairGuidedLook}>Repair delivery and budget</button>
             ) : (
-              <button type="button" onClick={() => act(requestReview)}>Prepare exact cart review</button>
+              <button type="button" onClick={prepareGuidedReview}>Review the exact cart</button>
+            )}
+          </section>
+        ) : null}
+
+        {mode === 'agent' && !guidedDemo && ['first-look', 'conflict', 'repaired'].includes(stage) ? (
+          <section className="shopping-canvas__guided-step is-agent-step" aria-live="polite">
+            <div>
+              <small>Browser agent journey · your next move</small>
+              <strong>
+                {stage === 'first-look'
+                  ? 'The first look works for Home. Change delivery to reveal the real problem.'
+                  : stage === 'conflict'
+                    ? 'The destination changed. Tell your agent to recheck and repair only what broke.'
+                    : 'The repaired look works. Ask your agent to prepare the exact cart review.'}
+              </strong>
+              {stage === 'conflict' ? <p>{agentContinuation}</p> : null}
+            </div>
+            {stage === 'first-look' ? (
+              <button type="button" onClick={changeGuidedDestination}>Change delivery to the hotel</button>
+            ) : stage === 'conflict' ? (
+              <button type="button" onClick={() => void copyAgentContinuation()}>
+                <CopySimple /> Copy the agent follow-up
+              </button>
+            ) : (
+              <span className="shopping-canvas__agent-wait"><Robot /> Waiting for your agent</span>
             )}
           </section>
         ) : null}
@@ -380,9 +642,15 @@ function ShoppingApp() {
         <section className={`shopping-canvas__workspace is-${stage}`} aria-labelledby="canvas-title">
           <div className="shopping-canvas__canvas-heading">
             <div>
-              <p className="shopping-canvas__eyebrow">Shared styling canvas</p>
+              <p className="shopping-canvas__eyebrow">Shared shopping canvas</p>
               <h2 id="canvas-title">
-                {stage === 'brief' ? 'Ready for the agent' : isLate ? 'The destination changed' : isRepaired ? 'Replanned for the hotel' : 'First look found'}
+                {stage === 'brief'
+                  ? 'Your boots are the starting point'
+                  : isLate
+                    ? 'The destination changed'
+                    : isRepaired
+                      ? 'Replanned for the hotel'
+                      : 'First look found'}
               </h2>
             </div>
             <div className="shopping-canvas__destination">
@@ -407,8 +675,8 @@ function ShoppingApp() {
               ) : (
                 <div className="shopping-canvas__empty-look">
                   <Sparkle aria-hidden="true" />
-                  <strong>One request. Thirty variants.</strong>
-                  <span>The agent must search, inspect and check delivery—not press a dressed-up recommendation button.</span>
+                  <strong>Start with what you already own.</strong>
+                  <span>The blue boots are fixed. Everything else has to earn its place.</span>
                 </div>
               )}
               {selectedBySlot.layer ? <img className="shopping-canvas__item shopping-canvas__item--layer" src={selectedBySlot.layer.product.assetPath} alt={selectedBySlot.layer.product.name} width="900" height="900" /> : null}
@@ -416,63 +684,92 @@ function ShoppingApp() {
               {selectedBySlot.accent ? <img className="shopping-canvas__item shopping-canvas__item--accent" src={selectedBySlot.accent.product.assetPath} alt={selectedBySlot.accent.product.name} width="900" height="900" /> : null}
               <img className="shopping-canvas__item shopping-canvas__item--boots" src={snapshot.context.ownedItems[0].assetPath} alt="Your owned cobalt-blue ankle boots" width="900" height="900" />
               <figcaption>
-                <span>Exact product cutouts arranged as a styling preview</span>
-                <strong>Your boots stay. They never become a cart line.</strong>
+                <span>Exact fictional products</span>
+                <strong>Your boots stay. They never enter the cart.</strong>
               </figcaption>
             </figure>
 
-            <aside className="shopping-canvas__decision" aria-live="polite">
-              {stage === 'brief' ? (
-                <>
-                  <div className="shopping-canvas__decision-icon"><ArrowRight /></div>
-                  <p className="shopping-canvas__eyebrow">Give the agent one objective</p>
-                  <h3>Find the strongest complete look.</h3>
-                  <p>It has to reconcile style, size, stock, delivery and the total from retailer-owned facts.</p>
-                  <div className="shopping-canvas__prompt">“Shop this brief. Build the look here, explain your choices and stop at the exact cart review.”</div>
-                </>
-              ) : isLate ? (
-                <>
-                  <div className="shopping-canvas__decision-icon is-warning"><WarningCircle /></div>
-                  <p className="shopping-canvas__eyebrow">The plan just broke</p>
-                  <h3>Silver blazer arrives Monday.</h3>
-                  <p>It reached Home by Friday. It misses the event when delivery changes to the hotel.</p>
-                  <dl>
-                    <div><dt>Was</dt><dd>Friday · Home</dd></div>
-                    <div><dt>Now</dt><dd>Monday · Hotel</dd></div>
-                    <div><dt>Cart</dt><dd>Still empty</dd></div>
-                  </dl>
-                </>
-              ) : isRepaired ? (
-                <>
-                  <div className="shopping-canvas__decision-icon is-success"><Check /></div>
-                  <p className="shopping-canvas__eyebrow">Coordinated repair</p>
-                  <h3>One late item fixed. Budget restored.</h3>
-                  <div className="shopping-canvas__repair-row">
-                    <span>Jacket</span><strong>+$18</strong><small>Arrives Friday</small>
+            <div className="shopping-canvas__side">
+              <aside className="shopping-canvas__activity" aria-live="polite" aria-label="Shopping activity">
+                <div className="shopping-canvas__activity-heading">
+                  <div>
+                    <p className="shopping-canvas__eyebrow">What is happening</p>
+                    <h3>{mode === 'agent' ? 'Browser agent activity' : mode === 'guided' ? 'Guided demo activity' : 'Ready when you are'}</h3>
                   </div>
-                  <div className="shopping-canvas__repair-row">
-                    <span>{isTighterBudget ? 'Scarf' : 'Bag'}</span><strong>{isTighterBudget ? '−$6' : '−$16'}</strong><small>Keeps total under budget</small>
+                  <span>{mode === 'agent' ? 'Live calls' : mode === 'guided' ? 'Demo' : 'Waiting'}</span>
+                </div>
+                {visibleActivity.length ? (
+                  <ol>
+                    {visibleActivity.slice(-6).map((entry) => (
+                      <li className={`is-${entry.status}`} key={entry.id}>
+                        <span>{entry.status === 'working' ? <Sparkle /> : entry.status === 'attention' ? <WarningCircle /> : <Check />}</span>
+                        <div><small>{entry.source}</small><strong>{entry.title}</strong>{entry.detail ? <p>{entry.detail}</p> : null}</div>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="shopping-canvas__activity-empty">
+                    <Robot />
+                    <strong>{nativeAvailable ? 'Waiting for your browser agent.' : 'The complete guided demo is ready.'}</strong>
+                    <p>{nativeAvailable
+                      ? 'When your agent calls a tool, the factual action and result will appear here.'
+                      : 'Start the demo above. Nothing depends on the browser check.'}</p>
                   </div>
-                  <dl>
-                    <div><dt>Total</dt><dd>{money(snapshot.validation.subtotalCents)}</dd></div>
-                    <div><dt>Deadline</dt><dd>Friday</dd></div>
-                    <div><dt>Cart</dt><dd>{snapshot.cart.lines.length ? `${snapshot.cart.lines.length} items` : 'Still empty'}</dd></div>
-                  </dl>
-                </>
-              ) : (
-                <>
-                  <div className="shopping-canvas__decision-icon"><Sparkle /></div>
-                  <p className="shopping-canvas__eyebrow">Result from this run</p>
-                  <h3>Sharp, coherent, under budget.</h3>
-                  <p>The agent combined four exact retailer variants with your owned boots. Nothing has been added to the cart.</p>
-                  <dl>
-                    <div><dt>Total</dt><dd>{money(snapshot.validation.subtotalCents)}</dd></div>
-                    <div><dt>Delivery</dt><dd>Friday · Home</dd></div>
-                    <div><dt>Cart</dt><dd>Empty</dd></div>
-                  </dl>
-                </>
-              )}
-            </aside>
+                )}
+              </aside>
+
+              <aside className="shopping-canvas__decision" aria-live="polite">
+                {stage === 'brief' ? (
+                  <>
+                    <div className="shopping-canvas__decision-icon"><ArrowRight /></div>
+                    <p className="shopping-canvas__eyebrow">One ordinary problem</p>
+                    <h3>Find the complete look—not just one product.</h3>
+                    <p>Size, stock, style, delivery and the total all have to work together.</p>
+                  </>
+                ) : isLate ? (
+                  <>
+                    <div className="shopping-canvas__decision-icon is-warning"><WarningCircle /></div>
+                    <p className="shopping-canvas__eyebrow">The plan just broke</p>
+                    <h3>Silver blazer arrives Monday.</h3>
+                    <p>It reached Home by Friday. It misses the wedding when delivery changes to the hotel.</p>
+                    <dl>
+                      <div><dt>Was</dt><dd>Friday · Home</dd></div>
+                      <div><dt>Now</dt><dd>Monday · Hotel</dd></div>
+                      <div><dt>Cart</dt><dd>Still empty</dd></div>
+                    </dl>
+                  </>
+                ) : isRepaired ? (
+                  <>
+                    <div className="shopping-canvas__decision-icon is-success"><Check /></div>
+                    <p className="shopping-canvas__eyebrow">Coordinated repair</p>
+                    <h3>Kept two. Replaced two. Fixed the plan.</h3>
+                    <div className="shopping-canvas__repair-row">
+                      <span>Jacket</span><strong>+$18</strong><small>Restores Friday delivery</small>
+                    </div>
+                    <div className="shopping-canvas__repair-row">
+                      <span>{isTighterBudget ? 'Scarf' : 'Bag'}</span><strong>{isTighterBudget ? '−$6' : '−$16'}</strong><small>Keeps the total under budget</small>
+                    </div>
+                    <dl>
+                      <div><dt>Total</dt><dd>{money(snapshot.validation.subtotalCents)}</dd></div>
+                      <div><dt>Deadline</dt><dd>Friday</dd></div>
+                      <div><dt>Cart</dt><dd>{snapshot.cart.lines.length ? `${snapshot.cart.lines.length} items` : 'Still empty'}</dd></div>
+                    </dl>
+                  </>
+                ) : (
+                  <>
+                    <div className="shopping-canvas__decision-icon"><Sparkle /></div>
+                    <p className="shopping-canvas__eyebrow">First result</p>
+                    <h3>Four exact products. One complete look.</h3>
+                    <p>The boots stayed. The store resolved four categories, the right sizes and the current delivery promise.</p>
+                    <dl>
+                      <div><dt>Total</dt><dd>{money(snapshot.validation.subtotalCents)}</dd></div>
+                      <div><dt>Delivery</dt><dd>Friday · Home</dd></div>
+                      <div><dt>Cart</dt><dd>Empty</dd></div>
+                    </dl>
+                  </>
+                )}
+              </aside>
+            </div>
           </div>
 
           {selected.length ? (
@@ -486,7 +783,7 @@ function ShoppingApp() {
               ))}
               <li className="is-owned">
                 <img src={snapshot.context.ownedItems[0].assetPath} alt="" width="900" height="900" />
-                <div><strong>Cobalt-blue ankle boots</strong><span>Owned item · Size 8</span><small>Provided for this demo</small></div>
+                <div><strong>Cobalt-blue ankle boots</strong><span>Owned item · Size 8</span><small>Already yours</small></div>
                 <div><span>$0</span><small>never carted</small></div>
               </li>
             </ol>
@@ -494,35 +791,36 @@ function ShoppingApp() {
         </section>
 
         {snapshot.review?.status === 'pending' ? (
-          <section className="shopping-canvas__review" aria-labelledby="cart-review-title">
-            <div className="shopping-canvas__review-heading">
-              <div>
-                <p className="shopping-canvas__eyebrow">Your decision</p>
-                <h2 id="cart-review-title">Review the exact cart change</h2>
-                <p>The agent cannot approve this. No item is in the cart and no payment has been taken.</p>
+          <div className="shopping-canvas__review-backdrop">
+            <section className="shopping-canvas__review" role="dialog" aria-modal="true" aria-labelledby="cart-review-title">
+              <div className="shopping-canvas__review-heading">
+                <div>
+                  <p className="shopping-canvas__eyebrow">Your decision</p>
+                  <h2 id="cart-review-title" ref={reviewHeadingRef} tabIndex={-1}>Add these exact four items?</h2>
+                  <p>Nothing is in the cart. Nothing has been charged.</p>
+                </div>
+                <strong>{money(snapshot.review.proposedCart.subtotalCents)}</strong>
               </div>
-              <strong>{money(snapshot.review.proposedCart.subtotalCents)}</strong>
-            </div>
-            <ul>
-              {snapshot.review.proposedCart.lines.map((line) => (
-                <li key={line.variantId}><span><strong>{line.name} · {line.size}</strong><small>{line.sku} · Arrives {shortDate(snapshot.review!.fulfilmentQuotes.find((quote) => quote.variantId === line.variantId)!.arrivesOn)}</small></span><strong>{money(line.unitPriceCents)}</strong></li>
-              ))}
-            </ul>
-            <div className="shopping-canvas__review-actions">
-              <button type="button" className="is-approve" onClick={() => act(() => control.approveCartReview(snapshot.review!.id))}><ShieldCheck /> Approve exact cart</button>
-              <button type="button" onClick={() => act(() => control.keepEditing(snapshot.review!.id))}>Keep editing</button>
-              <button type="button" className="is-decline" onClick={() => act(() => control.declineCartReview(snapshot.review!.id))}><X /> Decline</button>
-            </div>
-          </section>
+              <ul>
+                {snapshot.review.proposedCart.lines.map((line) => (
+                  <li key={line.variantId}><span><strong>{line.name} · {line.size}</strong><small>{line.sku} · Arrives {shortDate(snapshot.review!.fulfilmentQuotes.find((quote) => quote.variantId === line.variantId)!.arrivesOn)}</small></span><strong>{money(line.unitPriceCents)}</strong></li>
+                ))}
+              </ul>
+              <div className="shopping-canvas__review-actions">
+                <button type="button" className="is-approve" onClick={guidedDemo ? addGuidedCart : approveAgentCart}>
+                  <ShieldCheck /> {guidedDemo ? 'Add these 4 items to the demo cart' : 'Approve and let my agent add them'}
+                </button>
+                <button type="button" onClick={() => act(() => control.keepEditing(snapshot.review!.id))}>Keep editing</button>
+                <button type="button" className="is-decline" onClick={() => act(() => control.declineCartReview(snapshot.review!.id))}><X /> Decline</button>
+              </div>
+            </section>
+          </div>
         ) : null}
 
         {snapshot.activeGrant ? (
           <section className="shopping-canvas__authority" aria-live="polite">
-            <div><ShieldCheck /><span><strong>You approved one exact cart patch.</strong><small>{APPLY_APPROVED_CART_TOOL_NAME} is temporarily available to the agent for one use.</small></span></div>
-            <div className="shopping-canvas__authority-actions">
-              {guidedDemo ? <button type="button" className="is-apply" onClick={() => act(() => control.applyApprovedCart(snapshot.activeGrant!.id))}>Apply approved cart</button> : null}
-              <button type="button" onClick={() => act(() => control.revokeCartGrant(snapshot.activeGrant!.id))}>Revoke</button>
-            </div>
+            <div><ShieldCheck /><span><strong>Approved. Waiting for your browser agent.</strong><small>One exact cart action is available once. It cannot alter the reviewed items.</small></span></div>
+            <button type="button" onClick={() => act(() => control.revokeCartGrant(snapshot.activeGrant!.id))}>Revoke</button>
           </section>
         ) : null}
 
@@ -530,9 +828,14 @@ function ShoppingApp() {
           <section className="shopping-canvas__cart" aria-labelledby="cart-title">
             <ShoppingBagOpen aria-hidden="true" />
             <div className="shopping-canvas__cart-body">
-              <p className="shopping-canvas__eyebrow">Exact approved result</p>
-              <h2 id="cart-title">Your cart is ready.</h2>
-              <p>{snapshot.cart.lines.length} items · {money(snapshot.cart.subtotalCents)} · $0 charged. Checkout stays with you.</p>
+              <p className="shopping-canvas__eyebrow">Shopping complete</p>
+              <h2 id="cart-title" ref={cartHeadingRef} tabIndex={-1}>Your exact cart is ready.</h2>
+              <p>{snapshot.cart.lines.length} items · {money(snapshot.cart.subtotalCents)} · Arrives Friday · $0 charged.</p>
+              <div className="shopping-canvas__cart-proof" aria-label="What just happened">
+                <div><small>Store work</small><strong>Searched, checked and repaired the look</strong></div>
+                <div><small>Your decision</small><strong>Approved four exact items</strong></div>
+                <div><small>Boundary</small><strong>No checkout, payment or order</strong></div>
+              </div>
               <ul aria-label="Exact cart lines">
                 {snapshot.cart.lines.map((line) => (
                   <li key={line.variantId}>
@@ -541,23 +844,23 @@ function ShoppingApp() {
                   </li>
                 ))}
               </ul>
-              <p className="shopping-canvas__order-boundary">No order has been placed.</p>
+              <p className="shopping-canvas__order-boundary">No order has been placed. Checkout stays with you.</p>
             </div>
             <button type="button" disabled>Continue to checkout</button>
           </section>
         ) : null}
 
         <div className="shopping-canvas__reset-row">
-          <button type="button" onClick={reset}>Reset demo</button>
+          <button type="button" onClick={reset}>Reset experience</button>
           {actionError ? <p role="alert">{actionError}</p> : null}
         </div>
 
         <details className="shopping-canvas__technical">
-          <summary>How WebMCP changes this experience</summary>
+          <summary>See how WebMCP powers the agent version</summary>
           <div>
-            <p>Seven permanent tools expose exact retailer facts and a shared revisioned canvas. The model still has to reason about the brief and choose a plan.</p>
-            <p>Human approval adds one temporary <code>apply_approved_cart</code> tool. It closes over the exact reviewed patch, works once, then disappears. There is no checkout tool.</p>
-            <p>Catalogue fixture: 12 styles, 30 canonical variants, two delivery destinations. All product imagery is a canonical fictional SKU asset; the layout is a styling preview, not a virtual try-on.</p>
+            <p>Seven permanent tools expose exact retailer facts and the shared revisioned canvas. The activity panel reports observable tool actions and results—not private model reasoning.</p>
+            <p>Human approval adds one temporary <code>{APPLY_APPROVED_CART_TOOL_NAME}</code> tool. It closes over the exact reviewed patch, works once, then disappears. There is no checkout, payment or order tool.</p>
+            <p>Catalogue fixture: 12 styles, 30 canonical variants and two delivery destinations. The imagery is a fictional product styling preview, not a virtual try-on.</p>
           </div>
         </details>
       </main>

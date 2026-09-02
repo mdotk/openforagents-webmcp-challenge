@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createShoppingControl } from '../domain'
 import type {
   ShoppingControl,
+  ShoppingToolActivityEvent,
   WebMcpDocumentScope,
   WebMcpModelContext,
   WebMcpTool,
@@ -116,6 +117,57 @@ function approveHotelLook(control: ShoppingControl) {
 }
 
 describe('registerShoppingTools', () => {
+  it('reports real tool starts and outcomes without changing the tool contract', async () => {
+    const control = createShoppingControl()
+    const modelContext = new FakeModelContext()
+    const activity: ShoppingToolActivityEvent[] = []
+    const registration = await registerShoppingTools(
+      control,
+      { modelContext },
+      { onActivity: (event) => activity.push(event) },
+    )
+
+    await modelContext.invoke('read_shopper_context')
+    await modelContext.invoke('search_products', {
+      categories: ['base'],
+      sizes: ['M'],
+      limit: 4,
+    })
+    approveHotelLook(control)
+    await registration.whenIdle()
+    await modelContext.invoke(APPLY_APPROVED_CART_TOOL_NAME)
+    await registration.whenIdle()
+
+    expect(activity.map(({ toolName, status }) => [toolName, status])).toEqual([
+      ['read_shopper_context', 'started'],
+      ['read_shopper_context', 'completed'],
+      ['search_products', 'started'],
+      ['search_products', 'completed'],
+      [APPLY_APPROVED_CART_TOOL_NAME, 'started'],
+      [APPLY_APPROVED_CART_TOOL_NAME, 'completed'],
+    ])
+    expect(activity[0]?.message).toContain('Reading your size')
+    expect(activity[3]?.message).toContain('strongest candidates')
+    expect(new Set(activity.map(({ id }) => id)).size).toBe(activity.length)
+    expect(activity.map(({ sequence }) => sequence)).toEqual([1, 2, 3, 4, 5, 6])
+    expect(await registration.getRegisteredToolNames()).toEqual([...permanentShoppingToolNames].sort())
+    await registration.dispose()
+  })
+
+  it('keeps page observability failures outside the WebMCP execution contract', async () => {
+    const control = createShoppingControl()
+    const modelContext = new FakeModelContext()
+    const registration = await registerShoppingTools(
+      control,
+      { modelContext },
+      { onActivity: () => { throw new Error('Display unavailable') } },
+    )
+
+    const result = await modelContext.invoke('read_shopper_context')
+    expect(result.structuredContent).toMatchObject({ context: { budgetCents: 35000 } })
+    await registration.dispose()
+  })
+
   it('registers exactly seven permanent closed-schema tools with no approval or checkout tool', async () => {
     const control = createShoppingControl()
     const modelContext = new FakeModelContext()

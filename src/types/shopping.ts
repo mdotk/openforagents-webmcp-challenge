@@ -289,3 +289,17 @@ export interface ShoppingToolsRegistration {
   whenIdle(): Promise<void>
   dispose(): Promise<void>
 }
+
+export type ShoppingToolActivityStatus = 'started' | 'completed' | 'failed'
+
+export interface ShoppingToolActivityEvent {
+  readonly id: string
+  readonly sequence: number
+  readonly toolName: string
+  readonly status: ShoppingToolActivityStatus
+  readonly message: string
+}
+
+export interface ShoppingToolActivityObserver {
+  onActivity(event: ShoppingToolActivityEvent): void
+}

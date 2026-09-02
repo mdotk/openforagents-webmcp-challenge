@@ -11,6 +11,7 @@ import type {
   ShoppingSlot,
   ShoppingSnapshot,
   ShoppingStyleTag,
+  ShoppingToolActivityObserver,
   ShoppingToolsRegistration,
   WebMcpDocumentScope,
   WebMcpTool,
@@ -391,6 +392,71 @@ function createPermanentTools(control: ShoppingControl): readonly WebMcpTool[] {
   ]
 }
 
+const toolActivityCopy: Readonly<Record<string, { started: string; completed: string }>> = Object.freeze({
+  read_shopper_context: {
+    started: 'Reading your size, budget, deadline and owned boots.',
+    completed: 'Confirmed the brief and the constraints that must not change.',
+  },
+  search_products: {
+    started: 'Searching the retailer’s 30 exact product variants.',
+    completed: 'Found the strongest candidates from retailer-owned product facts.',
+  },
+  inspect_products: {
+    started: 'Inspecting exact sizes, prices, stock and style details.',
+    completed: 'Inspected the exact candidate products and their available variants.',
+  },
+  check_fulfilment: {
+    started: 'Checking current delivery promises for the selected items.',
+    completed: 'Checked delivery against the current destination and Friday deadline.',
+  },
+  read_shared_look: {
+    started: 'Reading the shared look and current cart state.',
+    completed: 'Read the current look once and continued from that revision.',
+  },
+  update_shared_look: {
+    started: 'Updating the visible look with exact product variants.',
+    completed: 'Updated the shared look. The cart remained unchanged.',
+  },
+  request_cart_review: {
+    started: 'Preparing the exact cart for your review.',
+    completed: 'Prepared the exact cart review. Nothing was added or charged.',
+  },
+  [APPLY_APPROVED_CART_TOOL_NAME]: {
+    started: 'Applying the exact cart you approved.',
+    completed: 'Applied the approved cart once. Checkout still belongs to you.',
+  },
+})
+
+function instrumentTools(
+  tools: readonly WebMcpTool[],
+  emitActivity?: (
+    toolName: string,
+    status: 'started' | 'completed' | 'failed',
+    message: string,
+  ) => void,
+): readonly WebMcpTool[] {
+  if (!emitActivity) return tools
+  return tools.map((tool) => ({
+    ...tool,
+    async execute(args, execution) {
+      const copy = toolActivityCopy[tool.name]
+      emitActivity(tool.name, 'started', copy?.started ?? `Running ${tool.name}.`)
+      try {
+        const result = await tool.execute(args, execution)
+        emitActivity(tool.name, 'completed', copy?.completed ?? `${tool.name} completed.`)
+        return result
+      } catch (error) {
+        emitActivity(
+          tool.name,
+          'failed',
+          `${tool.name} stopped without completing: ${toError(error).message}`,
+        )
+        throw error
+      }
+    },
+  }))
+}
+
 function defaultDocumentScope(): WebMcpDocumentScope | undefined {
   if (typeof document === 'undefined') return undefined
   return document as unknown as WebMcpDocumentScope
@@ -399,6 +465,7 @@ function defaultDocumentScope(): WebMcpDocumentScope | undefined {
 export async function registerShoppingTools(
   control: ShoppingControl,
   documentScope: WebMcpDocumentScope | undefined = defaultDocumentScope(),
+  observer?: ShoppingToolActivityObserver,
 ): Promise<ShoppingToolsRegistration> {
   const modelContext = documentScope?.modelContext
   const supported = Boolean(modelContext && typeof modelContext.registerTool === 'function' && typeof modelContext.getTools === 'function')
@@ -412,6 +479,24 @@ export async function registerShoppingTools(
   let settlingGrantController: AbortController | null = null
   let registeredGrantId: string | null = null
   let unsubscribe = () => {}
+  let activitySequence = 0
+
+  const emitActivity = observer
+    ? (toolName: string, status: 'started' | 'completed' | 'failed', message: string) => {
+        activitySequence += 1
+        try {
+          observer.onActivity({
+            id: `webmcp-activity-${String(activitySequence).padStart(3, '0')}`,
+            sequence: activitySequence,
+            toolName,
+            status,
+            message,
+          })
+        } catch {
+          // Page observability must never change whether a WebMCP tool succeeds.
+        }
+      }
+    : undefined
 
   const recordError = (error: unknown) => {
     lastError = toError(error)
@@ -440,7 +525,7 @@ export async function registerShoppingTools(
     }, delay)
     registrationController.signal.addEventListener('abort', () => clearTimeout(expiryTimer), { once: true })
 
-    return {
+    const [tool] = instrumentTools([{
       name: APPLY_APPROVED_CART_TOOL_NAME,
       description: 'Apply the exact person-approved browser-local cart patch once. No variant, size, quantity, price or delivery argument can be changed; checkout remains human-only.',
       inputSchema: emptySchema,
@@ -468,7 +553,8 @@ export async function registerShoppingTools(
           { ...result, authorityConsumed: true },
         )
       },
-    }
+    }], emitActivity)
+    return tool
   }
 
   const reconcileGrant = async (grant: ShoppingGrant | null) => {
@@ -547,7 +633,7 @@ export async function registerShoppingTools(
   if (!supported || !modelContext) return registration
   modelContext.addEventListener?.('toolchange', toolChangeListener)
   const outcomes = await Promise.allSettled(
-    createPermanentTools(control).map((tool) => modelContext.registerTool(tool, { signal: permanentController.signal })),
+    instrumentTools(createPermanentTools(control), emitActivity).map((tool) => modelContext.registerTool(tool, { signal: permanentController.signal })),
   )
   for (const outcome of outcomes) if (outcome.status === 'rejected') recordError(outcome.reason)
   await refreshInventory().catch(recordError)

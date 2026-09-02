@@ -19,6 +19,19 @@ The person starts with a visible brief:
 > Wedding Saturday. Make it unforgettable, not costume. Under $350. Arrive by
 > Friday. Keep my blue boots.
 
+The root page immediately offers two truthful ways to experience the same
+shopping state:
+
+- **Watch the 45-second demo** works in an ordinary browser and makes every
+  search, failed delivery promise, repair and cart decision visible.
+- **Use your browser agent** appears when the page-level WebMCP API is
+  available. The page supplies one bounded request and shows factual live tool
+  calls as the agent reads, searches, checks and updates the shared canvas.
+
+The page says that WebMCP is available; it never claims that an agent is
+connected. Browsers without WebMCP still receive a complete, clearly labelled
+guided journey rather than a blank or disabled experience.
+
 The agent must then:
 
 1. Read the shopper's confirmed size, budget, deadline, destination and owned
@@ -57,6 +70,11 @@ Each tool has a closed input schema. Read tools return exact structured facts;
 write tools accept the browser's cancellation signal and check it before
 committing a state change. The shared canvas uses revision numbers so stale
 updates and stale delivery evidence are rejected.
+
+Tool execution also emits a page-local factual activity event. This makes real
+browser-agent work visible without exposing private model reasoning or
+manufacturing an agent transcript. The guided demo has a separate, explicitly
+labelled activity trail.
 
 The permanent tools share one registration lifetime:
 
