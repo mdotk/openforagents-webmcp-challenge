@@ -4,18 +4,25 @@ Initial qualification: 1 September 2026
 
 Current root-experience qualification: 2 September 2026
 
-Status: **GREEN. Current root experience qualified and deployed.**
+Retailer-first redesign qualification: 2 September 2026
+
+Status: **The redesigned root experience has passed local qualification. The
+production release is pending.**
 
 The shopping candidate was promoted to the root route in a separate reviewed
-change. The 2 September follow-up makes that root experience immediately
-intelligible and runnable both with and without WebMCP. It does not accept
-challenge terms, publish a video or submit a Devpost entry.
+change. The retailer-first redesign removes the competition-presentation
+scaffolding and opens directly inside a fictional shop: one shopper note, one
+owned item, one shared look and one changing delivery problem. It remains
+runnable both with and without WebMCP. It does not accept challenge terms,
+publish a video or submit a Devpost entry.
 
 ## Exact candidate identity
 
 - Repository: `mdotk/openforagents-webmcp-challenge`.
-- Exact current behavioural source revision: `725b06cb0f6cd450ce6225e8360d110e7174c8c8`.
-- `HEAD == origin/main` at qualification freeze.
+- Exact redesigned behavioural source revision:
+  `12920d8f78bf90e1f14ea3072db8220b8149d68e`.
+- The production fields below describe the pre-redesign baseline and will be
+  replaced after the redesigned release.
 - Production deployment: `dpl_5B5qpMD3HaahciphYM4XaNCqKvVc`.
 - Deployment URL: `https://openforagents-webmcp-challenge-7dap4k65j-enokinz.vercel.app`.
 - Production alias: `https://openforagents-webmcp-challenge.vercel.app/`.
@@ -61,33 +68,41 @@ application, replay rejection, unsupported-browser fallback and the distinct
 
 ## Responsive and visual qualification
 
-- Desktop: 1440 x 1050.
+- Desktop: 1680 x 1250 and 1440 x 1000.
 - Mobile: 390 x 844 and 320 x 800.
 - Empty, conflict, repaired, review, approved and final-cart states exercised.
 - No page-level horizontal overflow at the tested widths.
-- The 320 px opening keeps the human problem and **Start the demo** action in
-  the first viewport, with no page-level horizontal overflow.
+- The 320 px opening keeps the shopper's note, owned boots and **Find me a
+  look** action readable without overlap or horizontal overflow.
+- The mobile product collage now sizes images from their displayed width rather
+  than their 900 px source height, so the selected look remains visible instead
+  of being cropped outside its frame.
 - Exact SKU, size, colour, price and current delivery evidence remain readable
   at review.
 - Browser console warnings and errors: none in the recorded responsive pass.
-- Source-versus-implementation visual comparison and remaining P3 observation
-  are recorded in `design-qa.md`; no P0, P1 or P2 finding remains.
+- A same-viewport comparison against the previous opening confirmed that the
+  owned boots no longer sit behind the heading or obscure its supporting text.
 
 ## Human-first and agent-visible experience
 
-- The first screen offers **Watch the 45-second demo** and **Use your browser
-  agent** as two explicit paths into the same state.
+- The first screen looks and behaves like a retailer workspace, not a challenge
+  presentation. It shows the shopper's note, owned boots, empty look and
+  delivery destination before introducing technical detail.
+- **Find me a look** runs the guided journey. **Use my browser agent** appears
+  only when the page has registered the seven WebMCP tools.
 - The guided path remains enabled while WebMCP support is being checked and in
   browsers that do not expose the API.
 - WebMCP support is reported as tool availability, never as a claim that an
   agent is connected.
-- The guided path labels its actions as a demo. Real WebMCP executions produce
-  a separate factual activity trail showing tool starts and outcomes without
-  exposing private model reasoning.
-- The agent path visibly hands the changed destination back to the person and
-  supplies the bounded follow-up needed to continue the same journey.
+- The permanent journey tracker, narrated activity panel and final proof strip
+  are gone. A single changing status line and contextual action carry the flow.
+- The activity history and exact WebMCP details are collapsed by default.
+- The late blazer is marked directly in the product list with Friday crossed
+  out and Monday shown as its actual arrival date. The repair marks the two
+  kept pieces and two replacements in place.
 - The exact review receives keyboard focus. The final cart explains the store's
-  work, the person's decision and the checkout boundary in plain language.
+  result and keeps checkout visibly unavailable without repeating the product
+  thesis.
 
 ## Native WebMCP surface
 
@@ -170,9 +185,9 @@ agent against the production alias. Evidence is separated below.
   and the live inventory remains seven tools.
 - The final page repeats the four exact cart lines, prices and Friday delivery
   promises; the owned boots are absent from the cart.
-- The page states `No order has been placed`, shows `$0 charged`, leaves the
-  ordinary checkout button disabled and exposes no checkout, payment or order
-  WebMCP tool.
+- The page states that checkout is not part of the demo and nothing has been
+  charged, leaves the ordinary checkout button disabled and exposes no
+  checkout, payment or order WebMCP tool.
 - The live production pass had no warning or error console entry.
 
 ### Human action
@@ -210,8 +225,8 @@ All six final gates passed on the exact production deployment:
 6. Checkout remained a disabled person-visible control, with no checkout,
    payment or order WebMCP tool.
 
-The 2 September production rerun repeated the seven-to-eight-to-seven tool
-lifecycle, exact four-line `$345` cart, `$0` charged result and empty browser
-console on the current root route. The root experience is GREEN. Challenge
-terms are not accepted, no public video is published and no final entry is
-submitted.
+The retailer-first local rerun repeated the seven-to-eight-to-seven tool
+lifecycle, exact four-line `$345` cart, `$0` charged result, replay rejection
+and empty browser console on the redesigned root route. Production deployment
+remains the final release step. Challenge terms are not accepted, no public
+video is published and no final entry is submitted.

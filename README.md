@@ -19,18 +19,20 @@ The person starts with a visible brief:
 > Wedding Saturday. Make it unforgettable, not costume. Under $350. Arrive by
 > Friday. Keep my blue boots.
 
-The root page immediately offers two truthful ways to experience the same
-shopping state:
+The root page opens as a small retailer workspace rather than a presentation
+about the technology. The shopper's note, owned boots, delivery destination and
+empty look are visible immediately.
 
-- **Watch the 45-second demo** works in an ordinary browser and makes every
-  search, failed delivery promise, repair and cart decision visible.
-- **Use your browser agent** appears when the page-level WebMCP API is
-  available. The page supplies one bounded request and shows factual live tool
-  calls as the agent reads, searches, checks and updates the shared canvas.
+- **Find me a look** runs the complete guided journey in an ordinary browser.
+- **Use my browser agent** appears when the page-level WebMCP API is available.
+  It copies one bounded request for the agent while the page continues to show
+  the shared shopping state.
 
-The page says that WebMCP is available; it never claims that an agent is
-connected. Browsers without WebMCP still receive a complete, clearly labelled
-guided journey rather than a blank or disabled experience.
+The page says that WebMCP tools are available; it never claims that an agent is
+connected. Browsers without WebMCP receive the same complete guided journey
+rather than a blank or disabled experience. Technical tool details and the
+activity history are available on request, but stay out of the shopping flow by
+default.
 
 The agent must then:
 
@@ -72,9 +74,9 @@ committing a state change. The shared canvas uses revision numbers so stale
 updates and stale delivery evidence are rejected.
 
 Tool execution also emits a page-local factual activity event. This makes real
-browser-agent work visible without exposing private model reasoning or
-manufacturing an agent transcript. The guided demo has a separate, explicitly
-labelled activity trail.
+browser-agent work inspectable without exposing private model reasoning or
+manufacturing an agent transcript. The history is collapsed by default so the
+products, delivery failure, replacements and cart remain the main experience.
 
 The permanent tools share one registration lifetime:
 
