@@ -6,8 +6,8 @@ Current root-experience qualification: 2 September 2026
 
 Retailer-first redesign qualification: 2 September 2026
 
-Status: **The redesigned root experience has passed local qualification. The
-production release is pending.**
+Status: **The redesigned root experience is deployed and has passed local,
+responsive and live WebMCP qualification.**
 
 The shopping candidate was promoted to the root route in a separate reviewed
 change. The retailer-first redesign removes the competition-presentation
@@ -21,16 +21,18 @@ publish a video or submit a Devpost entry.
 - Repository: `mdotk/openforagents-webmcp-challenge`.
 - Exact redesigned behavioural source revision:
   `12920d8f78bf90e1f14ea3072db8220b8149d68e`.
-- The production fields below describe the pre-redesign baseline and will be
-  replaced after the redesigned release.
-- Production deployment: `dpl_5B5qpMD3HaahciphYM4XaNCqKvVc`.
-- Deployment URL: `https://openforagents-webmcp-challenge-7dap4k65j-enokinz.vercel.app`.
+- Production deployment: `dpl_Cnqp6USj6UkETx1Tc6LxvDxUGtC8`.
+- Deployment URL: `https://openforagents-webmcp-challenge-8ziaxjwxb-enokinz.vercel.app`.
 - Production alias: `https://openforagents-webmcp-challenge.vercel.app/`.
 - Deployment state: `Ready`; public response `HTTP 200` with
   `Permissions-Policy: tools=(self)`.
 - The production HTML, JavaScript and CSS bytes matched the exact local
-  production build. SHA-256: HTML `e61d4f5e…c752`, JavaScript
-  `cdcbbc89…92ab`, CSS `e53b0605…6e9f`.
+  production build. SHA-256: HTML
+  `db7e34c5efc5aa4242d4bf69f1b22caaca357f96c3b498f69aba4da22e639a31`,
+  JavaScript
+  `34882fc13c9f24dd6a60e33c1887a3ea97b5fbbc8e03a3293b706455533561ce`
+  and CSS
+  `07ab26442f8bd6acbe7b06162bae021543a42251858bace99722493a10859ee6`.
 
 The earlier Launch Window, fitting-room and Rack Rescue experiments remain at
 their explicit query routes and are not presented as the current entry.
@@ -225,8 +227,7 @@ All six final gates passed on the exact production deployment:
 6. Checkout remained a disabled person-visible control, with no checkout,
    payment or order WebMCP tool.
 
-The retailer-first local rerun repeated the seven-to-eight-to-seven tool
+The retailer-first production rerun repeated the seven-to-eight-to-seven tool
 lifecycle, exact four-line `$345` cart, `$0` charged result, replay rejection
-and empty browser console on the redesigned root route. Production deployment
-remains the final release step. Challenge terms are not accepted, no public
-video is published and no final entry is submitted.
+and empty browser console on the redesigned root route. Challenge terms are
+not accepted, no public video is published and no final entry is submitted.
