@@ -37,6 +37,8 @@ async function copyText(text: string) {
         timeoutId = window.setTimeout(() => resolve(false), clipboardTimeoutMilliseconds)
       }),
     ])
+  } catch {
+    return false
   } finally {
     if (timeoutId !== undefined) window.clearTimeout(timeoutId)
   }
