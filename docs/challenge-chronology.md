@@ -1,4 +1,4 @@
-# Launch Window A-01 challenge chronology
+# WebMCP Challenge project chronology
 
 Launch Window A-01 is a new, standalone challenge-period project created by
 Enoki Limited in 2026 for the WebMCP Challenge.
@@ -67,8 +67,8 @@ on their existing routes.
 On 3 September 2026, the entrant qualified WORLDLINE as a separate
 reasoning-first WebMCP experience and promoted it to the root route. The
 Adaptive Shopping Canvas remains available at `?experience=shopping`.
-WORLDLINE's observed browser lifecycle changes from six investigative tools to
-seven after person approval, then to two read-only verification tools after the
+WORLDLINE's observed browser lifecycle changes from five investigative tools to
+six after person approval, then to two read-only verification tools after the
 one-use action is consumed.
 
 Matt Gibbs has joined the challenge on Devpost. No entry video has been

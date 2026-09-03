@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WebMcpTool } from './types'
 import WorldlineApp from './WorldlineApp'
 
@@ -59,7 +59,22 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByText(/paste this request and press Send/i)).toBeVisible()
     expect(screen.getByText(/agent will call tools automatically/i)).toBeVisible()
     expect(screen.getByText(agentRequestForTest())).toBeVisible()
+    expect(screen.getByText('Mission copied')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Copy request again' })).toBeEnabled()
+  })
+
+  it('reports a failed clipboard write and keeps the request selectable', async () => {
+    installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 5 tools')
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValueOnce(new Error('denied'))
+
+    await user.click(screen.getByRole('button', { name: 'Copy mission for my agent' }))
+
+    expect(screen.getByText('Copy did not finish')).toBeVisible()
+    expect(screen.getByText(/copy failed.*copy it manually/i)).toBeVisible()
+    expect(screen.getByText(agentRequestForTest())).toBeVisible()
   })
 
   it('runs the complete guided dilemma, approval and final receipt', async () => {

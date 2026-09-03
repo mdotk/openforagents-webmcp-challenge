@@ -4,9 +4,10 @@ This is the design-QA record that preceded the Adaptive Shopping Canvas candidat
 
 ## Source and implementation
 
-- Selected source visual: `/Users/matt/.codex/generated_images/01a045b9-2bb4-7873-ba73-1323fd9382fb/exec-1c947927-2e4b-4168-baf3-d1d7371aac83.png`
-- Desktop implementation capture: `/Volumes/Dev/CodexScratch/rack-rescue-design-qa/implementation.png`
-- Same-viewport comparison: `/Volumes/Dev/CodexScratch/rack-rescue-design-qa/comparison.png`
+- Selected source visual: an unpublished challenge-period concept image.
+- Implementation route: `/?experience=rack-rescue`.
+- The desktop and same-viewport comparison captures were retained outside the
+  public repository and are not required to run the experience.
 
 ## Findings
 

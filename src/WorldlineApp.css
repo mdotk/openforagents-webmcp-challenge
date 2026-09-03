@@ -546,14 +546,16 @@
   .worldline-clocks strong { font-size: .82rem; }
   .worldline-scene { min-height: 840px; }
   .worldline--investigating .worldline-scene { min-height: 900px; }
-  .worldline-probe { top: 16.5%; left: 67%; width: min(32vw, 8rem); }
+  .worldline-probe { top: 13rem; left: 69%; width: min(32vw, 8rem); }
   .worldline-paths { top: 3.5rem; height: 43%; }
   .worldline-story { right: .75rem; bottom: 3.6rem; left: .75rem; padding: 1rem; }
   .worldline-lede { font-size: .96rem; line-height: 1.5; }
   .worldline-actions { display: grid; }
   .worldline-primary, .worldline-secondary { width: 100%; }
   .worldline-choice-facts { grid-template-columns: 1fr; }
-  .worldline-choice-grid { grid-template-columns: 1fr; max-height: 28rem; overflow-y: auto; }
+  .worldline--decision .worldline-scene { min-height: 84rem; }
+  .worldline--decision .worldline-story { top: 10.5rem; bottom: auto; }
+  .worldline-choice-grid { grid-template-columns: 1fr; }
   .worldline-choice-grid article > span { min-height: 0; }
   .worldline-outcomes { right: .75rem; left: .75rem; top: 19rem; grid-template-columns: 1fr; gap: .35rem; }
   .worldline-outcome { grid-template-columns: 2rem 1fr; }

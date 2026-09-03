@@ -2,13 +2,11 @@
 
 **Comparison target**
 
-- Source visual truth: `/Users/matt/.codex/generated_images/01a045b9-2bb4-7873-ba73-1323fd9382fb/exec-a06397a6-4f37-42d2-8d11-6ab880a75dba.png`
+- Source visual truth: an unpublished challenge-period concept image.
 - Implementation route: `/?experience=shopping`
-- Primary implementation evidence: `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/desktop-review-delivery-evidence-1440.png`
-- Additional implementation evidence: `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/desktop-cart-1440.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/mobile-initial-390.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/mobile-review-390.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/local-review-delivery-evidence-320.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/final-exact-cart-desktop.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/final-exact-cart-mobile-390.png`
+- Desktop and mobile comparison captures were retained outside the public
+  repository and are not required to run the experience.
 - Unfilmed judge-variation evidence: the local `?experience=shopping&scenario=tighter-budget` route produced a distinct valid Event hotel look at exactly `$325` using Ink Satin Jumpsuit, Ink Sculpted Jacket, Ink Slim Clutch and Oxblood Silk Scarf. The default repaired bundle was not replayed.
-- Full-view comparison: `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/comparisons/source-vs-implementation-postfix.png`
-- Focused human-decision comparison: `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/comparisons/decision-source-vs-implementation.png`
 - State: repaired hotel-ready look with the exact cart review visible. The source is a six-frame storyboard rather than one continuous browser page, so the comparison judges hierarchy, story beats, product truth and human-control emphasis rather than literal panel geometry.
 
 **Viewport and normalization**
@@ -38,7 +36,9 @@
 
 1. Initial full-view pass found two P2 presentation issues: desktop product names truncated to one unreadable line, and the mobile native-tool status touched the right edge and appeared clipped.
 2. Fixes: product names now clamp to two lines; the mobile tool-status width, gap, font size and right padding were tightened; a 320 px compact status prevents edge clipping; the shopping route now sets the correct page title; the final review now shows exact SKU and delivery evidence.
-3. Post-fix evidence: `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/desktop-review-delivery-evidence-1440.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/mobile-header-390.png`, `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/local-review-delivery-evidence-320.png`, and `/Volumes/Dev/CodexScratch/openforagents-shopping-qa/comparisons/source-vs-implementation-postfix.png`. Product names and tool status are readable, all four reviewed lines show current delivery, the title is `Morrow — Adaptive Shopping Canvas`, and no P0/P1/P2 difference remains.
+3. Post-fix review confirmed that product names and tool status are readable,
+   all four reviewed lines show current delivery, the title is `Morrow —
+   Adaptive Shopping Canvas`, and no P0/P1/P2 difference remains.
 
 **Primary interactions tested**
 

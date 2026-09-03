@@ -12,11 +12,11 @@ The individual image calls used a shared art direction, normalized here for repr
 
 Each call substituted the exact product named below. The generated PNG was resized to a 900 x 900 WebP while preserving transparency. No product was composited onto a person and no generated image is presented as evidence of fit, drape, live stock or a real retailer listing.
 
-## Source custody and product mapping
+## Source identity and product mapping
 
-The original PNGs remain outside Git in:
-
-`/Users/matt/.codex/generated_images/01a045b9-2bb4-7873-ba73-1323fd9382fb/`
+The original PNGs are not required to build or run the project and are not
+published in this repository. Their hashes are retained below so each shipped
+asset remains traceable to its generated source.
 
 | Canonical asset | Generated source | Source SHA-256 | Shipped SHA-256 |
 | --- | --- | --- | --- |

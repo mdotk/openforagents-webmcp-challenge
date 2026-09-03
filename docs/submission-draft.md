@@ -1,148 +1,126 @@
-# Launch Window A-01 submission draft
+# WORLDLINE submission draft
 
-This document prepares the project description and testing instructions. It is
-not a submitted challenge entry.
+This is working copy for the Devpost form. It has not been submitted.
 
 ## Project title
 
-Launch Window A-01
+WORLDLINE
 
 ## One-line description
 
-A mission-control simulation where a website creates one exact WebMCP repair
-tool after a person approves it, then removes the tool after use or revocation.
+A browser agent investigates possible futures for a probe beside a black hole;
+the learner chooses whether the spacecraft or its unique discovery comes home.
 
-## Who it is for
+## Description
 
-Launch Window A-01 is for developers and product teams designing consequential
-browser-agent actions. Agent tools are often treated as a fixed inventory:
-once a capability is exposed, it stays available whether or not a person has
-approved the action in front of them. Launch Window A-01 shows a narrower
-alternative. The set of tools a page exposes can change with a person's exact
-decision instead of remaining broad and permanent.
+WORLDLINE is an interactive science story about a decision with no perfect
+answer. A probe has 71 seconds of contact remaining beside a black hole. It has
+enough fuel to escape, or enough time to transmit two unique science packets,
+but it cannot do both.
 
-## What it does
+The page does not give the browser agent a prepared answer. It exposes the
+mission state, packet evidence, maneuver limits and a five-call simulation
+surface. From those facts, the agent must work out that the two unique packets
+need 25 seconds, test a probe-return route, test a failed control, find a
+science-transmission route and place the two viable futures together on the
+shared page. It must then stop.
 
-A launch vehicle is grounded by three simulated faults. A browser agent can use
-seven baseline WebMCP tools to inspect the mission, read the repair plan,
-restart the communications relay, recalibrate the navigation array and request
-a decision about the final repair.
+The learner makes the value judgment. Choosing one future adds a single
+argument-free WebMCP tool that closes over the exact tested burn. The agent can
+execute that burn once, after which the planning and execution tools disappear.
+The final page shows either the recovered probe or the science signal arriving
+on Earth 23 years later.
 
-The last repair reroutes 15 kW of simulated power. It is not initially exposed
-through WebMCP. When a person approves that exact action on the page, the site
-registers one additional tool, `apply_power_reroute`, bound to the active grant
-identifier and limited to one use. The native inventory changes from seven
-tools to eight. Use or revocation removes the temporary tool and returns the
-inventory to seven.
+This is a deterministic, scientifically informed educational simulation. It
+does not control a real spacecraft and does not claim to be a precision model
+of a black-hole mission.
 
-After the approved repair is complete, launch becomes available through the
-visible **Launch Aster** page control. Launch is not registered as a WebMCP
-tool at any point.
+## Why WebMCP is a strong fit
 
-This is a deterministic, client-only mission simulation. It has no spacecraft,
-backend, model, credential, account, transaction or external data source. The
-visible manual controls operate the same local state machine in browsers
-without WebMCP, without claiming that an agent is connected.
+The useful part of this experience is not an agent clicking the same buttons a
+person would click. WebMCP gives the agent structured access to evidence,
+constraints, simulation and shared state that would otherwise be scattered
+across a visual interface. The agent can investigate several possible futures
+and update the page as it learns without screen-scraping or inventing hidden
+state.
 
-## Why this is a strong fit for WebMCP
+WebMCP also makes the human boundary part of the product. The agent may gather
+evidence, calculate, simulate and explain. It cannot decide which loss the
+learner accepts. Only a choice on the page creates the exact one-use execution
+capability.
 
-The main design question is not whether an agent can find a button. It is which
-capabilities the website should expose at each moment.
+## How it creates a better experience
 
-WebMCP lets the page publish a small, typed inventory instead of asking an agent
-to infer each action from the visual interface. Launch Window A-01 makes the
-inventory change part of the experience:
+A fixed animation can show relativity, but it cannot investigate with the
+learner. WORLDLINE lets a browser agent turn mission evidence into two concrete,
+visually different futures. Every tested route appears on the scene as it is
+found. The person can compare consequences rather than decode raw telemetry,
+then see the chosen burn, signal and clocks play out from the same shared state.
 
-- Four diagnostic tools are read-only.
-- Two routine repair tools and one approval-request tool use closed schemas and
-  revision checks.
-- The consequential repair is absent until a person approves its exact scope.
-- Approval creates one additional tool bound to one grant identifier.
-- Use or revocation removes that tool.
-- Launch remains outside the WebMCP inventory throughout the experience.
-
-The four read tools are intentionally different: one returns the full mission
-snapshot, one inspects a named subsystem, one returns the local procedure for a
-named subsystem, and one returns the ordered repair plan. An agent can request
-the context it needs without every read becoming the same oversized response.
-
-The person can see the scope, 15 kW amount, one-use limit and consequence before
-making the decision. The page's activity record and capability path then show
-what changed.
+People without a compatible browser agent can run the complete guided version.
+The opening says which mode is available and never claims that an agent has
+started when none has.
 
 ## What people and agents can do together
 
-The agent can handle diagnosis and routine repair while the person retains the
-decision that creates the temporary capability. Approval does not grant a
-general command or expose launch. It creates only the named repair, for the
-active grant, once.
+The agent performs the evidence-heavy work: reading three sources, calculating
+a feasible transmission, rejecting a bad route and finding both viable outcomes
+within a hard simulation budget. The person contributes the part the model
+cannot derive from physics: whether preserving the probe or the irreplaceable
+discovery matters more.
 
-The same design could be useful for a refund, a publishing action or an account
-change: a site could create only the capability a person approved and remove it
-afterward. Those are possible applications of the pattern, not workflows
-implemented or tested by Launch Window A-01.
+The result is a shared decision rather than a chat answer. The tested
+worldlines, human choice, temporary capability, execution animation and final
+receipt all live on the page.
 
 ## How WebMCP is implemented
 
-The client registers seven permanent tools with
-`document.modelContext.registerTool()`: four read-only diagnostic tools and
-three bounded repair or request tools. Every input schema is closed with
-`additionalProperties: false`.
+The document initially registers five closed-schema tools with
+`document.modelContext.registerTool()`:
 
-Human approval creates an eighth tool, `apply_power_reroute`. Its input schema
-contains the exact active grant identifier. An `AbortController` governs the
-registration; using or revoking the grant aborts that registration so the tool
-is removed. Executions accept the current WebMCP cancellation signal, and the
-temporary tool checks that signal before changing state.
+1. `read_mission_state`
+2. `inspect_science_packets`
+3. `inspect_maneuver_window`
+4. `simulate_worldline`
+5. `present_worldline_choices`
 
-The deterministic state machine uses revision checks to reject stale repair
-commands. The final `launch()` operation has no WebMCP registration and is
-invoked only by the visible page control.
+The domain model uses revisions to reject stale changes and limits the
+investigation to five simulation calls. `present_worldline_choices` succeeds
+only after the agent has tested a total-loss control and both opposite viable
+outcomes.
 
-## Native browser evidence
+The learner's selection registers `execute_authorized_burn`, changing the live
+inventory from five tools to six. That tool accepts `{}` and closes over the
+selected simulation, so its timing, velocity, packets and consequence cannot
+be replaced during execution. It works once. Afterward, only
+`read_final_state` and `verify_transmission_receipt` remain, producing the
+5 → 6 → 2 lifecycle visible in the browser.
 
-On 26 August 2026, the deployed site was observed in Chrome 151.0.7922.174. A
-readback through `document.modelContext.getTools()` showed seven permanent tools
-at the start, eight after approval, and seven again after the one-use repair was
-used or the approval was revoked.
-
-Chrome's WebMCP Model Context Tool Inspector also listed the seven permanent
-tools with their closed schemas and expected `readOnlyHint` values. It invoked
-`mission_status` and `restart_comms_relay`, and the visible page reflected the
-result. After human approval, the Inspector listed `apply_power_reroute` as the
-eighth tool and invoked it with the active grant ID. The call succeeded,
-consumed the authorization and made the mission ready at revision 5. The
-Inspector then reported seven tools again, while launch remained available
-only through the visible page control. This evidence is limited to the named
-browser build. It does not establish model-driven tool selection or
-compatibility with every browser or agent. The full record is in
-[qualification.md](qualification.md).
+The native agent path and the guided path use the same revisioned TypeScript
+state machine. Tool registration lifetimes are controlled with abort signals,
+and all input schemas reject additional properties.
 
 ## Testing instructions
 
-1. Open the live URL in a browser build that exposes the WebMCP API used by the
-   project.
-2. Confirm that the native tool inventory starts at seven and contains no
-   launch tool.
-3. Ask the agent to inspect the mission, perform the two routine repairs and
-   request the 15 kW power decision.
-4. Review the exact scope on the page and select **Authorize one repair**.
-5. Confirm that `apply_power_reroute` appears as the eighth tool with the active
-   grant identifier.
-6. Ask the agent to invoke that temporary tool. Confirm that guidance becomes
-   ready and the inventory returns to seven.
-7. Confirm again that no launch tool exists, then press **Launch Aster** on the
-   page.
-8. Restart the simulation and repeat the approval path, choosing **Revoke
-   authority** before use. Confirm that the temporary tool disappears and
-   launch remains locked.
+1. Open https://openforagents-webmcp-challenge.vercel.app/ in ChatGPT's in-app
+   browser or Chrome with WebMCP enabled.
+2. Confirm the page reports **WebMCP ready · 5 tools**.
+3. Select **Copy mission for my agent**, paste the request into the browser
+   agent and send it.
+4. Watch the page draw one probe-return route, one failed control and one
+   science-transmission route. The agent should present both viable futures and
+   stop without choosing one.
+5. Choose either future on the page. Confirm the inventory changes to six and
+   includes `execute_authorized_burn`.
+6. Ask the agent to execute the authorized burn. Confirm the inventory becomes
+   two read-only verification tools and the cinematic outcome completes.
+7. Reload and select **Run guided mission** to exercise the same state and both
+   possible endings without an agent.
 
-The complete state flow can also be exercised with the visible manual controls.
-That fallback demonstrates the product state, but it is not a substitute for
-native WebMCP registration and execution.
+No credentials are required.
 
 ## Links
 
 - Live experience: https://openforagents-webmcp-challenge.vercel.app/
-- Source: https://github.com/mdotk/openforagents-webmcp-challenge
-- Challenge: https://openai.com/webmcp-challenge/
+- Public source: https://github.com/mdotk/openforagents-webmcp-challenge
+- Licence: GPL-2.0-or-later

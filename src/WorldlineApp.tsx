@@ -22,6 +22,25 @@ const agentRequest = 'Prepare this decision for me. Read the mission, science pa
 const yearTicks = Object.freeze(Array.from({ length: 24 }, (_, year) => year))
 
 type ExecutionBeat = 'idle' | 'burn' | 'signal' | 'arrival' | 'complete'
+type CopyState = 'idle' | 'copying' | 'copied' | 'manual'
+
+const clipboardTimeoutMilliseconds = 1_200
+
+async function copyText(text: string) {
+  if (!navigator.clipboard?.writeText) return false
+
+  let timeoutId: number | undefined
+  try {
+    return await Promise.race([
+      navigator.clipboard.writeText(text).then(() => true, () => false),
+      new Promise<false>((resolve) => {
+        timeoutId = window.setTimeout(() => resolve(false), clipboardTimeoutMilliseconds)
+      }),
+    ])
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+  }
+}
 
 function pause(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))
@@ -49,7 +68,7 @@ export default function WorldlineApp() {
   const [working, setWorking] = useState(false)
   const [guided, setGuided] = useState(false)
   const [agentPromptVisible, setAgentPromptVisible] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [copyState, setCopyState] = useState<CopyState>('idle')
   const [activityMessage, setActivityMessage] = useState<string | null>(null)
   const [agentActivityDetected, setAgentActivityDetected] = useState(false)
   const [toolsPaused, setToolsPaused] = useState(false)
@@ -198,7 +217,7 @@ export default function WorldlineApp() {
     setWorking(false)
     setGuided(false)
     setAgentPromptVisible(false)
-    setCopied(false)
+    setCopyState('idle')
     setActivityMessage(null)
     setAgentActivityDetected(false)
     setToolsPaused(false)
@@ -217,12 +236,13 @@ export default function WorldlineApp() {
 
   const copyRequest = useCallback(async () => {
     setAgentPromptVisible(true)
-    try {
-      await navigator.clipboard.writeText(agentRequest)
-      setCopied(true)
+    setCopyState('copying')
+    const copied = await copyText(agentRequest)
+    if (copied) {
+      setCopyState('copied')
       setError(null)
-    } catch {
-      setCopied(false)
+    } else {
+      setCopyState('manual')
       setError('Copy failed. Select the request below and copy it manually.')
     }
   }, [])
@@ -381,7 +401,15 @@ export default function WorldlineApp() {
 
           {stage === 'waiting' && agentPromptVisible && (
             <div className="worldline-agent-prompt">
-              <p className="worldline-eyebrow">{copied ? <><Check weight="bold" /> Mission copied</> : 'Give this mission to your agent'}</p>
+              <p className="worldline-eyebrow">
+                {copyState === 'copied'
+                  ? <><Check weight="bold" /> Mission copied</>
+                  : copyState === 'copying'
+                    ? 'Copying mission…'
+                    : copyState === 'manual'
+                      ? 'Copy did not finish'
+                      : 'Give this mission to your agent'}
+              </p>
               <h1 id="worldline-title">Open your browser agent.</h1>
               <p className="worldline-lede">Paste this request and press Send. The agent will call tools automatically; the scene will change as it tests up to five browser-local futures.</p>
               <ul className="worldline-agent-expectations">
@@ -391,8 +419,8 @@ export default function WorldlineApp() {
               </ul>
               <blockquote>{agentRequest}</blockquote>
               <div className="worldline-actions">
-                <button className="worldline-primary" onClick={copyRequest}><Copy aria-hidden="true" /> Copy request again</button>
-                <button className="worldline-secondary" onClick={() => { setAgentPromptVisible(false); setCopied(false) }}>Back</button>
+                <button className="worldline-primary" onClick={copyRequest} disabled={copyState === 'copying'}><Copy aria-hidden="true" /> {copyState === 'copying' ? 'Copying…' : 'Copy request again'}</button>
+                <button className="worldline-secondary" onClick={() => { setAgentPromptVisible(false); setCopyState('idle'); setError(null) }}>Back</button>
               </div>
             </div>
           )}
