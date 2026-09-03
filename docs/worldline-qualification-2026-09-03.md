@@ -23,7 +23,8 @@ person selects one of the tested outcomes.
 
 ## Automated acceptance
 
-The current local candidate passes:
+The source deployed from commit `d217359a765c56cbbbd90172322ca71c0fabce5a`
+passes:
 
 - lint;
 - TypeScript;
@@ -92,10 +93,13 @@ is its only browser-agent instruction. An earlier candidate's calculation,
 prediction and completed receipt were also inspected at desktop and 390 px
 without clipping or overlap.
 
-The simplified opening and complete native-agent journey must be repeated at
-desktop, 390 px and 320 px against the deployed build before the final entry
-claims the public URL is ready. The earlier local run does not prove this
-revised opening or deployment identity.
+The simplified opening was also checked on the deployed page at desktop,
+390 px and 320 px. It exposed six WebMCP tools, contained no recommendation
+selector, showed **Begin WORLDLINE** as the only opening instruction and had no
+horizontal overflow or browser console warnings. The complete native-agent
+journey must still be repeated against this deployed revision before that
+specific end-to-end claim is refreshed. The earlier local agent run does not
+prove the revised opening or deployment identity.
 
 ## Historical evidence
 
