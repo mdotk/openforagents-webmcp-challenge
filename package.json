@@ -1,7 +1,7 @@
 {
   "name": "openforagents-webmcp-challenge",
   "version": "0.1.0",
-  "description": "A shared shopping canvas where an agent plans, repairs and prepares an exact cart for a person.",
+  "description": "A WebMCP mission where an agent investigates possible worldlines and a person decides what survives.",
   "license": "GPL-2.0-or-later",
   "type": "module",
   "scripts": {

@@ -194,7 +194,7 @@ export default function WorldlineApp() {
         <div className="worldline-vignette" />
 
         <header className="worldline-header">
-          <a className="worldline-mark" href="?experience=worldline" aria-label="Restart WORLDLINE">
+          <a className="worldline-mark" href="/" aria-label="Restart WORLDLINE">
             <Planet aria-hidden="true" />
             WORLDLINE
           </a>

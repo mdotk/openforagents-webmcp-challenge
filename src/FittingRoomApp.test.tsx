@@ -22,7 +22,7 @@ describe('Shared fitting-room technical prototype', () => {
     ).toBeVisible()
     expect(screen.getByRole('link', { name: 'Return to the Morrow shopping demo' })).toHaveAttribute(
       'href',
-      '/',
+      '?experience=shopping',
     )
   })
 

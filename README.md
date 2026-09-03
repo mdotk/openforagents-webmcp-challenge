@@ -1,27 +1,44 @@
-# Morrow — Adaptive Shopping Canvas
+# WORLDLINE — One probe. One signal.
 
-Morrow is a deterministic fictional retailer demo created by Enoki Limited for
-the WebMCP Challenge. A browser agent shops from exact retailer-authored facts,
-builds a complete look, repairs it when the delivery destination changes and
-prepares one exact cart for the person to review.
+WORLDLINE is a deterministic educational mission created by Enoki Limited for
+the WebMCP Challenge. A browser agent investigates possible futures for a
+probe near a black hole. It prepares the trade-off; the person decides what
+matters.
 
-[Try the live experience](https://openforagents-webmcp-challenge.vercel.app/) ·
+[Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
+[Try the preserved shopping experience](https://openforagents-webmcp-challenge.vercel.app/?experience=shopping) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
 
-There is no real retailer, account, payment, order or external inventory behind
-the demonstration. All products, variants, prices, quantities and delivery
-promises are fictional and browser-local.
+There is no real spacecraft, mission, account or external system behind the
+demonstration. Its numbers support a browser-local interaction and do not claim
+to be a precision black-hole simulation.
 
-## The shopping journey
+## The WORLDLINE journey
+
+The probe has enough fuel to escape or enough contact time to send two unique
+science packets to Earth, but not both. The agent must inspect the packet facts,
+test multiple burns, reject a failed worldline and put one viable plan on the
+shared page. It cannot choose which outcome matters to the person.
+
+The person reviews the consequence and approves one immutable burn. Approval
+alone adds the argument-free `execute_authorized_burn` tool. It works once and
+then disappears with every planning tool, leaving only the final state and
+verified receipt.
+
+The actual WebMCP inventory therefore changes from six tools, to seven, to two.
+Browsers without WebMCP receive the same complete guided mission instead of a
+blank or disabled page.
+
+## Preserved shopping experience
 
 The person starts with a visible brief:
 
 > Wedding Saturday. Make it unforgettable, not costume. Under $350. Arrive by
 > Friday. Keep my blue boots.
 
-The root page opens as a small retailer workspace rather than a presentation
-about the technology. The shopper's note, owned boots, delivery destination and
-empty look are visible immediately.
+The explicit `?experience=shopping` route opens as a small retailer workspace
+rather than a presentation about the technology. The shopper's note, owned
+boots, delivery destination and empty look are visible immediately.
 
 - **Find me a look** runs the complete guided journey in an ordinary browser.
 - **Use my browser agent** appears when the page-level WebMCP API is available.
@@ -55,7 +72,7 @@ WebMCP.
 The styling canvas uses exact fictional SKU cutouts. It is not a virtual try-on
 and makes no claim about fit or appearance on a person's body.
 
-## WebMCP implementation
+## Shopping WebMCP implementation
 
 [`registerShoppingTools()`](src/webmcp/register-shopping-tools.ts) resolves the
 page API from `document.modelContext` and registers seven permanent tools:
@@ -97,28 +114,13 @@ tool inventory therefore changes from seven tools to eight and back to seven.
 
 ## Other experiments
 
-WORLDLINE is a separate candidate experience under qualification. A probe near
-a black hole has enough fuel to escape or enough time to send a unique
-discovery to Earth, but not both. The browser agent investigates possible
-worldlines and prepares the trade-off; the person decides what matters.
-
-- [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/?experience=worldline)
-
-WORLDLINE begins with six investigation and planning tools. Person approval
-alone adds one temporary, argument-free burn tool. After the exact burn runs,
-all planning and execution tools disappear and two read-only verification
-tools remain. It is a deterministic, scientifically informed educational
-simulation, not a precision model of a real black-hole mission.
-
-The earlier challenge prototypes also remain available without changing the
-main shopping experience:
+The earlier challenge prototypes remain available alongside the WORLDLINE root:
 
 - [Launch Window A-01](https://openforagents-webmcp-challenge.vercel.app/?experience=launch-window)
 - [Shared Fitting Room](https://openforagents-webmcp-challenge.vercel.app/?experience=fitting-room)
 - [Rack Rescue](https://openforagents-webmcp-challenge.vercel.app/?experience=rack-rescue)
 
-Their source and qualification records remain in this repository. They are not
-the current root experience.
+Their source and qualification records remain in this repository.
 
 ## Run locally
 
@@ -159,7 +161,9 @@ in that browser and version. It does not claim compatibility with every
 browser, agent or future WebMCP specification. Automated tests do not by
 themselves establish native browser compatibility.
 
-The current shopping evidence is recorded in
+WORLDLINE evidence is recorded in
+[`docs/worldline-qualification-2026-09-03.md`](docs/worldline-qualification-2026-09-03.md).
+The preserved shopping evidence is recorded in
 [`docs/adaptive-shopping-canvas-qualification-2026-09-01.md`](docs/adaptive-shopping-canvas-qualification-2026-09-01.md).
 
 ## Project status and provenance

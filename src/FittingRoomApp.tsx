@@ -590,7 +590,7 @@ function FittingRoomApp() {
           All products, quantities, reviews and holds in this demonstration are
           fictional. No payment can be made.
         </p>
-        <a href="/">Return to the Morrow shopping demo</a>
+        <a href="?experience=shopping">Return to the Morrow shopping demo</a>
       </footer>
     </div>
   )
