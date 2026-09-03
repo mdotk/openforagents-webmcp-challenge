@@ -1,8 +1,9 @@
 # WORLDLINE — One probe. One signal.
 
-WORLDLINE is an interactive science story created by Enoki Limited for the
-WebMCP Challenge. A browser agent investigates possible futures for a probe
-near a black hole. It prepares the trade-off; the learner decides what
+WORLDLINE is an interactive science story from
+[Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
+the WebMCP Challenge. A browser agent investigates possible futures for a
+probe near a black hole. It prepares the trade-off; the learner decides what
 matters.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·

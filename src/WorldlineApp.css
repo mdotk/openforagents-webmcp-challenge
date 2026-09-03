@@ -1156,6 +1156,10 @@
 .worldline-error { color: #ffafb8; }
 .worldline-fallback { padding: .75rem 1rem; border-left: 2px solid #c8bdff; background: rgba(200,189,255,.06); }
 .worldline-note { grid-column: 1 / -1; color: rgba(255,255,255,.72); font-size: .78rem; }
+.worldline-credit { grid-column: 1 / -1; color: rgba(255,255,255,.82); font-size: .82rem; }
+.worldline-credit a { color: #d7d0ff; font-weight: 750; text-underline-offset: .2em; }
+.worldline-credit a:hover { color: white; }
+.worldline-credit a:focus-visible { border-radius: .15rem; outline: 2px solid #c8bdff; outline-offset: .25rem; }
 
 @keyframes worldline-pulse {
   0%, 100% { transform: scale(1); opacity: .8; }

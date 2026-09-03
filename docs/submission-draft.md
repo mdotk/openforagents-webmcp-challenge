@@ -136,6 +136,12 @@ can read it but cannot replace it when submitting its recommendation. Tool
 registration lifetimes are controlled with abort signals, and all input
 schemas reject additional properties.
 
+WORLDLINE was created by the team behind
+[Open for Agents](https://www.openforagents.com/), which helps websites decide
+what AI agents may see and do. This experiment explores the same principle in
+an educational setting: the agent investigates, the learner decides, and the
+page controls the resulting action.
+
 ## Testing instructions
 
 1. Open https://openforagents-webmcp-challenge.vercel.app/ in ChatGPT's in-app

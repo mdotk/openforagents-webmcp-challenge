@@ -754,6 +754,7 @@ export default function WorldlineApp() {
           <p className="worldline-fallback">This experience requires a compatible WebMCP browser agent. Open it in ChatGPT’s in-app browser or Chrome with WebMCP enabled.</p>
         )}
         <p className="worldline-note">A deterministic, scientifically informed educational simulation—not a precision model of a real black-hole mission.</p>
+        <p className="worldline-credit">An <a href="https://www.openforagents.com/">Open for Agents</a> experiment in what people and browser agents can decide together.</p>
       </section>
     </main>
   )

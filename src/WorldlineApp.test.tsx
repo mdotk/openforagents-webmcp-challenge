@@ -62,6 +62,7 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByRole('heading', { name: /save the probe—or send its discoveries home/i })).toBeVisible()
     expect(screen.getByRole('button', { name: 'WebMCP agent required' })).toBeDisabled()
     expect(await screen.findByText('WebMCP required')).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Open for Agents' })).toHaveAttribute('href', 'https://www.openforagents.com/')
   })
 
   it('reports six tools and starts with one short natural instruction', async () => {

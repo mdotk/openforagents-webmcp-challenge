@@ -105,13 +105,19 @@ Narration:
 
 ## 2:07–2:20 — Close
 
-Return to the opening and briefly show the clear WebMCP-ready state.
+Return to the opening and briefly show the clear WebMCP-ready state. Finish on
+a simple two-second closing frame:
+
+```
+WORLDLINE
+An Open for Agents experiment
+openforagents.com
+```
 
 Narration:
 
-> WORLDLINE uses WebMCP so the agent can investigate possible futures with you,
-> while the decision remains yours. It is live, open source and built for the
-> WebMCP Challenge.
+> WORLDLINE is an Open for Agents experiment in making browser agents useful
+> without taking the human decision away.
 
 ## Prepared YouTube metadata
 
@@ -133,6 +139,9 @@ Description:
 >
 > This is a deterministic educational simulation, not a precision model or a
 > real spacecraft interface.
+>
+> WORLDLINE is an experiment from Open for Agents:
+> https://www.openforagents.com/
 >
 > Live: https://openforagents-webmcp-challenge.vercel.app/
 >
