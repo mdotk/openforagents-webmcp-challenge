@@ -437,7 +437,7 @@ export default function WorldlineApp() {
             <>
               <p className="worldline-eyebrow">Final contact ends in 71 seconds</p>
               <h1 id="worldline-title">Save the probe or send the two files to Earth.</h1>
-              <p className="worldline-lede">The probe has finished its only close pass beside a black hole. It recorded a gravity map and a light spectrum, and Earth has no copies. Its final connection with Earth ends in 71 seconds. Work with your browser agent to test whether the probe can escape, send the files or somehow do both. Then decide what to save.</p>
+              <p className="worldline-lede">The probe has finished its only close pass beside a black hole. It recorded a gravity map and a light spectrum, and Earth has no copies. Its final connection with Earth ends in 71 seconds. Work with your browser agent to find out whether one burn can both let the probe escape and send the files. If it cannot, you decide what to save.</p>
               <dl className="worldline-mission-facts" aria-label="Mission stakes">
                 <div><dt>Distance</dt><dd>23 light-years</dd></div>
                 <div><dt>Final contact</dt><dd>71 seconds</dd></div>

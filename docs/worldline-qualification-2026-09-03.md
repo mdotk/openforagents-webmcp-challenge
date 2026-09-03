@@ -27,7 +27,7 @@ The current local candidate passes:
 - lint;
 - TypeScript;
 - the production build; and
-- 103 tests across 17 files.
+- 107 tests across 18 files.
 
 The tests cover the five-attempt simulation budget, two mutually exclusive
 possible outcomes, the mandatory learning checkpoint, learner calculation with
@@ -41,6 +41,12 @@ incorrect calculation feedback, learner teaching before the value choice,
 agent-only execution, tool removal and the final verification surface. Existing
 shopping, fitting-room, rack-rescue and launch-window tests remain part of the
 same passing suite.
+
+A site-wide copy contract checks the opening, both possible outcomes, both
+endings, metadata, WebMCP explanations and submission materials together. It
+requires the learner's final choice to remain conditional until testing rules
+out saving both the probe and the files. It also prevents the copy from saying
+that escaping the black hole means travelling back to Earth.
 
 ## Native browser-agent acceptance
 

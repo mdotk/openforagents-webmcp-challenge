@@ -60,7 +60,8 @@ describe('WORLDLINE experience', () => {
   it('opens with a clear dilemma and blocks unsupported browsers', async () => {
     render(<WorldlineApp />)
     expect(screen.getByRole('heading', { name: /save the probe or send the two files to earth/i })).toBeVisible()
-    expect(screen.getByText(/work with your browser agent to test whether the probe can escape, send the files/i)).toBeVisible()
+    expect(screen.getByText(/work with your browser agent to find out whether one burn can both let the probe escape and send the files/i)).toBeVisible()
+    expect(screen.getByText(/if it cannot, you decide what to save/i)).toBeVisible()
     expect(screen.getByRole('button', { name: 'WebMCP agent required' })).toBeDisabled()
     expect(await screen.findByText('WebMCP required')).toBeVisible()
     expect(screen.getByText('An interactive science lesson')).toBeVisible()
