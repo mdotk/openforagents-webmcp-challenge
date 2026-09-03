@@ -331,8 +331,13 @@ export async function registerWorldlineTools(
   const record = (error: unknown) => {
     lastError = error instanceof Error ? error : new Error(String(error))
   }
-  const enqueue = (task: () => Promise<void>) => {
-    work = work.then(task).catch(record)
+  const enqueue = (task: () => Promise<void>, deferToNextTask = false) => {
+    work = work.then(async () => {
+      if (deferToNextTask) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0))
+      }
+      await task()
+    }).catch(record)
   }
   const registerAll = async (tools: readonly WebMcpTool[], controller: AbortController) => {
     await Promise.all(tools.map((tool) => modelContext!.registerTool(tool, { signal: controller.signal })))
@@ -375,7 +380,12 @@ export async function registerWorldlineTools(
     await refresh()
   }
 
-  const unsubscribe = control.subscribe(() => enqueue(reconcile))
+  const unsubscribe = control.subscribe((snapshot) => {
+    // Let the browser receive the execution result before aborting the
+    // controller that registered the one-use tool. Aborting in the same
+    // microtask can make a successful call appear to fail in native clients.
+    enqueue(reconcile, snapshot.phase === 'executed')
+  })
   if (modelContext) await reconcile().catch(record)
 
   const whenIdle = async () => {

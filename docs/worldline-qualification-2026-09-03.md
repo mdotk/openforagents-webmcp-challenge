@@ -71,6 +71,15 @@ tool call made agent activity visible, **Stop agent tools** changed the page to
 registered for the document. No burn or simulated mission-state change was
 performed by that read-only stop test.
 
+The first public execution probe exposed one registration-handoff defect: the
+burn completed, but aborting the temporary tool in the same microtask made the
+inspector display a transient failure instead of its successful result. The
+registration reconciler now defers only the executed-state inventory swap to
+the next task. A regression model fails if a tool disappears before its result
+is delivered. The full suite remains green, and the repeated real Chrome call
+returned the verified receipt before the inventory changed to the two final
+tools.
+
 Browser acceptance therefore confirmed:
 
 1. The root document exposes exactly five initial tools.

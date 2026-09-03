@@ -24,7 +24,11 @@ class FakeModelContext implements WebMcpModelContext {
   async invoke(name: string, args: Record<string, unknown> = {}) {
     const tool = this.tools.get(name)
     if (!tool) throw new Error(`Tool ${name} is not registered.`)
-    return tool.execute(args)
+    const response = await tool.execute(args)
+    if (!this.tools.has(name)) {
+      throw new Error(`Tool ${name} was unregistered before its result was delivered.`)
+    }
+    return response
   }
 }
 
