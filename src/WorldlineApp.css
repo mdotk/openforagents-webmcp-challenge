@@ -93,6 +93,33 @@
 .worldline-clocks span { color: rgba(255,255,255,.5); font-size: .65rem; font-weight: 720; letter-spacing: .18em; }
 .worldline-clocks strong { font-size: clamp(.9rem, 1.3vw, 1.2rem); font-variant-numeric: tabular-nums; letter-spacing: .05em; }
 
+.worldline-year-clock,
+.worldline-year-clock__window,
+.worldline-year-clock__track,
+.worldline-year-clock__track > span {
+  display: block;
+}
+
+.worldline-year-clock__window {
+  height: 1.25em;
+  overflow: hidden;
+}
+
+.worldline-year-clock__track {
+  transform: translateY(0);
+  transition: transform 1.7s cubic-bezier(.2, .78, .1, 1);
+}
+
+.worldline-year-clock__track > span {
+  height: 1.25em;
+  line-height: 1.25;
+}
+
+.worldline--beat-arrival .worldline-year-clock__track,
+.worldline--beat-complete .worldline-year-clock__track {
+  transform: translateY(-28.75em);
+}
+
 .worldline-paths {
   position: absolute;
   inset: 4.8rem 0 0;
@@ -106,23 +133,26 @@
   fill: none;
   stroke-width: 2.2;
   stroke-linecap: round;
-  stroke-dasharray: 9 11;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   opacity: 0;
-  transition: opacity .7s ease, stroke-width .7s ease;
+  transition: opacity .35s ease, stroke-width .7s ease, stroke-dashoffset .9s cubic-bezier(.2,.7,.15,1);
 }
 
 .worldline-path--escape { stroke: #f0bd6e; }
 .worldline-path--lost { stroke: #ef6b7e; }
 .worldline-path--signal { stroke: #a997ff; }
 
-.worldline--investigating .worldline-path,
-.worldline--decision .worldline-path,
-.worldline--authorized .worldline-path { opacity: .55; }
+.worldline-path.is-tested {
+  stroke-dashoffset: 0;
+  opacity: .55;
+}
 
 .worldline--decision .worldline-path--signal,
 .worldline--authorized .worldline-path--signal,
 .worldline--outcome-signal .worldline-path--signal {
   opacity: 1;
+  stroke-dashoffset: 0;
   stroke-width: 4;
   filter: drop-shadow(0 0 7px #9d8aff);
 }
@@ -139,7 +169,20 @@
 }
 
 .worldline--outcome-signal .worldline-signal { opacity: 1; animation: worldline-pulse 1.8s ease-in-out infinite; }
-.worldline--outcome-escape .worldline-path--escape { opacity: 1; stroke-width: 4; filter: drop-shadow(0 0 7px #f0bd6e); }
+.worldline--outcome-escape .worldline-path--escape { opacity: 1; stroke-dashoffset: 0; stroke-width: 4; filter: drop-shadow(0 0 7px #f0bd6e); }
+
+.worldline--executing.worldline--beat-signal .worldline-path--signal,
+.worldline--executing.worldline--beat-arrival .worldline-path--signal {
+  animation: worldline-signal-flow .9s linear infinite;
+  stroke-dasharray: .045 .035;
+}
+
+.worldline-transmission-packet {
+  fill: #f3efff;
+  filter: drop-shadow(0 0 8px #c6baff) drop-shadow(0 0 18px #a28eff);
+}
+
+.worldline-transmission-packet--second { fill: #9ef3d3; }
 
 .worldline-probe {
   position: absolute;
@@ -156,6 +199,90 @@
 .worldline--authorized .worldline-probe { transform: translate(-50%, -50%) rotate(-4deg) scale(.96); }
 .worldline--outcome-signal .worldline-probe { transform: translate(-65%, -38%) rotate(-18deg) scale(.82); opacity: .45; }
 .worldline--outcome-escape .worldline-probe { transform: translate(25%, -95%) rotate(-34deg) scale(.82); }
+
+.worldline--executing.worldline--beat-burn .worldline-probe {
+  transform: translate(-50%, -50%) rotate(-8deg) scale(1.04);
+  opacity: 1;
+  filter: drop-shadow(0 0 1.5rem rgba(229, 210, 255, .9)) drop-shadow(0 1rem 2rem rgba(0,0,0,.75));
+}
+
+.worldline--executing.worldline--beat-signal .worldline-probe {
+  transform: translate(-60%, -42%) rotate(-15deg) scale(.9);
+  opacity: .75;
+}
+
+.worldline--executing.worldline--beat-arrival .worldline-probe {
+  transform: translate(-72%, -28%) rotate(-24deg) scale(.7);
+  opacity: .16;
+}
+
+.worldline-burn-flash {
+  position: absolute;
+  z-index: 1;
+  top: 47%;
+  left: 43%;
+  width: clamp(5rem, 10vw, 10rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.2);
+  background: radial-gradient(circle, #fff 0 5%, #c7b9ff 9%, rgba(132, 103, 255, .52) 25%, transparent 68%);
+}
+
+.worldline--executing.worldline--beat-burn .worldline-burn-flash {
+  animation: worldline-burn .8s cubic-bezier(.15,.75,.2,1) both;
+}
+
+.worldline-earth-impact {
+  position: absolute;
+  z-index: 1;
+  top: 24%;
+  right: 4.7%;
+  width: clamp(2.5rem, 5vw, 5rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(213, 203, 255, .8);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.2);
+  box-shadow: 0 0 1rem rgba(157, 138, 255, .8), inset 0 0 1rem rgba(157, 138, 255, .55);
+}
+
+.worldline--executing.worldline--beat-arrival .worldline-earth-impact,
+.worldline--received .worldline-earth-impact {
+  animation: worldline-earth-arrival 1.4s ease-out both;
+}
+
+.worldline-outcomes {
+  position: absolute;
+  z-index: 2;
+  right: clamp(1.25rem, 6vw, 7rem);
+  bottom: 1.45rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(8rem, 1fr));
+  gap: .55rem;
+  width: min(42rem, 62vw);
+}
+
+.worldline-outcome {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .1rem .6rem;
+  padding: .65rem .75rem;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: .35rem;
+  opacity: 0;
+  transform: translateY(.75rem);
+  background: rgba(3,5,10,.72);
+  backdrop-filter: blur(14px);
+  transition: opacity .3s ease, transform .45s ease;
+}
+
+.worldline-outcome.is-visible { opacity: 1; transform: translateY(0); }
+.worldline-outcome span { grid-row: 1 / 3; color: rgba(255,255,255,.42); font-size: .67rem; font-weight: 760; letter-spacing: .12em; }
+.worldline-outcome strong { color: #f7f5f2; font-size: .78rem; }
+.worldline-outcome small { color: rgba(255,255,255,.54); font-size: .68rem; }
 
 .worldline-story {
   position: absolute;
@@ -197,6 +324,33 @@
   color: rgba(247,245,242,.75);
   font-size: clamp(1rem, 1.35vw, 1.22rem);
   line-height: 1.6;
+}
+
+.worldline-mode {
+  display: grid;
+  gap: .2rem;
+  max-width: 31rem;
+  margin-top: 1.4rem;
+  padding: .8rem .9rem;
+  border-left: 2px solid rgba(255,255,255,.34);
+  background: rgba(5,8,14,.48);
+}
+
+.worldline-mode--agent { border-left-color: #8bf2c9; }
+.worldline-mode strong { color: #f7f5f2; font-size: .84rem; }
+.worldline-mode span { color: rgba(247,245,242,.64); font-size: .78rem; line-height: 1.45; }
+
+.worldline-agent-prompt blockquote {
+  max-width: 34rem;
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(200, 189, 255, .28);
+  border-radius: .35rem;
+  color: #eeeaff;
+  background: rgba(8, 8, 18, .72);
+  font-size: .9rem;
+  line-height: 1.55;
+  user-select: all;
 }
 
 .worldline-consequence {
@@ -286,6 +440,24 @@
   50% { transform: scale(1.7); opacity: 1; }
 }
 
+@keyframes worldline-burn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.15); }
+  18% { opacity: 1; }
+  55% { opacity: .88; transform: translate(-50%, -50%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+}
+
+@keyframes worldline-signal-flow {
+  to { stroke-dashoffset: -.08; }
+}
+
+@keyframes worldline-earth-arrival {
+  0% { opacity: 0; transform: scale(.15); }
+  28% { opacity: 1; }
+  72% { opacity: .72; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
 @media (max-width: 850px) {
   .worldline-scene { min-height: 900px; }
   .worldline-clocks { top: 5.5rem; }
@@ -305,6 +477,8 @@
   .worldline-story h1 { font-size: clamp(2.7rem, 12vw, 4.5rem); }
   .worldline-probe { top: 34%; left: 55%; width: min(44vw, 15rem); }
   .worldline-paths { top: 4rem; height: 58%; transform: scale(1.35); transform-origin: center; }
+  .worldline-outcomes { right: 1.2rem; bottom: auto; left: 1.2rem; top: 10.5rem; width: auto; }
+  .worldline-outcome { padding: .55rem; }
   .worldline-below { grid-template-columns: 1fr; gap: 1.5rem; }
   .worldline-status { bottom: 1.3rem; }
 }
@@ -313,14 +487,20 @@
   .worldline-header { padding: 1rem; }
   .worldline-mark { font-size: .7rem; }
   .worldline-tools span:last-child { font-size: .68rem; }
+  .worldline-space { object-position: 42% center; }
   .worldline-clocks { top: 4.6rem; left: 1rem; right: 1rem; justify-content: space-between; }
   .worldline-clocks strong { font-size: .82rem; }
   .worldline-scene { min-height: 840px; }
+  .worldline--investigating .worldline-scene { min-height: 900px; }
+  .worldline-probe { top: 16.5%; left: 67%; width: min(32vw, 8rem); }
+  .worldline-paths { top: 3.5rem; height: 43%; }
   .worldline-story { right: .75rem; bottom: 3.6rem; left: .75rem; padding: 1rem; }
   .worldline-lede { font-size: .96rem; line-height: 1.5; }
   .worldline-actions { display: grid; }
   .worldline-primary, .worldline-secondary { width: 100%; }
   .worldline-choice-facts { grid-template-columns: 1fr; }
+  .worldline-outcomes { right: .75rem; left: .75rem; top: 19rem; grid-template-columns: 1fr; gap: .35rem; }
+  .worldline-outcome { grid-template-columns: 2rem 1fr; }
   .worldline-status { right: 1rem; bottom: 1rem; }
   .worldline-below { padding: 2rem 1rem 3rem; }
 }

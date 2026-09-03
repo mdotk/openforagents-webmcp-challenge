@@ -108,6 +108,30 @@ describe('registerWorldlineTools', () => {
     expect(model.tools.get(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)?.inputSchema.required).toEqual([])
     await registration.dispose()
   })
+
+  it('reports factual tool activity for the shared visible scene', async () => {
+    const model = new FakeModelContext()
+    const activity: string[] = []
+    const registration = await registerWorldlineTools(
+      createWorldlineControl(),
+      { modelContext: model },
+      (message) => activity.push(message),
+    )
+
+    await model.invoke('inspect_science_packets')
+    await model.invoke('simulate_worldline', {
+      expected_revision: 0,
+      burn_at_probe_second: 40,
+      delta_v_mps: 3500,
+      packet_ids: [],
+    })
+
+    expect(activity).toEqual([
+      'Three science packets inspected',
+      'Escape burn tested · probe saved, discovery lost',
+    ])
+    await registration.dispose()
+  })
 })
 
 function emptySchemaForTest() {

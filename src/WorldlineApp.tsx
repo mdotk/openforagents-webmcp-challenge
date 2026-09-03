@@ -18,14 +18,17 @@ import type { WorldlineToolsRegistration } from './types'
 import { registerWorldlineTools } from './webmcp'
 import './WorldlineApp.css'
 
-const agentRequest = 'Investigate this mission. Compare the science packets and possible burns, put your best plan on the shared page, and ask me for the one decision only I can make. Do not choose what matters for me.'
+const agentRequest = 'Investigate this mission. Inspect the science packets and signal window, simulate at least three distinct worldlines, put one viable plan and its exact consequence on the shared page, request my review, and stop. Do not choose what matters for me.'
+const yearTicks = Object.freeze(Array.from({ length: 24 }, (_, year) => year))
+
+type ExecutionBeat = 'idle' | 'burn' | 'signal' | 'arrival' | 'complete'
 
 function pause(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))
 }
 
-function missionStage(phase: string, simulationCount: number) {
-  if (phase === 'executed') return 'received'
+function missionStage(phase: string, simulationCount: number, executionBeat: ExecutionBeat) {
+  if (phase === 'executed') return executionBeat === 'complete' ? 'received' : 'executing'
   if (phase === 'authorized') return 'authorized'
   if (phase === 'review') return 'decision'
   if (simulationCount) return 'investigating'
@@ -45,9 +48,13 @@ export default function WorldlineApp() {
   const [registrationPending, setRegistrationPending] = useState(true)
   const [working, setWorking] = useState(false)
   const [guided, setGuided] = useState(false)
+  const [agentPromptVisible, setAgentPromptVisible] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activityMessage, setActivityMessage] = useState<string | null>(null)
+  const [executionBeat, setExecutionBeat] = useState<ExecutionBeat>('idle')
   const [error, setError] = useState<string | null>(null)
   const decisionRef = useRef<HTMLHeadingElement>(null)
+  const receiptId = snapshot.receipt?.id
 
   useEffect(() => {
     const previous = document.title
@@ -58,7 +65,7 @@ export default function WorldlineApp() {
   useEffect(() => {
     let cancelled = false
     let active: WorldlineToolsRegistration | null = null
-    void registerWorldlineTools(control)
+    void registerWorldlineTools(control, undefined, setActivityMessage)
       .then(async (next) => {
         active = next
         if (cancelled) return next.dispose()
@@ -94,37 +101,63 @@ export default function WorldlineApp() {
     return () => cancelAnimationFrame(frame)
   }, [snapshot.phase])
 
+  useEffect(() => {
+    if (!receiptId) return
+    const shouldAnimate = typeof window.matchMedia === 'function'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!shouldAnimate) {
+      const completeImmediately = window.setTimeout(() => setExecutionBeat('complete'), 0)
+      return () => window.clearTimeout(completeImmediately)
+    }
+    const burn = window.setTimeout(() => setExecutionBeat('burn'), 0)
+    const signal = window.setTimeout(() => setExecutionBeat('signal'), 800)
+    const arrival = window.setTimeout(() => setExecutionBeat('arrival'), 3100)
+    const complete = window.setTimeout(() => setExecutionBeat('complete'), 5000)
+    return () => {
+      window.clearTimeout(burn)
+      window.clearTimeout(signal)
+      window.clearTimeout(arrival)
+      window.clearTimeout(complete)
+    }
+  }, [receiptId])
+
   const showFutures = useCallback(async () => {
     if (working || snapshot.phase !== 'investigating') return
     setWorking(true)
     setGuided(true)
+    setAgentPromptVisible(false)
     setError(null)
     try {
+      setActivityMessage('Testing an early escape burn')
       control.simulate({
         burnAtProbeSecond: 40,
         deltaVMetersPerSecond: 3500,
         packetIds: [],
       }, control.getSnapshot().revision)
-      await pause(420)
+      await pause(900)
+      setActivityMessage('Testing a late burn')
       control.simulate({
         burnAtProbeSecond: 55,
         deltaVMetersPerSecond: 2600,
         packetIds: ['gravity-map', 'horizon-spectrum'],
       }, control.getSnapshot().revision)
-      await pause(420)
+      await pause(900)
+      setActivityMessage('Testing the final transmission window')
       const discovery = control.simulate({
         burnAtProbeSecond: 46,
         deltaVMetersPerSecond: 2200,
         packetIds: ['gravity-map', 'horizon-spectrum'],
       }, control.getSnapshot().revision)
-      await pause(520)
+      await pause(1100)
+      setActivityMessage('Placing one viable future on the shared page')
       const plan = control.updatePlan(
         discovery.id,
         'Send the discovery home',
         'The two unique packets finish transmitting at probe second 71. The navigation archive is already safe on Earth.',
         control.getSnapshot().revision,
       )
-      await pause(520)
+      await pause(700)
+      setActivityMessage('The remaining choice is yours')
       control.requestBurnReview(plan.id, control.getSnapshot().revision)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
@@ -137,6 +170,7 @@ export default function WorldlineApp() {
     if (!snapshot.review) return
     try {
       control.approveBurnReview(snapshot.review.id)
+      setActivityMessage('One exact burn is authorized')
       setError(null)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
@@ -146,6 +180,7 @@ export default function WorldlineApp() {
   const executeGuided = useCallback(() => {
     if (!snapshot.activeGrant) return
     try {
+      setActivityMessage('The authorized burn is executing')
       control.executeAuthorizedBurn(snapshot.activeGrant.id)
       setError(null)
     } catch (cause) {
@@ -162,20 +197,26 @@ export default function WorldlineApp() {
     setRegistrationPending(true)
     setWorking(false)
     setGuided(false)
+    setAgentPromptVisible(false)
+    setCopied(false)
+    setActivityMessage(null)
+    setExecutionBeat('idle')
     setError(null)
   }, [registration])
 
   const copyRequest = useCallback(async () => {
+    setAgentPromptVisible(true)
     try {
       await navigator.clipboard.writeText(agentRequest)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1600)
+      setError(null)
     } catch {
+      setCopied(false)
       setError('Copy failed. Select the request below and copy it manually.')
     }
   }, [])
 
-  const stage = missionStage(snapshot.phase, snapshot.simulations.length)
+  const stage = missionStage(snapshot.phase, snapshot.simulations.length, executionBeat)
   const selectedSimulation = snapshot.plan
     ? snapshot.simulations.find((simulation) => simulation.id === snapshot.plan?.simulationId)
     : null
@@ -186,9 +227,36 @@ export default function WorldlineApp() {
     (total, id) => total + (snapshot.packets.find((packet) => packet.id === id)?.sizeMegabytes ?? 0),
     0,
   ) ?? 0
+  const escapeTested = snapshot.simulations.some((simulation) => simulation.probeSurvives)
+  const lossTested = snapshot.simulations.some((simulation) => !simulation.viable)
+  const signalTested = snapshot.simulations.some((simulation) => simulation.discoveryDelivered)
+  const futureCount = snapshot.simulations.length
+  const futureHeading = futureCount === 1 ? 'One future.' : futureCount === 2 ? 'Two futures.' : 'Three futures.'
+  const futureExplanation = futureCount === 1
+    ? 'An early burn saves the probe—and loses every new observation.'
+    : futureCount === 2
+      ? 'A later burn loses the probe and the discovery.'
+      : 'The final transmission window carries the discovery to Earth.'
+  const activeCaption = stage === 'waiting'
+      ? 'Awaiting investigation'
+      : stage === 'investigating' && activityMessage
+        ? activityMessage
+      : stage === 'decision'
+        ? 'Waiting for you'
+        : stage === 'authorized'
+          ? 'One-use authority active'
+          : stage === 'executing'
+            ? executionBeat === 'burn'
+              ? 'Burn underway'
+              : executionBeat === 'signal'
+                ? 'Two packets crossing space'
+                : 'Earth clock advancing'
+            : stage === 'received'
+              ? scienceReachedEarth ? 'Transmission verified' : 'Recovery verified'
+              : `${snapshot.simulations.length} future${snapshot.simulations.length === 1 ? '' : 's'} tested`
 
   return (
-    <main className={`worldline worldline--${stage}${snapshot.receipt ? ` worldline--outcome-${scienceReachedEarth ? 'signal' : 'escape'}` : ''}`}>
+    <main className={`worldline worldline--${stage} worldline--beat-${executionBeat}${agentPromptVisible ? ' worldline--prompt-open' : ''}${snapshot.receipt ? ` worldline--outcome-${scienceReachedEarth ? 'signal' : 'escape'}` : ''}`}>
       <section className="worldline-scene" aria-labelledby="worldline-title">
         <img className="worldline-space" src="/worldline/space-background.webp" alt="" />
         <div className="worldline-vignette" />
@@ -204,8 +272,8 @@ export default function WorldlineApp() {
               {registrationPending
                 ? 'Loading tools'
                 : agentReady
-                  ? `${toolNames.length} WebMCP tools live`
-                  : `${modeledToolCount} tools with a compatible agent`}
+                  ? `WebMCP ready · ${toolNames.length} tools`
+                  : `Guided mode · ${modeledToolCount} modeled tools`}
             </span>
           </div>
         </header>
@@ -213,7 +281,15 @@ export default function WorldlineApp() {
         <div className="worldline-clocks" aria-label="Mission clocks">
           <div>
             <span>EARTH</span>
-            <strong>{snapshot.receipt?.earthArrivalYears ? `+${snapshot.receipt.earthArrivalYears} YEARS` : '00:00:00'}</strong>
+            {snapshot.receipt?.earthArrivalYears ? (
+              <strong className="worldline-year-clock" aria-label={`${snapshot.receipt.earthArrivalYears} years`}>
+                <span className="worldline-year-clock__window" aria-hidden="true">
+                  <span className="worldline-year-clock__track">
+                    {yearTicks.map((year) => <span key={year}>+{String(year).padStart(2, '0')} YEARS</span>)}
+                  </span>
+                </span>
+              </strong>
+            ) : <strong>00:00:00</strong>}
           </div>
           <div>
             <span>PROBE</span>
@@ -222,38 +298,86 @@ export default function WorldlineApp() {
         </div>
 
         <svg className="worldline-paths" viewBox="0 0 1000 560" aria-hidden="true">
-          <path className="worldline-path worldline-path--escape" d="M 532 300 C 500 210, 590 125, 765 150" />
-          <path className="worldline-path worldline-path--lost" d="M 532 300 C 445 300, 355 320, 238 334" />
-          <path className="worldline-path worldline-path--signal" d="M 532 300 C 650 250, 770 220, 925 175" />
+          <path data-testid="worldline-path-escape" pathLength="1" className={`worldline-path worldline-path--escape${escapeTested ? ' is-tested' : ''}`} d="M 532 300 C 500 210, 590 125, 765 150" />
+          <path data-testid="worldline-path-lost" pathLength="1" className={`worldline-path worldline-path--lost${lossTested ? ' is-tested' : ''}`} d="M 532 300 C 445 300, 355 320, 238 334" />
+          <path data-testid="worldline-path-signal" pathLength="1" className={`worldline-path worldline-path--signal${signalTested ? ' is-tested' : ''}`} d="M 532 300 C 650 250, 770 220, 925 175" />
           <circle className="worldline-signal" cx="915" cy="175" r="6" />
+          {snapshot.receipt && scienceReachedEarth && (executionBeat === 'signal' || executionBeat === 'arrival') ? (
+            <g className="worldline-transmission-packets">
+              <circle r="7" className="worldline-transmission-packet">
+                <animateMotion dur="2.2s" fill="freeze" path="M 532 300 C 650 250, 770 220, 925 175" />
+              </circle>
+              <circle r="5" className="worldline-transmission-packet worldline-transmission-packet--second">
+                <animateMotion begin=".18s" dur="2.2s" fill="freeze" path="M 532 300 C 650 250, 770 220, 925 175" />
+              </circle>
+            </g>
+          ) : null}
         </svg>
 
         <img className="worldline-probe" src="/worldline/probe.webp" alt="The probe approaching the black hole" />
+        <div className="worldline-burn-flash" aria-hidden="true" />
+        <div className="worldline-earth-impact" aria-hidden="true" />
+
+        {stage === 'investigating' ? (
+          <div className="worldline-outcomes" aria-label="Tested futures">
+            <div className={escapeTested ? 'worldline-outcome is-visible' : 'worldline-outcome'}>
+              <span>01</span><strong>Probe saved</strong><small>Discovery lost</small>
+            </div>
+            <div className={lossTested ? 'worldline-outcome is-visible' : 'worldline-outcome'}>
+              <span>02</span><strong>Nothing returns</strong><small>Burn misses both paths</small>
+            </div>
+            <div className={signalTested ? 'worldline-outcome is-visible' : 'worldline-outcome'}>
+              <span>03</span><strong>Signal reaches Earth</strong><small>Probe lost</small>
+            </div>
+          </div>
+        ) : null}
 
         <section className="worldline-story" aria-live="polite">
-          {stage === 'waiting' && (
+          {stage === 'waiting' && !agentPromptVisible && (
             <>
               <p className="worldline-eyebrow">71 probe-seconds remain</p>
               <h1 id="worldline-title">One probe. One signal.<br />You can’t save both.</h1>
               <p className="worldline-lede">The probe has made a discovery beside a black hole. There is enough fuel to escape—or enough time to send it home.</p>
+              <div className={agentReady ? 'worldline-mode worldline-mode--agent' : 'worldline-mode'}>
+                <strong>{registrationPending ? 'Checking this browser…' : agentReady ? 'WebMCP is ready' : 'Guided version'}</strong>
+                <span>{registrationPending
+                  ? 'The guided mission is ready now.'
+                  : agentReady
+                    ? 'No agent is running yet. Give it the mission and leave this page visible.'
+                    : 'This browser cannot connect an agent to the page. Run the same complete mission here.'}</span>
+              </div>
               <div className="worldline-actions">
-                <button className="worldline-primary" onClick={showFutures} disabled={working}>
+                {agentReady ? (
+                  <button className="worldline-primary" onClick={copyRequest}>
+                    <Copy aria-hidden="true" /> Use my browser agent
+                  </button>
+                ) : null}
+                <button className={agentReady ? 'worldline-secondary' : 'worldline-primary'} onClick={showFutures} disabled={working}>
                   <Sparkle weight="fill" aria-hidden="true" />
-                  {working ? 'Tracing the futures…' : 'Show me the futures'}
-                </button>
-                <button className="worldline-secondary" onClick={copyRequest}>
-                  {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-                  {copied ? 'Request copied' : 'Use my browser agent'}
+                  {working ? 'Tracing the futures…' : 'Run guided mission'}
                 </button>
               </div>
             </>
           )}
 
+          {stage === 'waiting' && agentPromptVisible && (
+            <div className="worldline-agent-prompt">
+              <p className="worldline-eyebrow">{copied ? <><Check weight="bold" /> Mission copied</> : 'Give this mission to your agent'}</p>
+              <h1 id="worldline-title">Open your browser agent.</h1>
+              <p className="worldline-lede">Paste this request, then leave WORLDLINE visible. The scene will react to every future the agent tests.</p>
+              <blockquote>{agentRequest}</blockquote>
+              <div className="worldline-actions">
+                <button className="worldline-primary" onClick={copyRequest}><Copy aria-hidden="true" /> Copy request again</button>
+                <button className="worldline-secondary" onClick={() => { setAgentPromptVisible(false); setCopied(false) }}>Back</button>
+              </div>
+            </div>
+          )}
+
           {stage === 'investigating' && (
             <>
               <p className="worldline-eyebrow">The mission is changing</p>
-              <h1 id="worldline-title">Three futures.</h1>
-              <p className="worldline-lede">One saves the probe. One loses everything. One gets the discovery to Earth.</p>
+              <h1 id="worldline-title">{futureHeading}</h1>
+              <p className="worldline-lede">{futureExplanation}</p>
             </>
           )}
 
@@ -289,13 +413,35 @@ export default function WorldlineApp() {
             </>
           )}
 
+          {stage === 'executing' && snapshot.receipt && (
+            <>
+              <p className="worldline-eyebrow">Authorized burn executing</p>
+              <h1 id="worldline-title">
+                {executionBeat === 'burn'
+                  ? 'Burn.'
+                  : executionBeat === 'signal'
+                    ? <>The discovery<br />is leaving.</>
+                    : <>Earth<br />waits.</>}
+              </h1>
+              <p className="worldline-lede">
+                {executionBeat === 'burn'
+                  ? 'The probe turns its antenna toward Earth and commits to the chosen worldline.'
+                  : executionBeat === 'signal'
+                    ? 'Gravity map. Horizon spectrum. Thirty megabytes cross the final signal window.'
+                    : 'The probe is gone. The signal continues across the distance to Earth.'}
+              </p>
+            </>
+          )}
+
           {stage === 'received' && snapshot.receipt && (
             <>
               <p className="worldline-eyebrow worldline-eyebrow--received"><Check weight="bold" /> {scienceReachedEarth ? 'Signal received' : 'Probe recovered'}</p>
               <h1 id="worldline-title">
                 {scienceReachedEarth ? <>23 years later,<br />Earth sees what it saw.</> : <>The probe comes home.<br />The discovery does not.</>}
               </h1>
-              <p className="worldline-lede">{snapshot.receipt.summary} Planning is over. Only the final state and verified receipt remain.</p>
+              <p className="worldline-lede">{scienceReachedEarth
+                ? 'For the probe, nine minutes passed. On Earth, a generation did. The probe is gone. The discovery is not.'
+                : snapshot.receipt.summary}</p>
               <button className="worldline-secondary" onClick={reset}>
                 <ArrowCounterClockwise aria-hidden="true" /> Run it again
               </button>
@@ -303,13 +449,7 @@ export default function WorldlineApp() {
           )}
         </section>
 
-        <div className="worldline-status" aria-live="polite">
-          {stage === 'waiting' && 'Awaiting investigation'}
-          {stage === 'investigating' && `${snapshot.simulations.length} future${snapshot.simulations.length === 1 ? '' : 's'} tested`}
-          {stage === 'decision' && 'Waiting for you'}
-          {stage === 'authorized' && 'One-use authority active'}
-          {stage === 'received' && (scienceReachedEarth ? 'Transmission verified' : 'Recovery verified')}
-        </div>
+        <div className="worldline-status" aria-live="polite">{activeCaption}</div>
       </section>
 
       <section className="worldline-below">
@@ -334,7 +474,7 @@ export default function WorldlineApp() {
         </details>
         {error && <p className="worldline-error" role="alert">{error}</p>}
         {!agentReady && !registrationPending && (
-          <p className="worldline-fallback">No compatible browser agent detected. “Show me the futures” runs the same complete mission on this page.</p>
+          <p className="worldline-fallback">No compatible browser agent detected. “Run guided mission” uses the same shared mission state on this page.</p>
         )}
         <p className="worldline-note">A deterministic, scientifically informed educational simulation—not a precision model of a real black-hole mission.</p>
       </section>

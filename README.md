@@ -31,8 +31,15 @@ The page then gives the learner one decision: preserve the unique discovery or
 save the probe. After the learner approves the displayed consequence, ask the
 agent to execute the authorized burn.
 
-No WebMCP browser is required to inspect the project. **Show me the futures**
-runs the same complete deterministic journey through visible page controls.
+The opening screen says whether WebMCP is available and does not claim that an
+agent has started. **Use my browser agent** reveals the exact handoff when the
+browser supports WebMCP. **Run guided mission** uses the same state machine
+through visible page controls when no agent is available.
+
+Each tested worldline is drawn only after the corresponding simulation runs.
+After the approved burn, the page shows the burn, the two science packets
+leaving the probe, the 23-year Earth clock and the verified final receipt.
+Reduced-motion preferences skip directly to the completed outcome.
 
 ## Why WebMCP belongs here
 

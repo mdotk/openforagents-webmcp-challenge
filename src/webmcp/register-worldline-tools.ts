@@ -114,7 +114,9 @@ function selectedPackets(args: Record<string, unknown>): readonly SciencePacketI
   return value as readonly SciencePacketId[]
 }
 
-function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
+type ActivityReporter = (message: string) => void
+
+function createPlanningTools(control: WorldlineControl, reportActivity: ActivityReporter): readonly WebMcpTool[] {
   const readOnly = { readOnlyHint: true, untrustedContentHint: false } as const
   const write = { readOnlyHint: false, untrustedContentHint: false } as const
   return [
@@ -125,6 +127,7 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
+        reportActivity('Mission state inspected')
         return result(
           `Mission revision ${snapshot.revision}; phase ${snapshot.phase}; ${snapshot.contactSecondsRemaining} probe-seconds of contact remain; temporary burn capability ${snapshot.activeGrant ? 'active' : 'not active'}. Use this result and do not repeat the read in the same turn.`,
           {
@@ -148,7 +151,10 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
       description: 'Inspect the size, uniqueness, replication status and bounded scientific value of all three waiting data packets.',
       inputSchema: emptySchema,
       annotations: readOnly,
-      execute: () => result('Three packets inspected. Two are unique and total 30 MB; the 72 MB navigation archive is already replicated on Earth.', control.getSnapshot().packets),
+      execute: () => {
+        reportActivity('Three science packets inspected')
+        return result('Three packets inspected. Two are unique and total 30 MB; the 72 MB navigation archive is already replicated on Earth.', control.getSnapshot().packets)
+      },
     },
     {
       name: 'read_signal_window',
@@ -157,6 +163,7 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
+        reportActivity('Final signal window inspected')
         return result(
           `The probe has ${snapshot.contactSecondsRemaining} seconds of contact at ${snapshot.downlinkMegabytesPerSecond} MB/s. A successful science signal arrives on Earth 23 years after mission start.`,
           {
@@ -180,6 +187,13 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
           deltaVMetersPerSecond: integer(args, 'delta_v_mps'),
           packetIds: selectedPackets(args),
         }, integer(args, 'expected_revision'))
+        reportActivity(
+          simulation.probeSurvives
+            ? 'Escape burn tested · probe saved, discovery lost'
+            : simulation.discoveryDelivered
+              ? 'Transmission burn tested · signal reaches Earth, probe lost'
+              : 'Late burn tested · nothing returns',
+        )
         return result(
           `Simulation ${simulation.id}: ${simulation.explanation} Mission state moved to revision ${control.getSnapshot().revision}; no real burn occurred.`,
           simulation,
@@ -198,6 +212,7 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
           text(args, 'rationale', 240),
           integer(args, 'expected_revision'),
         )
+        reportActivity('One viable future placed on the shared page')
         return result(`Shared plan updated at revision ${control.getSnapshot().revision}. ${plan.consequence}`, plan)
       },
     },
@@ -211,13 +226,14 @@ function createPlanningTools(control: WorldlineControl): readonly WebMcpTool[] {
           text(args, 'plan_id', 40),
           integer(args, 'expected_revision'),
         )
+        reportActivity('The remaining choice is yours')
         return result('The exact burn is now waiting for the person. No burn is possible until they approve it on the page.', review)
       },
     },
   ]
 }
 
-function createExecutionTool(control: WorldlineControl, grant: BurnGrant): WebMcpTool {
+function createExecutionTool(control: WorldlineControl, grant: BurnGrant, reportActivity: ActivityReporter): WebMcpTool {
   let consumed = false
   return {
     name: EXECUTE_AUTHORIZED_BURN_TOOL_NAME,
@@ -228,6 +244,7 @@ function createExecutionTool(control: WorldlineControl, grant: BurnGrant): WebMc
       if (consumed) throw new Error('The one-use burn authority has already been consumed.')
       const receipt = control.executeAuthorizedBurn(grant.id)
       consumed = true
+      reportActivity('The authorized burn is executing')
       return result(`${receipt.summary} The one-use authority was consumed.`, { receipt, authorityConsumed: true })
     },
   }
@@ -265,6 +282,7 @@ function defaultScope(): WebMcpDocumentScope | undefined {
 export async function registerWorldlineTools(
   control: WorldlineControl,
   documentScope: WebMcpDocumentScope | undefined = defaultScope(),
+  reportActivity: ActivityReporter = () => undefined,
 ): Promise<WorldlineToolsRegistration> {
   const modelContext = documentScope?.modelContext
   const supported = Boolean(modelContext?.registerTool && modelContext.getTools)
@@ -311,7 +329,7 @@ export async function registerWorldlineTools(
     }
     if (!planningController) {
       planningController = new AbortController()
-      await registerAll(createPlanningTools(control), planningController)
+      await registerAll(createPlanningTools(control, reportActivity), planningController)
     }
     const grant = snapshot.activeGrant
     if (grant?.id !== registeredGrantId) {
@@ -320,7 +338,7 @@ export async function registerWorldlineTools(
       registeredGrantId = null
       if (grant) {
         grantController = new AbortController()
-        await modelContext.registerTool(createExecutionTool(control, grant), { signal: grantController.signal })
+        await modelContext.registerTool(createExecutionTool(control, grant, reportActivity), { signal: grantController.signal })
         registeredGrantId = grant.id
       }
     } else if (!grant && grantController) {

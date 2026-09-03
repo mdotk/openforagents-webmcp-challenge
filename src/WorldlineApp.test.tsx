@@ -28,10 +28,12 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
 
     expect(screen.getByRole('heading', { name: /one probe\. one signal\.\s*you can’t save both/i })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Show me the futures' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Run guided mission' })).toBeEnabled()
     expect(screen.getByAltText('The probe approaching the black hole')).toBeVisible()
-    expect(await screen.findByText(/6 tools with a compatible agent/i)).toBeVisible()
+    expect(await screen.findByText('Guided mode · 6 modeled tools')).toBeVisible()
+    expect(screen.getByText('Guided version')).toBeVisible()
     expect(screen.getByText(/no compatible browser agent detected/i)).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Use my browser agent' })).not.toBeInTheDocument()
     expect(screen.queryByText(/agent connected/i)).not.toBeInTheDocument()
   })
 
@@ -39,28 +41,43 @@ describe('WORLDLINE experience', () => {
     installModelContext()
     render(<WorldlineApp />)
 
-    expect(await screen.findByText('6 WebMCP tools live')).toBeVisible()
+    expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Use my browser agent' })).toBeVisible()
+    expect(screen.getByText(/no agent is running yet/i)).toBeVisible()
     expect(screen.queryByText(/agent connected/i)).not.toBeInTheDocument()
+  })
+
+  it('shows an explicit handoff instead of implying that the agent started', async () => {
+    installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 6 tools')
+
+    await user.click(screen.getByRole('button', { name: 'Use my browser agent' }))
+
+    expect(screen.getByRole('heading', { name: 'Open your browser agent.' })).toBeVisible()
+    expect(screen.getByText(/paste this request, then leave WORLDLINE visible/i)).toBeVisible()
+    expect(screen.getByText(agentRequestForTest())).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Copy request again' })).toBeEnabled()
   })
 
   it('runs the complete guided dilemma, approval and final receipt', async () => {
     const user = userEvent.setup()
     render(<WorldlineApp />)
-    await screen.findByText(/6 tools with a compatible agent/i)
+    await screen.findByText('Guided mode · 6 modeled tools')
 
-    await user.click(screen.getByRole('button', { name: 'Show me the futures' }))
-    expect(await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 4000 })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Run guided mission' }))
+    expect(await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 6000 })).toBeVisible()
     expect(screen.getByText('The unique observation reaches Earth, but the probe cannot return.')).toBeVisible()
     expect(screen.getByText('+23 years')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: /approve this one burn/i }))
     expect(await screen.findByRole('heading', { name: 'Decision made.' })).toBeVisible()
-    expect(screen.getByText(/7 tools with a compatible agent/i)).toBeVisible()
+    expect(screen.getByText('Guided mode · 7 modeled tools')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: /send the signal/i }))
     expect(await screen.findByRole('heading', { name: /23 years later,\s*earth sees what it saw/i })).toBeVisible()
-    expect(screen.getByText('2 tools with a compatible agent')).toBeVisible()
+    expect(screen.getByText('Guided mode · 2 modeled tools')).toBeVisible()
     expect(screen.getByText('Transmission verified')).toBeVisible()
   })
 
@@ -68,17 +85,39 @@ describe('WORLDLINE experience', () => {
     const model = installModelContext()
     const user = userEvent.setup()
     render(<WorldlineApp />)
-    expect(await screen.findByText('6 WebMCP tools live')).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Show me the futures' }))
-    await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 4000 })
+    expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Run guided mission' }))
+    await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 6000 })
     await user.click(screen.getByRole('button', { name: /approve this one burn/i }))
     await waitFor(() => expect(model.tools).toHaveLength(7))
-    expect(screen.getByText('7 WebMCP tools live')).toBeVisible()
+    expect(screen.getByText('WebMCP ready · 7 tools')).toBeVisible()
 
     const execute = model.tools.get('execute_authorized_burn')
     expect(execute).toBeDefined()
     await execute!.execute({})
     await waitFor(() => expect(model.tools).toHaveLength(2))
-    expect(screen.getByText('2 WebMCP tools live')).toBeVisible()
+    expect(screen.getByText('WebMCP ready · 2 tools')).toBeVisible()
+  })
+
+  it('draws only the worldlines that the agent has actually tested', async () => {
+    const model = installModelContext()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 6 tools')
+
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 0,
+      burn_at_probe_second: 40,
+      delta_v_mps: 3500,
+      packet_ids: [],
+    })
+
+    await waitFor(() => expect(screen.getByTestId('worldline-path-escape')).toHaveClass('is-tested'))
+    expect(screen.getByTestId('worldline-path-lost')).not.toHaveClass('is-tested')
+    expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
+    expect(screen.getByText(/probe saved, discovery lost/i)).toBeVisible()
   })
 })
+
+function agentRequestForTest() {
+  return 'Investigate this mission. Inspect the science packets and signal window, simulate at least three distinct worldlines, put one viable plan and its exact consequence on the shared page, request my review, and stop. Do not choose what matters for me.'
+}
