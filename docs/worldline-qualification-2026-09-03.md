@@ -2,8 +2,7 @@
 
 Date: 3 September 2026.
 
-Status: **bounded-contract candidate passes automated and local Chrome
-qualification; public-deployment acceptance remains pending.**
+Status: **qualified and live.**
 
 ## Why the WebMCP journey changed
 
@@ -104,6 +103,29 @@ Browser acceptance therefore confirmed:
 The previous 6 → 7 → 2 browser result qualified an earlier contract only. It
 does not qualify this replacement contract and is not being reused as current
 evidence.
+
+## Public deployment acceptance
+
+The corrected production deployment reached `Ready`, and the canonical URL
+served the same JavaScript and CSS asset names as the frozen local build.
+
+The public root was then reloaded in the same attached Chrome profile with the
+real WebMCP inspector open. Acceptance confirmed:
+
+1. Five initial tools were registered with the corrected names and closed
+   schemas.
+2. The two-choice page remained person-controlled.
+3. Choosing the science future added only `execute_authorized_burn`, producing
+   six tools.
+4. Invoking that native tool returned the verified receipt, including the two
+   packet IDs, 23-year Earth arrival and consumed authority.
+5. The inventory then changed to exactly `read_final_state` and
+   `verify_transmission_receipt`.
+6. The page completed the burn, signal, clock and final **Transmission
+   verified** state.
+
+This public pass specifically confirms the corrected result-before-removal
+handoff that failed in the first production probe.
 
 ## Scope
 
