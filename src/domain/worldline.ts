@@ -64,11 +64,7 @@ export const WORLDLINE_CONSTRAINTS = Object.freeze({
   lockPreservingDeltaVMetersPerSecond: Object.freeze([2000, 2400] as const),
 })
 export const MAX_WORLDLINE_SIMULATIONS = 5
-export const WORLDLINE_HUMAN_PRIORITIES = Object.freeze({
-  discovery: 'If one burn cannot do both, recommend sending the gravity map and light spectrum to Earth.',
-  probe: 'If one burn cannot do both, recommend helping the probe escape.',
-})
-export const DEFAULT_WORLDLINE_PRIORITY = WORLDLINE_HUMAN_PRIORITIES.discovery
+export const WORLDLINE_MISSION_OBJECTIVE = 'Find out whether one burn can both let the probe escape and send the gravity map and light spectrum. If it cannot, recommend sending the two files because Earth has no copies, and explain that the probe will not escape.'
 
 export const learnerPredictionStatements: Readonly<Record<LearnerPredictionId, string>> = Object.freeze({
   time: 'There may not be enough time to send both files and make an escape burn.',
@@ -82,7 +78,6 @@ interface MutableState {
   phase: WorldlineSnapshot['phase']
   simulations: WorldlineSimulation[]
   simulationAttemptsUsed: number
-  humanPriority: string
   learningCheckpoint: LearningCheckpoint | null
   learnerCalculation: LearnerCalculation | null
   learnerPrediction: LearnerPrediction | null
@@ -106,7 +101,6 @@ function initialState(): MutableState {
     phase: 'investigating_extremes',
     simulations: [],
     simulationAttemptsUsed: 0,
-    humanPriority: DEFAULT_WORLDLINE_PRIORITY,
     learningCheckpoint: null,
     learnerCalculation: null,
     learnerPrediction: null,
@@ -226,7 +220,7 @@ export function createWorldlineControl(): WorldlineControl {
       packets,
       simulations: [...state.simulations],
       simulationAttemptsUsed: state.simulationAttemptsUsed,
-      humanPriority: state.humanPriority,
+      missionObjective: WORLDLINE_MISSION_OBJECTIVE,
       learningCheckpoint: state.learningCheckpoint,
       learnerCalculation: state.learnerCalculation,
       learnerPrediction: state.learnerPrediction,
@@ -255,18 +249,6 @@ export function createWorldlineControl(): WorldlineControl {
     subscribe(subscriber) {
       subscribers.add(subscriber)
       return () => subscribers.delete(subscriber)
-    },
-    setHumanPriority(priority, expectedRevision) {
-      if (state.phase !== 'investigating_extremes' || state.simulationAttemptsUsed > 0) {
-        throw new WorldlineStateError('The recommendation preference can change only before the investigation begins.')
-      }
-      assertRevision(state, expectedRevision)
-      const normalized = priority.trim()
-      if (!normalized || normalized.length > 180) {
-        throw new WorldlineStateError('The recommendation preference must contain 1 to 180 characters.')
-      }
-      if (normalized === state.humanPriority) return
-      mutate(() => { state.humanPriority = normalized })
     },
     simulate(input, expectedRevision) {
       if (!['investigating_extremes', 'investigating_prediction'].includes(state.phase)) {
@@ -405,13 +387,8 @@ export function createWorldlineControl(): WorldlineControl {
         throw new WorldlineStateError('The recommendation must reference one of the two displayed futures.')
       }
       const recommendedSimulation = options.find((candidate) => candidate?.id === recommendation.recommendedSimulationId)
-      const requiredOutcome = state.humanPriority === WORLDLINE_HUMAN_PRIORITIES.discovery
-        ? 'science_transmission'
-        : state.humanPriority === WORLDLINE_HUMAN_PRIORITIES.probe
-          ? 'probe_return'
-          : null
-      if (requiredOutcome && recommendedSimulation?.outcome !== requiredOutcome) {
-        throw new WorldlineStateError('The recommendation must follow the person’s starting preference.')
+      if (recommendedSimulation?.outcome !== 'science_transmission') {
+        throw new WorldlineStateError('The recommendation must be the tested option that sends the gravity map and light spectrum because Earth has no copies. The person will still make the final choice.')
       }
       if (!recommendation.rationale.trim() || recommendation.rationale.length > 240) {
         throw new WorldlineStateError('The recommendation rationale must contain 1 to 240 characters.')
@@ -427,7 +404,6 @@ export function createWorldlineControl(): WorldlineControl {
         probeReturnSimulationId: probeReturn.id,
         scienceTransmissionSimulationId: scienceTransmission.id,
         recommendedSimulationId: recommendation.recommendedSimulationId,
-        priority: state.humanPriority,
         rationale: recommendation.rationale.trim(),
         predictionAssessment,
         teachingExplanation: teachingExplanation.trim(),

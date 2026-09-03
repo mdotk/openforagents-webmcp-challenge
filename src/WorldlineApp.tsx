@@ -11,7 +11,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
-import { createWorldlineControl, WORLDLINE_CONSTRAINTS, WORLDLINE_HUMAN_PRIORITIES } from './domain'
+import { createWorldlineControl, WORLDLINE_CONSTRAINTS } from './domain'
 import type { LearnerPredictionId, LearnerTransmissionEstimateSeconds, WorldlineToolsRegistration } from './types'
 import { registerWorldlineTools } from './webmcp'
 import { formatMissionClock, recommendationStory, storyForSimulation } from './worldline-narrative'
@@ -20,18 +20,6 @@ import './WorldlineApp.css'
 const yearTicks = Object.freeze(Array.from({ length: 24 }, (_, year) => year))
 
 type ExecutionBeat = 'idle' | 'burn' | 'lock' | 'packet-one' | 'packet-two' | 'contact' | 'transit' | 'arrival' | 'complete'
-type PriorityId = keyof typeof WORLDLINE_HUMAN_PRIORITIES
-
-const priorities = Object.freeze({
-  discovery: {
-    label: 'Recommend the two files',
-    statement: WORLDLINE_HUMAN_PRIORITIES.discovery,
-  },
-  probe: {
-    label: 'Recommend the probe',
-    statement: WORLDLINE_HUMAN_PRIORITIES.probe,
-  },
-} as const)
 
 const learnerPredictions: Readonly<Record<LearnerPredictionId, { label: string; explanation: string }>> = Object.freeze({
   time: { label: 'Not enough time for both', explanation: 'There may not be enough time to send both files and make an escape burn.' },
@@ -75,7 +63,6 @@ export default function WorldlineApp() {
   const [registration, setRegistration] = useState<WorldlineToolsRegistration | null>(null)
   const [toolNames, setToolNames] = useState<readonly string[]>([])
   const [registrationPending, setRegistrationPending] = useState(true)
-  const [priorityId, setPriorityId] = useState<PriorityId>('discovery')
   const [activityMessage, setActivityMessage] = useState<string | null>(null)
   const [activityTrail, setActivityTrail] = useState<readonly string[]>([])
   const [agentActivityDetected, setAgentActivityDetected] = useState(false)
@@ -222,7 +209,6 @@ export default function WorldlineApp() {
     setRegistration(null)
     setToolNames([])
     setRegistrationPending(true)
-    setPriorityId('discovery')
     setActivityMessage(null)
     setActivityTrail([])
     setAgentActivityDetected(false)
@@ -257,16 +243,6 @@ export default function WorldlineApp() {
     try {
       control.selectLearnerTransmissionEstimate(seconds, control.getSnapshot().revision)
       setActivityMessage('Your transmission calculation is now part of the mission')
-      setError(null)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-    }
-  }, [control])
-
-  const changePriority = useCallback((nextPriorityId: PriorityId) => {
-    try {
-      control.setHumanPriority(priorities[nextPriorityId].statement, control.getSnapshot().revision)
-      setPriorityId(nextPriorityId)
       setError(null)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
@@ -317,11 +293,6 @@ export default function WorldlineApp() {
   const lossTested = visibleSimulations.some((simulation) => !simulation.viable)
   const signalTested = visibleSimulations.some((simulation) => simulation.discoveryDelivered)
   const simulationAttemptsUsed = snapshot.simulationAttemptsUsed
-  const recommendationPriority = snapshot.choices?.priority === WORLDLINE_HUMAN_PRIORITIES.discovery
-    ? priorities.discovery.label
-    : snapshot.choices?.priority === WORLDLINE_HUMAN_PRIORITIES.probe
-      ? priorities.probe.label
-      : snapshot.choices?.priority
   const missionRead = activityTrail.includes('Agent read the mission')
   const packetsRead = activityTrail.includes('Agent checked the three files')
   const maneuverRead = activityTrail.includes('Agent checked the engine, antenna and radio limits')
@@ -451,13 +422,6 @@ export default function WorldlineApp() {
                 <div><dt>Radio link closes</dt><dd>In 71 seconds</dd></div>
                 <div><dt>Files Earth does not have</dt><dd>2 files · {uniqueScienceMegabytes} MB</dd></div>
               </dl>
-              <label className="worldline-priority">
-                <span>Step 1 of 2 · Set the agent’s recommendation</span>
-                <select aria-label="Choose what the agent should recommend" value={priorityId} onChange={(event) => changePriority(event.target.value as PriorityId)}>
-                  {Object.entries(priorities).map(([id, priority]) => <option key={id} value={id}>{priority.label}</option>)}
-                </select>
-                <small>If the tests show the probe cannot do both, this tells the agent which result to recommend. It does not choose or approve anything. You will decide later.</small>
-              </label>
               {!agentReady ? (
                 <div className="worldline-mode">
                   <strong>{registrationPending ? 'Checking this browser…' : 'WebMCP browser required'}</strong>
@@ -468,9 +432,9 @@ export default function WorldlineApp() {
               ) : null}
               {agentReady ? (
                 <div className="worldline-agent-command" aria-label="Instruction for your browser agent">
-                  <span>Step 2 of 2 · Tell your browser agent</span>
+                  <span>Tell your browser agent</span>
                   <strong>{agentCommands.begin}</strong>
-                  <small>The agent will investigate possible burns, explain what it finds and stop when it needs your calculation and prediction.</small>
+                  <small>The agent will investigate possible burns, explain what it finds and stop when it needs your calculation and prediction. It will recommend an outcome only after the tests.</small>
                 </div>
               ) : <button className="worldline-primary" disabled>A WebMCP browser agent is required</button>}
             </>
@@ -519,7 +483,7 @@ export default function WorldlineApp() {
               <div className="worldline-agent-command" aria-label="Next instruction for your browser agent">
                 <span>Say to your browser agent</span>
                 <strong>{agentCommands.prediction}</strong>
-                <small>The page has already saved your calculation, prediction and recommendation preference.</small>
+                <small>The page has already saved your calculation and prediction.</small>
               </div>
             </div>
           )}
@@ -615,8 +579,8 @@ export default function WorldlineApp() {
                 <aside className="worldline-recommendation">
                   <p>Agent recommendation</p>
                   <strong>{recommendedSimulation.discoveryDelivered ? 'Send both files' : 'Save the probe'}</strong>
-                  <span><b>Why:</b> {recommendationStory(snapshot.choices, recommendedSimulation)}</span>
-                  <small>You asked it to: {recommendationPriority}</small>
+                  <span><b>Why:</b> {recommendationStory(recommendedSimulation)}</span>
+                  <small>The agent recommends preserving the files because Earth has no other copy. You still decide which loss to accept.</small>
                   <details><summary>Agent’s full reason</summary><span>{snapshot.choices.rationale}</span></details>
                 </aside>
               ) : null}

@@ -64,7 +64,7 @@ describe('WORLDLINE mission control', () => {
     expect(control.getSnapshot().choices).toMatchObject({ predictionAssessment: 'partly_correct', teachingExplanation: expect.stringContaining('burn times and speed changes') })
   })
 
-  it('does not let the agent contradict the learner’s recorded priority', () => {
+  it('requires the evidence-based recommendation while leaving the final choice to the person', () => {
     const control = createWorldlineControl()
     const probe = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], testRole: 'extreme' }, 0)
     const science = control.simulate({ burnAtProbeSecond: 46, deltaVMetersPerSecond: 2200, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'extreme' }, 1)
@@ -76,8 +76,8 @@ describe('WORLDLINE mission control', () => {
 
     expect(() => control.presentChoices(probe.id, science.id, 7, {
       recommendedSimulationId: probe.id,
-      rationale: 'Ignore the recorded starting preference.',
-    }, 'correct', 'The safe regions do not overlap.')).toThrow('starting preference')
+      rationale: 'Save the probe instead.',
+    }, 'correct', 'The safe regions do not overlap.')).toThrow('Earth has no copies')
   })
 
   it('records whether evidence confirmed or revised a hypothesis', () => {

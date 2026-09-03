@@ -25,9 +25,7 @@ WORLDLINE turns difficult space ideas into one mission you can take part in:
 
 ## Try it with a browser agent
 
-Open the live page in a browser with WebMCP support. Before the investigation,
-choose which outcome you want the agent to recommend if the tests show that one
-burn cannot do both. This does not make the final choice. Then open your browser
+Open the live page in a browser with WebMCP support. Then open your browser
 agent and say:
 
 > Begin WORLDLINE.
@@ -48,7 +46,8 @@ the page replays the real shared state as a paced investigation. Each tested
 future appears as a question, attempted maneuver, result and lesson. The page
 keeps the exact sending-time answer hidden until you calculate it. Only after
 both investigation acts does the page present two possible
-outcomes and a recommendation tied to the starting preference you chose.
+outcomes. The agent recommends sending the files because Earth has no copies,
+and clearly states that the probe will not escape.
 You choose whether to send the two files Earth does not have or save the
 probe. That choice adds one exact execution tool. You say **Carry out
 my choice.** The agent uses the approved action once and verifies the result.
@@ -77,11 +76,11 @@ evidence and a simulation rather than burn values or a prepared recommendation. 
 agent must:
 
 1. inspect separate mission, file, engine and antenna information;
-2. use your starting preference when it eventually recommends an outcome;
+2. establish one tested escape outcome and one tested send-files outcome;
 3. stop after the two clear outcomes and ask you to calculate the sending time;
 4. ask what you think might prevent one burn from doing both, then read your calculation and prediction from shared state;
 5. test a middle option and a different option that challenges your prediction;
-6. recommend one possible outcome and explain why;
+6. recommend sending the files because Earth has no copies, while explaining that the probe will not escape;
 7. stop at the irreversible decision that belongs to you.
 
 You perform the central calculation on the shared page. Helping the probe escape
@@ -90,10 +89,10 @@ files requires a burn between seconds 44 and 50 that changes the probe's speed
 by 2,000 to 2,400 m/s. Those requirements happen at different times. The page
 also shows that 30 MB at 1.2 MB/s takes 25 seconds to send.
 
-Your starting preference, tested ideas, recommendation and execution
-all share the same revisioned mission state. The agent may read the preference
-but cannot rewrite it. The preference guides only the recommendation. The
-person still makes the final choice. That choice adds one exact, argument-free action. The
+Your calculation, prediction, tested ideas, recommendation and execution
+all share the same revisioned mission state. The evidence-based mission goal
+guides the recommendation, but the person still makes the final choice. That
+choice adds one exact, argument-free action. The
 action works once, removes itself after use and leaves a verifiable final
 receipt.
 
@@ -145,7 +144,7 @@ await document.modelContext.registerTool({
       structuredContent: {
         revision: snapshot.revision,
         phase: snapshot.phase,
-        humanPriority: snapshot.humanPriority,
+        missionObjective: snapshot.missionObjective,
       },
     }
   },

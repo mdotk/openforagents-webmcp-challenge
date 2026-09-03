@@ -49,21 +49,19 @@ describe('WORLDLINE human narrative', () => {
     expect(story.result).not.toMatch(/too weak/i)
   })
 
-  it('ties a recommendation to the recorded human priority', () => {
+  it('explains the evidence-based recommendation and its cost', () => {
     const control = createWorldlineControl()
-    control.setHumanPriority('Send the gravity map and light spectrum to Earth.', 0)
-    const escape = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], testRole: 'extreme' }, 1)
-    const science = control.simulate({ burnAtProbeSecond: 46, deltaVMetersPerSecond: 2200, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'extreme' }, 2)
-    control.presentLearningCheckpoint(3)
-    control.selectLearnerTransmissionEstimate(25, 4)
-    control.selectLearnerPrediction('combination', 5)
-    control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: ['gravity-map'], testRole: 'compromise' }, 6)
-    control.simulate({ burnAtProbeSecond: 44, deltaVMetersPerSecond: 3400, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'counterexample' }, 7)
-    control.presentChoices(escape.id, science.id, 8, { recommendedSimulationId: science.id, rationale: 'Exact agent wording.' }, 'correct', 'The constraints conflict.')
-    const choices = control.getSnapshot().choices
+    const escape = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], testRole: 'extreme' }, 0)
+    const science = control.simulate({ burnAtProbeSecond: 46, deltaVMetersPerSecond: 2200, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'extreme' }, 1)
+    control.presentLearningCheckpoint(2)
+    control.selectLearnerTransmissionEstimate(25, 3)
+    control.selectLearnerPrediction('combination', 4)
+    control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: ['gravity-map'], testRole: 'compromise' }, 5)
+    control.simulate({ burnAtProbeSecond: 44, deltaVMetersPerSecond: 3400, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'counterexample' }, 6)
+    control.presentChoices(escape.id, science.id, 7, { recommendedSimulationId: science.id, rationale: 'Exact agent wording.' }, 'correct', 'The constraints conflict.')
 
-    expect(choices).not.toBeNull()
-    expect(recommendationStory(choices!, science)).toMatch(/you asked the agent to recommend sending the two files that Earth does not have/i)
+    expect(recommendationStory(science)).toMatch(/earth has no copy of either file/i)
+    expect(recommendationStory(science)).toMatch(/the probe cannot escape/i)
   })
 
   it('formats only the elapsed mission time the simulation actually records', () => {

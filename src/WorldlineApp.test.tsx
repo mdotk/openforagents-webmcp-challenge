@@ -75,31 +75,23 @@ describe('WORLDLINE experience', () => {
     installModelContext()
     render(<WorldlineApp />)
     expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
-    expect(screen.getByRole('combobox', { name: /choose what the agent should recommend/i })).toHaveValue('discovery')
-    expect(screen.getByText(/if the tests show the probe cannot do both/i)).toBeVisible()
-    expect(screen.getByText(/it does not choose or approve anything/i)).toBeVisible()
-    expect(screen.getByText(/you will decide later/i)).toBeVisible()
-    expect(screen.getByRole('option', { name: 'Recommend the two files' })).toBeVisible()
-    expect(screen.getByRole('option', { name: 'Recommend the probe' })).toBeVisible()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Instruction for your browser agent')).toHaveTextContent('Begin WORLDLINE.')
+    expect(screen.getByLabelText('Instruction for your browser agent')).toHaveTextContent(/recommend an outcome only after the tests/i)
     expect(screen.queryByText(/test exactly two extreme futures/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /copy mission/i })).not.toBeInTheDocument()
   })
 
-  it('explains the opening selector and gives its preference to the agent without making the final choice', async () => {
+  it('gives the agent an evidence-based mission objective without asking for a premature preference', async () => {
     const model = installModelContext()
-    const user = userEvent.setup()
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
-
-    const preference = screen.getByRole('combobox', { name: /choose what the agent should recommend/i })
-    await user.selectOptions(preference, 'probe')
     const mission = await model.tools.get('read_mission_state')!.execute({})
 
-    expect(preference).toHaveValue('probe')
     expect(mission.structuredContent).toMatchObject({
-      humanPriority: 'If one burn cannot do both, recommend helping the probe escape.',
+      missionObjective: expect.stringMatching(/recommend sending the two files because Earth has no copies/i),
     })
+    expect(screen.queryByText(/set the agent.s recommendation/i)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /can one engine burn save the probe and send both files/i })).toBeVisible()
   })
 
@@ -162,6 +154,8 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByText('Burn by second 42')).toBeVisible()
     expect(screen.getByText('Burn from second 44 to 50')).toBeVisible()
     expect(screen.getByText(/30 MB ÷ 1.2 MB\/s = 25 seconds/i)).toBeVisible()
+    expect(screen.getByText(/earth has no copy of either file/i)).toBeVisible()
+    expect(screen.getByText(/you still decide which loss to accept/i)).toBeVisible()
   })
 
   it('returns execution to the agent and exposes the 6 to 7 to 2 lifecycle', async () => {

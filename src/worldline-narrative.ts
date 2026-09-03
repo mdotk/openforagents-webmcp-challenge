@@ -1,4 +1,4 @@
-import type { SciencePacket, WorldlineChoices, WorldlineSimulation } from './types'
+import type { SciencePacket, WorldlineSimulation } from './types'
 import { WORLDLINE_CONSTRAINTS } from './domain/worldline'
 
 export interface SimulationStory {
@@ -77,20 +77,12 @@ export function storyForSimulation(
 }
 
 export function recommendationStory(
-  choices: WorldlineChoices,
   recommendation: WorldlineSimulation,
 ) {
   if (recommendation.discoveryDelivered) {
-    const framing = choices.priority.toLowerCase().includes('gravity map')
-      ? 'Before the tests, you asked the agent to recommend sending the two files that Earth does not have.'
-      : 'The starting preference asks the agent to recommend sending the two files that Earth does not have.'
-    return `${framing} This option sends the gravity map and light spectrum before the radio link closes. The other option lets the probe escape, but Earth never receives those files.`
+    return 'Earth has no copy of either file. This option sends the gravity map and light spectrum before the radio link closes. The cost is that the probe cannot escape because the gentler burn does not change its speed enough.'
   }
-
-  const framing = choices.priority.toLowerCase().includes('probe')
-    ? 'Before the tests, you asked the agent to recommend saving the probe.'
-    : 'The starting preference asks the agent to recommend saving the probe.'
-  return `${framing} This is the only tested option that lets the probe escape. The other option sends both files, but its gentler burn is not powerful enough to save the probe.`
+  return 'This is the only tested option that lets the probe escape. Earth would receive neither file, even though it has no other copy of them.'
 }
 
 export function formatMissionClock(totalSeconds: number) {

@@ -8,7 +8,7 @@ import type {
   WorldlineSnapshot,
   WorldlineToolsRegistration,
 } from '../types'
-import { MAX_WORLDLINE_SIMULATIONS, WORLDLINE_HUMAN_PRIORITIES } from '../domain/worldline'
+import { MAX_WORLDLINE_SIMULATIONS } from '../domain/worldline'
 
 export const initialWorldlineToolNames = Object.freeze([
   'read_mission_state',
@@ -96,7 +96,7 @@ const choicesSchema = Object.freeze({
       type: 'string',
       minLength: 1,
       maxLength: 40,
-      description: 'Choose the tested option that matches the person’s starting preference from read_mission_state.',
+      description: 'Choose the tested send-files option because Earth has no copy of the gravity map or light spectrum. Explain its cost and leave the final choice to the person.',
     }),
     recommendation_rationale: Object.freeze({ type: 'string', minLength: 1, maxLength: 240 }),
     prediction_assessment: Object.freeze({
@@ -180,11 +180,7 @@ function guidanceFor(snapshot: WorldlineSnapshot) {
     }
   }
   if (snapshot.phase === 'investigating_prediction') {
-    const requiredRecommendation = snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.discovery
-      ? 'Recommend sending the gravity map and light spectrum because the person asked for that recommendation before the tests.'
-      : snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.probe
-        ? 'Recommend the escape option because the person asked for that recommendation before the tests.'
-        : `Follow this recorded recommendation preference exactly: ${snapshot.humanPriority}`
+    const requiredRecommendation = 'Recommend sending the gravity map and light spectrum because Earth has no copy of either file. State clearly that this means the probe cannot escape. The person still makes the final choice.'
     return {
       command: 'Test my prediction.',
       objective: 'Test the person’s prediction and explain which parts the results support.',
@@ -250,7 +246,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             simulationAttemptsUsed: snapshot.simulationAttemptsUsed,
             simulationAttemptsRemaining: MAX_WORLDLINE_SIMULATIONS - snapshot.simulationAttemptsUsed,
             distanceFromEarthLightYears: snapshot.distanceFromEarthLightYears,
-            humanPriority: snapshot.humanPriority,
+            missionObjective: snapshot.missionObjective,
             learningCheckpoint: snapshot.learningCheckpoint,
             learnerCalculation: snapshot.learnerCalculation,
             learnerPrediction: snapshot.learnerPrediction,
@@ -388,7 +384,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'present_worldline_choices',
-      description: 'After testing a middle option and a different option that may challenge the person’s prediction, explain what the tests showed and present the two possible outcomes. Recommend the outcome that matches the person’s starting preference from read_mission_state. Do not choose or run a burn.',
+      description: 'After testing a middle option and a different option that may challenge the person’s prediction, explain what the tests showed and present the two possible outcomes. Recommend sending the two files because Earth has no copies, state that the probe will not escape, and leave the final choice to the person. Do not choose or run a burn.',
       inputSchema: choicesSchema,
       annotations: write,
       execute: (args) => {
@@ -410,7 +406,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
         const recommended = snapshot.simulations.find((simulation) => simulation.id === choices.recommendedSimulationId)!
         reportActivity(`Recommendation ready · ${recommended.discoveryDelivered ? 'send both files' : 'save the probe'}`)
         return result(
-          'The page explains what the tests showed about the person’s prediction and shows the two possible outcomes. The person must now choose which loss to accept. No burn can run until the person chooses. Stop and wait for them.',
+          'The page explains what the tests showed about the person’s prediction and recommends sending the two files because Earth has no copies. It also shows that the probe will not escape. The person must now choose which loss to accept. No burn can run until the person chooses. Stop and wait for them.',
           {
             revision: snapshot.revision,
             review,

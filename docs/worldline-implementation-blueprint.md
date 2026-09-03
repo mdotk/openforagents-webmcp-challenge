@@ -17,17 +17,16 @@ do not overlap.
 
 The agent must inspect the files and the engine, antenna and radio-link limits,
 compare multiple burns and distinguish the navigation record Earth already has
-from the gravity map and light spectrum it does not have. Before the
-investigation, the person chooses which outcome the agent should recommend if
-both goals prove impossible. That starting preference does not make the final
-choice. The person then says **Begin WORLDLINE.** The agent shows the two
+from the gravity map and light spectrum it does not have. The opening has one
+instruction: the person says **Begin WORLDLINE.** The agent shows the two
 starting outcomes, then stops for the person to calculate the sending time and
 predict what might stop one burn from achieving both goals. The person says
 **Test my prediction.** The agent reads the calculation and prediction, tests a
 middle option and a different option that challenges the prediction, explains what
 the results support and puts both possible
 outcomes on the page. It cannot
-decide which outcome matters to the person.
+decide which outcome matters to the person. It recommends sending the two files
+because Earth has no copies and explains that the probe will not escape.
 
 The person chooses which consequence to accept. That choice creates a one-use
 tool for the exact selected burn. The person says **Carry out my choice.**
@@ -68,7 +67,8 @@ checks reject stale planning.
 `present_worldline_choices` accepts the IDs of the two possible
 simulations. It is unavailable until the person has made a prediction and the
 agent has tested both second-act roles, including a total-loss result. The tool
-must assess the person's prediction and explain what the tests taught. The
+must assess the person's prediction, explain what the tests taught and
+recommend sending the two files because Earth has no copies. The
 state machine creates the factual two-option review; the agent cannot choose,
 approve or execute either future.
 
@@ -92,9 +92,8 @@ WORLDLINE**, **Test my prediction**, and **Carry out my choice**.
 ## Human-first presentation
 
 The route uses one large space scene rather than a control dashboard. The
-opening asks the investigation question in one sentence, labels the starting
-recommendation preference as step one and labels the browser-agent instruction
-as step two. Earth and probe clocks, three
+opening asks the investigation question in one sentence and gives one short
+browser-agent instruction. Earth and probe clocks, three
 possible worldlines, one probe and one signal carry the state change.
 
 Detailed file facts and exact tool names stay collapsed. If no compatible
@@ -110,8 +109,8 @@ stop. A visible control can unregister the page tools during an investigation.
 WORLDLINE may replace the root only after all of the following are true:
 
 - A person can understand the dilemma from the first screen.
-- The person can tell that the opening preference guides only the agent's
-  recommendation and must be set before the investigation begins.
+- The opening asks for no choice before the evidence has been investigated.
+- **Begin WORLDLINE** is the only opening instruction.
 - A supported browser discovers exactly six initial tools.
 - The agent finds both clear outcomes, opens the learning checkpoint and
   stops for the person.
@@ -119,7 +118,8 @@ WORLDLINE may replace the root only after all of the following are true:
 - In a second turn, the agent tests a middle option and a different option that challenges the person's prediction, explains
   the evidence and stops at the value decision.
 - The page and structured tool results remain consistent.
-- The agent stops with both possible outcomes visible and does not choose one.
+- The agent recommends sending the files because Earth has no copies, explains
+  that the probe will not escape, and stops with both possible outcomes visible.
 - The person's choice alone creates the seventh, argument-free tool.
 - The burn executes once and replay fails.
 - Exactly two final verification tools remain.

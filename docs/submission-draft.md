@@ -46,7 +46,8 @@ prediction.** In the next agent turn, the agent
 reads your prediction, tests a middle option and a different option that
 challenges the prediction, and explains
 which parts of the prediction the evidence supports. Only then can it present
-the two possible outcomes and recommend one for the starting preference you chose.
+the two possible outcomes. It recommends sending the two files because Earth
+has no copies, while clearly explaining that the probe will not escape.
 You therefore participate in the investigation rather than watching
 one autonomous run finish.
 
@@ -90,10 +91,6 @@ across a visual interface. The agent can investigate several possible futures
 and update the page as it learns without screen-scraping or inventing hidden
 state.
 
-Before the investigation starts, you choose which outcome the agent
-should recommend if both goals prove impossible. That starting preference does
-not authorize a burn and does not make the final choice.
-
 WebMCP also makes the human boundary part of the product. The agent may gather
 evidence, calculate, simulate and explain. It cannot decide which loss the
 person accepts. Only a choice on the page creates the exact one-use execution
@@ -128,9 +125,8 @@ The agent performs the information-heavy work: comparing three sources,
 distinguishing the two files Earth lacks from a navigation record it already
 has, proposing and testing clear options, challenging your prediction
 with a middle option and a second test, and explaining one
-recommendation within a five-test limit. The person takes part four times: by
-setting the agent’s recommendation preference, calculating the sending time,
-predicting the physical cause, and making the final value judgment that physics
+recommendation within a five-test limit. The person takes part three times: by
+calculating the sending time, predicting the physical cause, and making the final value judgment that physics
 cannot settle.
 
 The result is a shared decision rather than a chat response. The tested
@@ -160,8 +156,8 @@ The second act accepts `compromise` and `counterexample` tests. These code value
 mean a middle option and a different option designed to challenge the person's prediction.
 `present_worldline_choices` succeeds only after both roles have been tested,
 including a total-loss result. It also requires an explicit assessment of the
-person's prediction, a teaching explanation and a recommendation tied to the
-person's starting preference.
+person's prediction, a teaching explanation and a recommendation to send the
+two files Earth does not have. The recommendation must also state its cost.
 
 The person's selection registers `execute_authorized_burn`, changing the live
 inventory from six tools to seven. That tool accepts `{}` and closes over the
@@ -171,9 +167,10 @@ be replaced during execution. It works once. Afterward, only
 6 → 7 → 2 lifecycle visible in the browser.
 
 The native agent path and visible page use the same revisioned TypeScript state
-machine. The starting preference chosen on the page is part of that state. The
-agent can read it but cannot replace it when submitting its recommendation. It
-guides the recommendation only; the person still makes the final choice. Tool
+machine. The mission objective, the person's calculation and prediction, the
+tested outcomes and the recommendation are part of that state. The agent must
+recommend preserving the files Earth does not have, but the person still makes
+the final choice. Tool
 registration lifetimes are controlled with abort signals, and all input
 schemas reject additional properties.
 
@@ -188,18 +185,17 @@ controls the resulting action.
 1. Open https://openforagents-webmcp-challenge.vercel.app/ in ChatGPT's in-app
    browser or Chrome with WebMCP enabled.
 2. Confirm the page reports **WebMCP ready · 6 tools**.
-3. Choose which outcome you want the agent to recommend if one burn cannot do
-   both. This is not the final choice.
-4. Open the browser agent and say **Begin WORLDLINE.**
-5. Watch the agent test the two starting possibilities and stop at **How long
+3. Open the browser agent and say **Begin WORLDLINE.**
+4. Watch the agent test the two starting possibilities and stop at **How long
    do both files take to send?** Calculate the sending time, then predict what
    might prevent one burn from saving the probe and sending the files.
-6. Return to the same agent and say **Test my prediction.** Watch it test a
+5. Return to the same agent and say **Test my prediction.** Watch it test a
    middle option and a different option that challenges your prediction, explain the
-   result, recommend one possible outcome and stop.
-7. Choose either future on the page. Confirm the inventory changes to seven and
+   result, recommend sending the two files because Earth has no copies, explain
+   that the probe will not escape and stop.
+6. Choose either future on the page. Confirm the inventory changes to seven and
    includes `execute_authorized_burn`.
-8. Return to the same agent and say **Carry out my choice.** Confirm the
+7. Return to the same agent and say **Carry out my choice.** Confirm the
    agent executes the one-use burn, verifies the receipt, the inventory becomes
    two read-only tools and the cinematic outcome completes.
 No credentials are required.

@@ -81,7 +81,6 @@ export interface WorldlineChoices {
   readonly probeReturnSimulationId: string
   readonly scienceTransmissionSimulationId: string
   readonly recommendedSimulationId: string
-  readonly priority: string
   readonly rationale: string
   readonly predictionAssessment: PredictionAssessment
   readonly teachingExplanation: string
@@ -124,7 +123,7 @@ export interface WorldlineSnapshot {
   readonly packets: readonly SciencePacket[]
   readonly simulations: readonly WorldlineSimulation[]
   readonly simulationAttemptsUsed: number
-  readonly humanPriority: string
+  readonly missionObjective: string
   readonly learningCheckpoint: LearningCheckpoint | null
   readonly learnerCalculation: LearnerCalculation | null
   readonly learnerPrediction: LearnerPrediction | null
@@ -139,7 +138,6 @@ export type WorldlineSubscriber = (snapshot: WorldlineSnapshot) => void
 export interface WorldlineControl {
   getSnapshot(): WorldlineSnapshot
   subscribe(subscriber: WorldlineSubscriber): () => void
-  setHumanPriority(priority: string, expectedRevision: number): void
   simulate(input: WorldlineSimulationInput, expectedRevision: number): WorldlineSimulation
   presentLearningCheckpoint(expectedRevision: number): LearningCheckpoint
   selectLearnerTransmissionEstimate(seconds: LearnerTransmissionEstimateSeconds, expectedRevision: number): LearnerCalculation

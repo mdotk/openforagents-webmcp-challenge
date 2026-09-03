@@ -83,6 +83,13 @@ explains the result and stops again. Only
 after the person chooses a future can the agent execute and verify the exact
 one-use burn.
 
+The opening originally asked the person which result the agent should recommend
+before the investigation. That duplicated the final choice and asked for a
+preference before the person had enough context. The current contract removes
+that step. **Begin WORLDLINE** is the only opening instruction. After the tests,
+the agent recommends sending the two files because Earth has no copies, explains
+that the probe will not escape, and leaves the decision to the person.
+
 The current source passed local automated and responsive acceptance plus one
 complete native-agent run in the attached Chrome profile. That local run is not
 evidence that the same revision is deployed. A fresh run against the public URL

@@ -37,13 +37,17 @@ the post-prediction middle test and different challenge test, prediction assessm
 recommendation integrity, one-use execution, replay rejection and the
 6 → 7 → 2 WebMCP tool lifecycle.
 
+The opening no longer asks the person to set a recommendation before seeing the
+evidence. The state machine requires the agent to recommend sending the two
+files because Earth has no copies, while leaving the final choice to the person.
+
 Page tests cover the three short handoffs without copied prompts, correct and
 incorrect calculation feedback, teaching before the value choice,
 agent-only execution, tool removal and the final verification surface. Existing
 shopping, fitting-room, rack-rescue and launch-window tests remain part of the
 same passing suite.
 
-A site-wide copy contract checks the opening, starting recommendation,
+A site-wide copy contract checks the opening, evidence-based recommendation,
 calculation, prediction, both possible outcomes, both endings, metadata,
 WebMCP explanations and submission materials together. It requires the final
 choice to remain conditional until testing rules out achieving both goals. It
@@ -65,7 +69,7 @@ exchanges:
    conflicting burn times, speed changes and antenna direction. In a second prompt, the same agent read both shared
    answers, tested one middle option and one test that challenged the prediction,
    assessed the prediction as correct, explained the physical
-   conflict, recommended sending the files for the selected starting preference and
+   conflict, recommended sending the files under the earlier opening contract and
    stopped.
 3. The person chose the send-files route. Chrome immediately exposed seven tools,
    including the argument-free `execute_authorized_burn`. The agent executed it
@@ -80,17 +84,18 @@ observed Chrome profile; it is not a claim about every agent or browser.
 
 ## Responsive inspection
 
-The current opening was inspected at the normal desktop viewport, 390 px and
-320 px. The mission, definition of an engine burn, starting recommendation,
+The revised opening was inspected in attached Chrome at the normal desktop
+viewport, 390 px and 320 px. The mission, definition of an engine burn,
 browser-agent instruction and footer remained readable without horizontal
-overflow or overlap. The selected recommendation initially truncated at 320
-px, so its two option labels were shortened and rechecked successfully. An
-earlier candidate's calculation, prediction and completed receipt were also
-inspected at desktop and 390 px without clipping or overlap.
+overflow or overlap. The opening contains no selector, and **Begin WORLDLINE**
+is its only browser-agent instruction. An earlier candidate's calculation,
+prediction and completed receipt were also inspected at desktop and 390 px
+without clipping or overlap.
 
-The complete native-agent journey and all post-opening responsive states must
-be repeated against the deployed build before the final entry claims the
-public URL is ready. The earlier local run does not prove deployment identity.
+The simplified opening and complete native-agent journey must be repeated at
+desktop, 390 px and 320 px against the deployed build before the final entry
+claims the public URL is ready. The earlier local run does not prove this
+revised opening or deployment identity.
 
 ## Historical evidence
 

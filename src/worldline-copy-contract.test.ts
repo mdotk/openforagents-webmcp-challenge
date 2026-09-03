@@ -36,13 +36,13 @@ describe('WORLDLINE copy contract', () => {
     expect(app).not.toContain('somehow do both')
   })
 
-  it('explains the starting preference before the instruction to begin', () => {
-    const preferenceStep = 'Step 1 of 2 · Set the agent’s recommendation'
-    const instructionStep = 'Step 2 of 2 · Tell your browser agent'
-    expect(app).toContain(preferenceStep)
-    expect(app).toContain('It does not choose or approve anything. You will decide later.')
-    expect(app).toContain(instructionStep)
-    expect(app.indexOf(preferenceStep)).toBeLessThan(app.indexOf(instructionStep))
+  it('starts with one instruction and waits until after the tests to recommend an outcome', () => {
+    expect(app).toContain('<span>Tell your browser agent</span>')
+    expect(app).toContain("begin: 'Begin WORLDLINE.'")
+    expect(app).toContain('It will recommend an outcome only after the tests.')
+    expect(app).not.toContain('<select')
+    expect(app).not.toContain('Step 1 of 2')
+    expect(app).not.toContain('Step 2 of 2')
     expect(app).not.toContain('What should the agent protect?')
   })
 
@@ -88,6 +88,10 @@ describe('WORLDLINE copy contract', () => {
       /then decide what to save/i,
       /what comes home/i,
       /what should the agent protect/i,
+      /starting preference/i,
+      /starting recommendation/i,
+      /recommendation preference/i,
+      /set the agent.s recommendation/i,
       /can both files finish sending/i,
       /why can.t one burn save the probe and send both files/i,
       /the files cannot finish sending before final contact ends/i,

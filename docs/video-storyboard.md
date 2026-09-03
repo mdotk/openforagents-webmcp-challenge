@@ -34,9 +34,8 @@ Narration:
 
 ## 0:10–0:42: Investigate, predict, investigate again
 
-Jump back to the six-tool opening. Show the starting preference set to
-**Recommend the two files** and make clear that it guides only the
-agent's recommendation. Say **Begin WORLDLINE.** Show the agent test
+Jump back to the six-tool opening. The page has one instruction: say **Begin
+WORLDLINE.** Show the agent test
 one burn that lets the probe escape and one that sends the two files. When it stops, solve
 **18 MB + 12 MB, divided by 1.2 MB/s** by choosing **25 seconds**. Then choose
 **The requirements may conflict** at **What might stop one burn from doing
@@ -46,8 +45,8 @@ a different option that challenges the prediction, then explain the result.
 
 Narration:
 
-> WORLDLINE gives the agent the learning goal and my starting preference, not the burn
-> values or a prepared conclusion. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
+> WORLDLINE gives the agent a learning goal, not the burn values or a prepared
+> route. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
 > then I work out that the antenna must stay pointed at Earth for 25 seconds. WebMCP
 > turns my calculation and prediction into shared state. The agent must challenge
 > my prediction with a middle option and a second test before it can teach the result.
@@ -59,15 +58,16 @@ requirements do not overlap.
 
 ## 0:42–1:02: Stop at the human decision
 
-Hold the recommendation and both choice cards on screen. Show that the
-recommendation follows the starting preference selected before the tests, six tools remain
-and the agent has stopped.
+Hold the recommendation and both choice cards on screen. Show that the agent
+recommends sending the files because Earth has no copies, clearly states that
+the probe will not escape, and stops with six tools still available.
 
 Narration:
 
-> It recommends sending the gravity map and light spectrum because I asked for
-> that recommendation before the tests. That preference did not choose the outcome. The agent cannot accept that loss
-> for me. Do I save the probe, or send the only copies to Earth?
+> It recommends sending the gravity map and light spectrum because Earth has no
+> other copy. It also tells me the cost: the probe cannot escape. The agent
+> cannot accept that loss for me. Do I save the probe, or send the only copies
+> to Earth?
 
 ## 1:02–1:20: Your choice unlocks one exact burn
 
@@ -140,7 +140,8 @@ Description:
 > clear outcomes for a stranded probe, then pauses while you calculate how long
 > its files take to send and predict what might stop one burn from doing both. In a second
 > investigation, it tests a middle option and challenges your prediction.
-> It explains the results and recommends one possible future; you choose whether
+> It explains the results and recommends sending the files because Earth has no
+> copies; you choose whether
 > the probe escapes or Earth receives the gravity map and light spectrum.
 > That choice creates one exact, one-use WebMCP tool; after execution, only
 > verification remains.

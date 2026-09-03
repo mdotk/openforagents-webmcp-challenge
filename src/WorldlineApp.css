@@ -570,44 +570,6 @@
   line-height: 1.45;
 }
 
-.worldline-priority {
-  display: grid;
-  gap: .45rem;
-  max-width: 31rem;
-  margin-top: 1.25rem;
-  padding: .85rem .95rem;
-  border: 1px solid rgba(216,207,255,.3);
-  border-radius: .45rem;
-  background: rgba(4,7,14,.78);
-  backdrop-filter: blur(14px);
-}
-
-.worldline-priority > span {
-  color: #f4f1ff;
-  font-size: .74rem;
-  font-weight: 750;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.worldline-priority select {
-  width: 100%;
-  min-height: 2.65rem;
-  padding: .55rem .7rem;
-  border: 1px solid rgba(255,255,255,.32);
-  border-radius: .3rem;
-  color: #0c081c;
-  background: #d8cfff;
-  font: inherit;
-  font-weight: 720;
-}
-
-.worldline-priority small {
-  color: rgba(247,245,242,.82);
-  font-size: .82rem;
-  line-height: 1.45;
-}
-
 .worldline-agent-expectations {
   display: grid;
   gap: .35rem;
