@@ -12,14 +12,20 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { createWorldlineControl, WORLDLINE_CONSTRAINTS } from './domain'
-import type { LearnerPredictionId, LearnerTransmissionEstimateSeconds, WorldlineToolsRegistration } from './types'
+import type { LearnerPredictionId, LearnerTransmissionEstimateSeconds, WorldlineSimulation, WorldlineToolsRegistration } from './types'
 import { registerWorldlineTools } from './webmcp'
 import { formatMissionClock, recommendationStory, storyForSimulation } from './worldline-narrative'
 import './WorldlineApp.css'
 
-const yearTicks = Object.freeze(Array.from({ length: 24 }, (_, year) => year))
-
 type ExecutionBeat = 'idle' | 'burn' | 'lock' | 'packet-one' | 'packet-two' | 'contact' | 'transit' | 'arrival' | 'complete'
+type WorldlinePathKind = 'escape' | 'signal' | 'lost'
+
+function pathKindFor(simulation: WorldlineSimulation | null): WorldlinePathKind | null {
+  if (!simulation) return null
+  if (simulation.probeSurvives) return 'escape'
+  if (simulation.discoveryDelivered) return 'signal'
+  return 'lost'
+}
 
 const learnerPredictions: Readonly<Record<LearnerPredictionId, { label: string; explanation: string }>> = Object.freeze({
   time: { label: 'Not enough time for both', explanation: 'There may not be enough time to send both files and make an escape burn.' },
@@ -288,6 +294,47 @@ export default function WorldlineApp() {
   const transmissionSeconds = Math.ceil(uniqueScienceMegabytes / WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond)
   const showSendingCalculation = Boolean(snapshot.learnerCalculation)
     || !['investigating_extremes', 'prediction'].includes(snapshot.phase)
+  const visualSimulation = selectedSimulation ?? activeSimulation
+  const activePathKind = pathKindFor(visualSimulation)
+  const routeExplanation = activePathKind === 'escape'
+    ? { title: 'Gold curve: tested escape path', detail: 'This test sends the probe away from the black hole, but no files reach Earth.' }
+    : activePathKind === 'signal'
+      ? { title: 'Purple line: files sent toward Earth', detail: 'This test keeps the antenna connected long enough to send both files.' }
+      : activePathKind === 'lost'
+        ? { title: 'Red curve: failed burn path', detail: 'This test saves neither the probe nor the files.' }
+        : null
+  const viewedBurnSecond = visualSimulation?.burnAtProbeSecond ?? 0
+  const firstPacketSeconds = Math.ceil((snapshot.packets.find((packet) => packet.id === 'gravity-map')?.sizeMegabytes ?? 0) / WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond)
+  const executionProbeSecond = !snapshot.receipt || !selectedSimulation
+    ? viewedBurnSecond
+    : executionBeat === 'packet-one'
+      ? Math.min(snapshot.receipt.probeElapsedSeconds, selectedSimulation.burnAtProbeSecond + firstPacketSeconds)
+      : ['packet-two', 'contact', 'transit', 'arrival', 'complete'].includes(executionBeat)
+        ? snapshot.receipt.probeElapsedSeconds
+        : selectedSimulation.burnAtProbeSecond
+  const missionReadings = stage === 'executing' || stage === 'received'
+    ? [
+        { label: 'PROBE TIME', value: `T+${formatMissionClock(executionProbeSecond)}` },
+        {
+          label: 'EARTH SIGNAL',
+          value: !scienceReachedEarth
+            ? 'NO FILES SENT'
+            : ['arrival', 'complete'].includes(executionBeat)
+              ? '+23 YEARS'
+              : executionBeat === 'transit'
+                ? 'IN TRANSIT'
+                : '+00 YEARS',
+        },
+      ]
+    : visualSimulation
+      ? [
+          { label: 'TESTED BURN', value: `T+${formatMissionClock(viewedBurnSecond)}` },
+          { label: 'RADIO LINK LEFT', value: formatMissionClock(Math.max(0, WORLDLINE_CONSTRAINTS.contactEndsAtProbeSecond - viewedBurnSecond)) },
+        ]
+      : [
+          { label: 'MISSION TIME', value: 'T+00:00:00' },
+          { label: 'RADIO LINK LEFT', value: formatMissionClock(WORLDLINE_CONSTRAINTS.contactEndsAtProbeSecond) },
+        ]
   const activeCaption = toolsPaused
     ? 'WebMCP tools paused'
     : stage === 'waiting'
@@ -348,22 +395,12 @@ export default function WorldlineApp() {
           <div className="worldline-star-drift" aria-hidden="true" />
 
           <div className="worldline-clocks" aria-label="Mission clocks">
-            <div>
-              <span>EARTH</span>
-              {snapshot.receipt?.earthArrivalYears ? (
-                <strong className="worldline-year-clock" aria-label={`${snapshot.receipt.earthArrivalYears} years`}>
-                  <span className="worldline-year-clock__window" aria-hidden="true">
-                    <span className="worldline-year-clock__track">
-                      {yearTicks.map((year) => <span key={year}>+{String(year).padStart(2, '0')} YEARS</span>)}
-                    </span>
-                  </span>
-                </strong>
-              ) : <strong>00:00:00</strong>}
-            </div>
-            <div>
-              <span>PROBE</span>
-              <strong>{snapshot.receipt ? formatMissionClock(snapshot.receipt.probeElapsedSeconds) : '00:00:00'}</strong>
-            </div>
+            {missionReadings.map((reading) => (
+              <div key={reading.label}>
+                <span>{reading.label}</span>
+                <strong>{reading.value}</strong>
+              </div>
+            ))}
           </div>
 
           <svg className="worldline-paths" viewBox="0 0 1000 560" aria-hidden="true">
@@ -373,12 +410,25 @@ export default function WorldlineApp() {
                 <stop offset=".55" stopColor="#c7bcff" />
                 <stop offset="1" stopColor="#8bf2c9" />
               </linearGradient>
+              <marker id="worldline-arrow-escape" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f0bd6e" /></marker>
+              <marker id="worldline-arrow-lost" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef6b7e" /></marker>
+              <marker id="worldline-arrow-signal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a997ff" /></marker>
             </defs>
-            <path data-testid="worldline-path-escape" pathLength="1" className={`worldline-path worldline-path--escape${escapeTested ? ' is-tested' : ''}`} d="M 390 300 C 410 205, 535 125, 735 150" />
-            <path data-testid="worldline-path-lost" pathLength="1" className={`worldline-path worldline-path--lost${lossTested ? ' is-tested' : ''}`} d="M 390 300 C 320 300, 245 320, 145 334" />
+            <path data-testid="worldline-path-escape" pathLength="1" markerEnd="url(#worldline-arrow-escape)" className={`worldline-path worldline-path--escape${escapeTested ? ' is-tested' : ''}${activePathKind === 'escape' ? ' is-active' : ''}`} d="M 390 300 C 410 205, 535 125, 735 150" />
+            <path data-testid="worldline-path-lost" pathLength="1" markerEnd="url(#worldline-arrow-lost)" className={`worldline-path worldline-path--lost${lossTested ? ' is-tested' : ''}${activePathKind === 'lost' ? ' is-active' : ''}`} d="M 390 300 C 320 300, 245 320, 145 334" />
             <path className="worldline-path worldline-path--signal-glow" d="M 390 300 C 555 250, 740 220, 925 175" />
-            <path data-testid="worldline-path-signal" pathLength="1" className={`worldline-path worldline-path--signal${signalTested ? ' is-tested' : ''}`} d="M 390 300 C 555 250, 740 220, 925 175" />
+            <path data-testid="worldline-path-signal" pathLength="1" markerEnd="url(#worldline-arrow-signal)" className={`worldline-path worldline-path--signal${signalTested ? ' is-tested' : ''}${activePathKind === 'signal' ? ' is-active' : ''}`} d="M 390 300 C 555 250, 740 220, 925 175" />
             <circle className="worldline-signal" cx="925" cy="175" r="6" />
+            {stage === 'investigating' && activeSimulation && activePathKind ? (
+              <circle key={activeSimulation.id} r="5" className={`worldline-test-marker worldline-test-marker--${activePathKind}`}>
+                <animateMotion dur="1.5s" fill="freeze" path={activePathKind === 'escape'
+                  ? 'M 390 300 C 410 205, 535 125, 735 150'
+                  : activePathKind === 'signal'
+                    ? 'M 390 300 C 555 250, 740 220, 925 175'
+                    : 'M 390 300 C 320 300, 245 320, 145 334'} />
+                <animate attributeName="opacity" values="1;1;0" keyTimes="0;0.82;1" dur="1.5s" fill="freeze" />
+              </circle>
+            ) : null}
             {snapshot.receipt && scienceReachedEarth && executionBeat === 'packet-one' ? (
               <circle r="8" className="worldline-transmission-packet">
                 <animateMotion dur="1.55s" fill="freeze" path="M 390 300 C 555 250, 740 220, 925 175" />
@@ -396,7 +446,14 @@ export default function WorldlineApp() {
           <img className="worldline-probe" src="/worldline/probe.webp" alt="The probe approaching the black hole" />
           <div className="worldline-burn-flash" aria-hidden="true" />
           <div className="worldline-earth-impact" aria-hidden="true" />
-          <div className="worldline-cinematic-status" aria-live="polite"><span>{activeCaption}</span></div>
+          <div className="worldline-cinematic-status" aria-live="polite">
+            {stage === 'investigating' && routeExplanation ? (
+              <span className={`worldline-route-status worldline-route-status--${activePathKind}`}>
+                <b>{routeExplanation.title}</b>
+                <small>{routeExplanation.detail}</small>
+              </span>
+            ) : <span>{activeCaption}</span>}
+          </div>
         </div>
 
         <section className="worldline-story" aria-live="polite">

@@ -111,7 +111,9 @@ A fixed animation can show an outcome, but it cannot respond to a person's
 work. WORLDLINE asks you to calculate the sending time and predict the cause, then gives the browser
 agent structured access to that prediction so it can choose tests that challenge
 it. Every tested route appears on the scene as it is found, with its
-result and explanation. The person’s sending-time calculation appears at the
+result and explanation. The active gold, purple or red path is labelled, a
+marker follows it, and the time readings change to match the test being viewed.
+The person’s sending-time calculation appears at the
 checkpoint between the two rounds of investigation. The person can compare consequences
 rather than decode raw telemetry, then see the chosen burn, antenna state,
 files, radio link and signal journey play out from the same shared state.

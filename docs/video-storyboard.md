@@ -38,7 +38,9 @@ Jump back to the six-tool opening. The page has one instruction: say **Begin
 WORLDLINE.** Show the agent test
 one burn that lets the probe escape and one that sends the two files.
 Use **Show next test** to move between the two results, leaving each explanation
-on screen long enough to read. Choose **Continue to my calculation**, then solve
+on screen long enough to read. Show the gold escape curve, the purple signal
+line, and the changing tested-burn and radio-link readings. Choose **Continue
+to my calculation**, then solve
 the two compressed files, **18 MB + 12 MB, divided by 1.2 MB/s**, by choosing
 **25 seconds**. Then choose
 **The requirements may conflict** at **What might stop one burn from doing

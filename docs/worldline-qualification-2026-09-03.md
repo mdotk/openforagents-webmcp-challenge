@@ -43,6 +43,12 @@ choose **Show next test**. Separate controls continue to the calculation and
 final results. Automated page tests confirm that later results and checkpoints
 remain hidden until those controls are used.
 
+The previously unlabelled route curves now identify the active result as an
+escape path, a signal path or a failed path. The active line has an arrow and a
+moving marker while earlier results fade. During investigation, the two top
+readings update to the viewed test's burn time and remaining radio-link time.
+During execution, they show probe time and the signal's progress to Earth.
+
 The opening no longer asks the person to set a recommendation before seeing the
 evidence. The state machine requires the agent to recommend sending the two
 files because Earth has no copies, while leaving the final choice to the person.

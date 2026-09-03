@@ -65,6 +65,9 @@ describe('WORLDLINE copy contract', () => {
     expect(app).toContain('Continue to the results')
     expect(app).toContain('This result stays on screen until you choose to continue.')
     expect(app).not.toContain('Replaying the investigation at a pace you can follow.')
+    expect(app).toContain('Gold curve: tested escape path')
+    expect(app).toContain('Purple line: files sent toward Earth')
+    expect(app).toContain('Red curve: failed burn path')
   })
 
   it('asks questions that match the learner actions available on each screen', () => {

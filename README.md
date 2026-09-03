@@ -66,6 +66,11 @@ is unavailable, the page says so and does not replace the agent's investigation
 with a scripted demonstration.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
+The active result is labelled in plain language, and a bright marker follows
+the tested path. Earlier paths fade into the background. The top readings show
+the burn time for the result you are viewing and how long the radio link has
+left at that moment. During the final action, they change to the probe time and
+the signal's progress toward Earth.
 After the approved send-files burn, the page shows the antenna holding Earth,
 each of the two files leaving, the radio link closing, the signal
 crossing 23 light-years and the verified final receipt. The 23-year wait is

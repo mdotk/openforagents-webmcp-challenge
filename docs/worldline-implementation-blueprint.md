@@ -97,6 +97,10 @@ The route uses one large space scene rather than a control dashboard. The
 opening asks the investigation question in one sentence and gives one short
 browser-agent instruction. Earth and probe clocks, three
 possible worldlines, one probe and one signal carry the state change.
+During investigation, the active path is labelled and animated while older
+paths fade. The top readings show the tested burn time and the radio-link time
+remaining for the result currently on screen. During execution, they switch to
+probe time and signal travel toward Earth.
 
 Detailed file facts and exact tool names stay collapsed. If no compatible
 WebMCP browser agent is available, the page explains what is required rather

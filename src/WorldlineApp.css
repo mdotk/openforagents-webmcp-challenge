@@ -120,33 +120,6 @@
 .worldline-clocks span { color: rgba(255,255,255,.76); font-size: .65rem; font-weight: 720; letter-spacing: .18em; }
 .worldline-clocks strong { font-size: clamp(.9rem, 1.3vw, 1.2rem); font-variant-numeric: tabular-nums; letter-spacing: .05em; }
 
-.worldline-year-clock,
-.worldline-year-clock__window,
-.worldline-year-clock__track,
-.worldline-year-clock__track > span {
-  display: block;
-}
-
-.worldline-year-clock__window {
-  height: 1.25em;
-  overflow: hidden;
-}
-
-.worldline-year-clock__track {
-  transform: translateY(0);
-  transition: transform 1.7s cubic-bezier(.2, .78, .1, 1);
-}
-
-.worldline-year-clock__track > span {
-  height: 1.25em;
-  line-height: 1.25;
-}
-
-.worldline--beat-arrival .worldline-year-clock__track,
-.worldline--beat-complete .worldline-year-clock__track {
-  transform: translateY(-28.75em);
-}
-
 .worldline-paths {
   position: absolute;
   inset: 4.8rem 0 0;
@@ -154,6 +127,20 @@
   width: 100%;
   height: calc(100% - 4.8rem);
   overflow: visible;
+}
+
+.worldline--investigating .worldline-paths,
+.worldline--decision .worldline-paths,
+.worldline--authorized .worldline-paths {
+  mask-image: linear-gradient(90deg, #000 0%, #000 36%, transparent 50%);
+}
+
+@media (min-width: 851px) and (max-width: 1200px) {
+  .worldline--investigating .worldline-paths,
+  .worldline--decision .worldline-paths,
+  .worldline--authorized .worldline-paths {
+    mask-image: linear-gradient(90deg, #000 0%, #000 29%, transparent 41%);
+  }
 }
 
 .worldline-path {
@@ -166,9 +153,9 @@
   transition: opacity .35s ease, stroke-width .7s ease, stroke-dashoffset .9s cubic-bezier(.2,.7,.15,1);
 }
 
-.worldline-path--escape { stroke: #f0bd6e; }
-.worldline-path--lost { stroke: #ef6b7e; }
-.worldline-path--signal { stroke: #a997ff; }
+.worldline-path--escape { color: #f0bd6e; stroke: #f0bd6e; }
+.worldline-path--lost { color: #ef6b7e; stroke: #ef6b7e; }
+.worldline-path--signal { color: #a997ff; stroke: #a997ff; }
 
 .worldline-path--signal-glow {
   stroke: url(#worldline-signal-gradient);
@@ -181,7 +168,15 @@
 
 .worldline-path.is-tested {
   stroke-dashoffset: 0;
-  opacity: .55;
+  opacity: .18;
+}
+
+.worldline-path.is-active {
+  stroke-width: 4;
+  stroke-dashoffset: 0;
+  opacity: .95;
+  filter: drop-shadow(0 0 7px currentColor);
+  animation: worldline-test-path 1.05s cubic-bezier(.2,.72,.08,1) both;
 }
 
 .worldline--decision .worldline-path--signal,
@@ -244,6 +239,16 @@
 }
 
 .worldline-transmission-packet--second { fill: #9ef3d3; }
+
+.worldline-test-marker {
+  stroke: rgba(255,255,255,.92);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 18px currentColor);
+}
+
+.worldline-test-marker--escape { color: #f0bd6e; fill: #f0bd6e; }
+.worldline-test-marker--signal { color: #a997ff; fill: #c7bcff; }
+.worldline-test-marker--lost { color: #ef6b7e; fill: #ef6b7e; }
 
 .worldline-probe {
   position: absolute;
@@ -1118,6 +1123,33 @@
   text-transform: uppercase;
 }
 
+.worldline-cinematic-status .worldline-route-status {
+  display: grid;
+  gap: .28rem;
+  max-width: min(22rem, 34vw);
+  padding: .75rem .9rem;
+  border-radius: .45rem;
+  text-transform: none;
+}
+
+.worldline-route-status b {
+  color: #fff;
+  font-size: .72rem;
+  letter-spacing: .06em;
+}
+
+.worldline-route-status small {
+  color: rgba(255,255,255,.78);
+  font-size: .7rem;
+  font-weight: 520;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+.worldline-route-status--escape { border-left: 3px solid #f0bd6e !important; }
+.worldline-route-status--signal { border-left: 3px solid #a997ff !important; }
+.worldline-route-status--lost { border-left: 3px solid #ef6b7e !important; }
+
 .worldline-below {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(20rem, .8fr);
@@ -1147,6 +1179,11 @@
 @keyframes worldline-pulse {
   0%, 100% { transform: scale(1); opacity: .8; }
   50% { transform: scale(1.7); opacity: 1; }
+}
+
+@keyframes worldline-test-path {
+  from { stroke-dashoffset: 1; opacity: .2; }
+  to { stroke-dashoffset: 0; opacity: .95; }
 }
 
 @keyframes worldline-burn {
@@ -1258,8 +1295,12 @@
   .worldline-antenna-lock { top: 54%; left: 39%; width: min(40vw, 16rem); }
   .worldline-burn-flash { top: 60%; left: 31%; }
   .worldline-paths { inset: 0; width: 100%; height: 100%; transform: scale(1.08); transform-origin: center; }
+  .worldline--investigating .worldline-paths,
+  .worldline--decision .worldline-paths,
+  .worldline--authorized .worldline-paths { mask-image: none; }
   .worldline-below { grid-template-columns: 1fr; gap: 1.5rem; }
   .worldline-cinematic-status { right: 1.2rem; bottom: 1.3rem; left: auto; }
+  .worldline-cinematic-status .worldline-route-status { max-width: min(21rem, 66vw); }
 
   .worldline--executing .worldline-story h1,
   .worldline--received .worldline-story h1 {
@@ -1329,10 +1370,12 @@
   .worldline-receipt { grid-template-columns: 1fr; }
   .worldline-cinematic-status { right: 1rem; bottom: 1rem; left: 1rem; max-width: none; }
   .worldline-cinematic-status span { max-width: 100%; font-size: .58rem; letter-spacing: .1em; }
+  .worldline-cinematic-status .worldline-route-status { max-width: 100%; }
   .worldline-below { padding: 2rem 1rem 3rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .worldline-test-marker { display: none; }
   .worldline *, .worldline *::before, .worldline *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
