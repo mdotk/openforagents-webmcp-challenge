@@ -13,7 +13,7 @@ function prepareChoices(control: WorldlineControl) {
   const review = control.presentChoices(probeReturn.id, scienceTransmission.id, 7, {
     recommendedSimulationId: scienceTransmission.id,
     rationale: 'Both files fit inside the remaining contact time.',
-  }, 'correct', 'The tests show that timing, thrust and antenna direction conflict; changing only one does not save both.')
+  }, 'correct', 'The tests show that the allowed times, speed changes and antenna direction conflict; changing only one does not achieve both goals.')
   return { probeReturn, scienceTransmission, review }
 }
 
@@ -30,11 +30,11 @@ describe('WORLDLINE mission control', () => {
     const control = createWorldlineControl()
     control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], testRole: 'extreme' }, 0)
     control.simulate({ burnAtProbeSecond: 46, deltaVMetersPerSecond: 2200, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'extreme' }, 1)
-    expect(() => control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: [], testRole: 'extreme' }, 2)).toThrow('Present the learning checkpoint')
+    expect(() => control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: [], testRole: 'extreme' }, 2)).toThrow('Show the calculation screen')
     const checkpoint = control.presentLearningCheckpoint(2)
     expect(control.getSnapshot()).toMatchObject({ phase: 'prediction', learningCheckpoint: { id: checkpoint.id, status: 'waiting' } })
     expect(() => control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: [], testRole: 'compromise' }, 3)).toThrow('paused')
-    expect(() => control.selectLearnerPrediction('combination', 3)).toThrow('Calculate the transmission time')
+    expect(() => control.selectLearnerPrediction('combination', 3)).toThrow('Calculate the sending time')
     const calculation = control.selectLearnerTransmissionEstimate(25, 3)
     expect(calculation).toEqual({ selectedSeconds: 25, correctSeconds: 25, correct: true })
     const prediction = control.selectLearnerPrediction('combination', 4)
@@ -58,10 +58,10 @@ describe('WORLDLINE mission control', () => {
     control.selectLearnerTransmissionEstimate(25, 3)
     control.selectLearnerPrediction('antenna', 4)
     control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: ['gravity-map'], testRole: 'compromise' }, 5)
-    expect(() => control.presentChoices(escape.id, science.id, 6, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, alongside timing and thrust.')).toThrow('designed to prove their answer wrong')
+    expect(() => control.presentChoices(escape.id, science.id, 6, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, alongside the allowed burn time and speed change.')).toThrow('designed to challenge that prediction')
     control.simulate({ burnAtProbeSecond: 44, deltaVMetersPerSecond: 3400, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'counterexample' }, 6)
-    control.presentChoices(escape.id, science.id, 7, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, but the timing and thrust requirements also fail to overlap.')
-    expect(control.getSnapshot().choices).toMatchObject({ predictionAssessment: 'partly_correct', teachingExplanation: expect.stringContaining('timing and thrust') })
+    control.presentChoices(escape.id, science.id, 7, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, but the allowed burn times and speed changes also fail to overlap.')
+    expect(control.getSnapshot().choices).toMatchObject({ predictionAssessment: 'partly_correct', teachingExplanation: expect.stringContaining('burn times and speed changes') })
   })
 
   it('does not let the agent contradict the learner’s recorded priority', () => {
@@ -76,8 +76,8 @@ describe('WORLDLINE mission control', () => {
 
     expect(() => control.presentChoices(probe.id, science.id, 7, {
       recommendedSimulationId: probe.id,
-      rationale: 'Ignore the stated priority.',
-    }, 'correct', 'The safe regions do not overlap.')).toThrow('recorded priority')
+      rationale: 'Ignore the recorded starting preference.',
+    }, 'correct', 'The safe regions do not overlap.')).toThrow('starting preference')
   })
 
   it('records whether evidence confirmed or revised a hypothesis', () => {

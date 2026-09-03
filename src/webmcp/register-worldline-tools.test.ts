@@ -84,7 +84,7 @@ async function prepareReview(model: FakeModelContext, control: ReturnType<typeof
     recommended_simulation_id: 'worldline-02',
     recommendation_rationale: 'Both unique packets fit inside the remaining contact window.',
     prediction_assessment: 'correct',
-    teaching_explanation: 'Timing, thrust and antenna lock cannot all be satisfied by one burn.',
+    teaching_explanation: 'The allowed burn times, speed changes and antenna direction cannot all be satisfied by one burn.',
   })
 }
 
@@ -133,7 +133,7 @@ describe('registerWorldlineTools', () => {
     expect(waiting.structuredContent).toMatchObject({
       phase: 'prediction',
       learnerCalculation: null,
-      guidance: { objective: expect.stringMatching(/first calculate the signal time/i) },
+      guidance: { objective: expect.stringMatching(/first calculate the sending time/i) },
     })
     control.selectLearnerTransmissionEstimate(25, 3)
     control.selectLearnerPrediction('combination', 4)
@@ -213,7 +213,7 @@ describe('registerWorldlineTools', () => {
     })
 
     expect(activity).toEqual([
-      'Three files inspected',
+      'Agent checked the three files',
       'Test complete · the probe can escape, but Earth receives no files',
     ])
     await registration.dispose()
@@ -229,7 +229,7 @@ describe('registerWorldlineTools', () => {
       distanceFromEarthLightYears: 23,
       signalTravelYears: 23,
       propulsionTelemetry: {
-        escapeThrustEffectiveThroughProbeSecond: 42,
+        escapeBurnEffectiveThroughProbeSecond: 42,
         minimumEscapeDeltaVMetersPerSecond: 3400,
       },
       antennaTelemetry: {
@@ -277,7 +277,7 @@ describe('registerWorldlineTools', () => {
       expected_outcome: 'probe_return',
       test_role: 'counterexample',
     })
-    expect(final.content[0]?.text).toContain('The middle option and the attempt to disprove the learner’s answer are complete.')
+    expect(final.content[0]?.text).toContain('The middle option and the different test that challenged the person’s prediction are complete.')
     expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 1 })
     await registration.dispose()
   })

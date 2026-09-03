@@ -52,17 +52,18 @@ async function completeSecondAct(model: ReturnType<typeof installModelContext>) 
     option_a_simulation_id: 'worldline-01', option_b_simulation_id: 'worldline-02', recommended_simulation_id: 'worldline-02',
     recommendation_rationale: 'Earth has no copy of the gravity map or light spectrum.',
     prediction_assessment: 'correct',
-    teaching_explanation: 'You were right that the constraints combine: escape needs an early hard burn, while transmission needs a later gentle burn that keeps the antenna on Earth.',
+    teaching_explanation: 'You were right that the constraints combine: escape needs an earlier, larger speed change, while sending needs a later, smaller one that keeps the antenna on Earth.',
   })
 }
 
 describe('WORLDLINE experience', () => {
   it('opens with a clear dilemma and blocks unsupported browsers', async () => {
     render(<WorldlineApp />)
-    expect(screen.getByRole('heading', { name: /save the probe or send the two files to earth/i })).toBeVisible()
-    expect(screen.getByText(/work with your browser agent to find out whether one burn can both let the probe escape and send the files/i)).toBeVisible()
+    expect(screen.getByRole('heading', { name: /can one engine burn save the probe and send both files/i })).toBeVisible()
+    expect(screen.getByText(/one engine burn, a short firing that changes its speed/i)).toBeVisible()
+    expect(screen.getByText(/work with your browser agent to find out whether that burn can both let the probe escape and send the files/i)).toBeVisible()
     expect(screen.getByText(/if it cannot, you decide what to save/i)).toBeVisible()
-    expect(screen.getByRole('button', { name: 'WebMCP agent required' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'A WebMCP browser agent is required' })).toBeDisabled()
     expect(await screen.findByText('WebMCP required')).toBeVisible()
     expect(screen.getByText('An interactive science lesson')).toBeVisible()
     expect(screen.getByText(/a signal from 23 light-years away takes 23 years/i)).toBeVisible()
@@ -74,11 +75,32 @@ describe('WORLDLINE experience', () => {
     installModelContext()
     render(<WorldlineApp />)
     expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
-    expect(screen.getByRole('combobox', { name: /what should the agent protect/i })).toHaveValue('discovery')
-    expect(screen.queryByRole('option', { name: 'Best evidence' })).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /choose what the agent should recommend/i })).toHaveValue('discovery')
+    expect(screen.getByText(/if the tests show the probe cannot do both/i)).toBeVisible()
+    expect(screen.getByText(/it does not choose or approve anything/i)).toBeVisible()
+    expect(screen.getByText(/you will decide later/i)).toBeVisible()
+    expect(screen.getByRole('option', { name: 'Recommend the two files' })).toBeVisible()
+    expect(screen.getByRole('option', { name: 'Recommend the probe' })).toBeVisible()
     expect(screen.getByLabelText('Instruction for your browser agent')).toHaveTextContent('Begin WORLDLINE.')
     expect(screen.queryByText(/test exactly two extreme futures/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /copy mission/i })).not.toBeInTheDocument()
+  })
+
+  it('explains the opening selector and gives its preference to the agent without making the final choice', async () => {
+    const model = installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 6 tools')
+
+    const preference = screen.getByRole('combobox', { name: /choose what the agent should recommend/i })
+    await user.selectOptions(preference, 'probe')
+    const mission = await model.tools.get('read_mission_state')!.execute({})
+
+    expect(preference).toHaveValue('probe')
+    expect(mission.structuredContent).toMatchObject({
+      humanPriority: 'If one burn cannot do both, recommend helping the probe escape.',
+    })
+    expect(screen.getByRole('heading', { name: /can one engine burn save the probe and send both files/i })).toBeVisible()
   })
 
   it('makes the learner calculate and predict before the agent can test the middle', async () => {
@@ -87,18 +109,39 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await completeFirstAct(model)
-    expect(await screen.findByRole('heading', { name: /can both files finish sending/i })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: /how long do both files take to send/i })).toBeVisible()
     expect(screen.getByText('Waiting for your calculation')).toBeVisible()
     expect(screen.getByText('18 MB + 12 MB')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '25 seconds' }))
-    expect(screen.getByText(/correct\. the transmission takes 25 seconds/i)).toBeVisible()
+    expect(screen.getByText(/correct\. sending both files takes 25 seconds/i)).toBeVisible()
     expect(screen.getByText('Waiting for your prediction')).toBeVisible()
-    expect(screen.getByRole('heading', { name: /why can’t one burn save the probe and send both files/i })).toBeVisible()
-    expect(screen.getByRole('button', { name: /all three conflict/i })).toBeVisible()
-    await user.click(screen.getByRole('button', { name: /all three conflict/i }))
-    expect(screen.getByRole('heading', { name: 'Now ask the agent to test your answer.' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: /what might stop one burn from doing both/i })).toBeVisible()
+    expect(screen.getByRole('button', { name: /the requirements may conflict/i })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /the requirements may conflict/i }))
+    expect(screen.getByRole('heading', { name: 'Now ask the agent to test your prediction.' })).toBeVisible()
     expect(screen.getByLabelText('Next instruction for your browser agent')).toHaveTextContent('Test my prediction.')
     expect(screen.queryByRole('button', { name: /copy follow-up/i })).not.toBeInTheDocument()
+  })
+
+  it('does not reveal the sending-time answer before the person calculates it', async () => {
+    const model = installModelContext()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 6 tools')
+    await model.tools.get('inspect_science_packets')!.execute({})
+    await model.tools.get('inspect_maneuver_window')!.execute({})
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
+      hypothesis: 'An early burn may let the probe escape.', expected_outcome: 'probe_return', test_role: 'extreme',
+    })
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'A later burn may send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
+    })
+
+    expect(await screen.findByText('You will calculate the sending time')).toBeVisible()
+    expect(screen.getByText(/without revealing the answer/i)).toBeVisible()
+    expect(screen.queryByText('25 seconds to send both files')).not.toBeInTheDocument()
+    expect(screen.queryByText(/30 MB ÷ 1.2 MB\/s = 25 seconds/i)).not.toBeInTheDocument()
   })
 
   it('shows the second investigation act and teaches before asking for a value decision', async () => {
@@ -107,15 +150,15 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await completeFirstAct(model)
-    await screen.findByRole('heading', { name: /can both files finish sending/i })
+    await screen.findByRole('heading', { name: /how long do both files take to send/i })
     await user.click(screen.getByRole('button', { name: '25 seconds' }))
-    await user.click(screen.getByRole('button', { name: /all three conflict/i }))
+    await user.click(screen.getByRole('button', { name: /the requirements may conflict/i }))
     await completeSecondAct(model)
     expect(await screen.findByRole('heading', { name: 'What do you save?' })).toBeVisible()
-    expect(screen.getByText(/your answer · correct/i)).toBeVisible()
-    expect(screen.getByText(/escape needs an early hard burn/i)).toBeVisible()
-    expect(screen.getByText(/across three steps and 4 tests/i)).toBeVisible()
-    expect(screen.getByRole('heading', { name: /requirements happen at different times/i })).toBeVisible()
+    expect(screen.getByText(/your prediction · correct/i)).toBeVisible()
+    expect(screen.getByText(/escape needs an earlier, larger speed change/i)).toBeVisible()
+    expect(screen.getByText(/across two rounds of investigation and 4 burn tests/i)).toBeVisible()
+    expect(screen.getByRole('heading', { name: /required times and speed changes do not overlap/i })).toBeVisible()
     expect(screen.getByText('Burn by second 42')).toBeVisible()
     expect(screen.getByText('Burn from second 44 to 50')).toBeVisible()
     expect(screen.getByText(/30 MB ÷ 1.2 MB\/s = 25 seconds/i)).toBeVisible()
@@ -127,16 +170,16 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await completeFirstAct(model)
-    await screen.findByRole('heading', { name: /can both files finish sending/i })
+    await screen.findByRole('heading', { name: /how long do both files take to send/i })
     await user.click(screen.getByRole('button', { name: '25 seconds' }))
-    await user.click(screen.getByRole('button', { name: /all three conflict/i }))
+    await user.click(screen.getByRole('button', { name: /the requirements may conflict/i }))
     await completeSecondAct(model)
     await screen.findByRole('heading', { name: 'What do you save?' })
     await user.click(screen.getByRole('button', { name: /send both files, lose the probe/i }))
     await waitFor(() => expect(model.tools).toHaveLength(7))
     expect(screen.getByLabelText('Final instruction for your browser agent')).toHaveTextContent('Carry out my choice.')
     expect(screen.queryByRole('button', { name: /execute burn/i })).not.toBeInTheDocument()
-    expect(screen.getByText(/the agent must run the approved burn/i)).toBeVisible()
+    expect(screen.getByText(/only the browser agent can use the one-time burn/i)).toBeVisible()
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: () => ({ matches: false }),
@@ -144,13 +187,13 @@ describe('WORLDLINE experience', () => {
     vi.useFakeTimers()
     await act(async () => { await model.tools.get('execute_authorized_burn')!.execute({}) })
     await act(async () => { vi.advanceTimersByTime(4_500) })
-    expect(screen.getByText(/finishes sending as final contact ends/i)).toBeVisible()
+    expect(screen.getByText(/finishes sending as the radio link closes/i)).toBeVisible()
     await act(async () => { vi.advanceTimersByTime(7_500) })
     vi.useRealTimers()
     await waitFor(() => expect(model.tools).toHaveLength(2))
     expect(screen.getByText('WebMCP ready · 2 tools')).toBeVisible()
     expect(model.tools.has('verify_transmission_receipt')).toBe(true)
-    expect(screen.getByRole('heading', { name: /three simple calculations explain the result/i })).toBeVisible()
+    expect(screen.getByRole('heading', { name: /three facts explain the result/i })).toBeVisible()
     expect(screen.getByText(/a light-year measures distance/i)).toBeVisible()
   }, 10_000)
 
@@ -160,11 +203,11 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await completeFirstAct(model)
-    await screen.findByRole('heading', { name: /can both files finish sending/i })
+    await screen.findByRole('heading', { name: /how long do both files take to send/i })
     await user.click(screen.getByRole('button', { name: '12 seconds' }))
-    expect(screen.getByText(/not quite\. the transmission takes 25 seconds/i)).toBeVisible()
+    expect(screen.getByText(/not quite\. sending both files takes 25 seconds/i)).toBeVisible()
     expect(screen.getByText(/30 MB ÷ 1.2 MB\/s = 25 seconds/i)).toBeVisible()
-    expect(screen.getByRole('heading', { name: /why can’t one burn save the probe and send both files/i })).toBeVisible()
+    expect(screen.getByRole('heading', { name: /what might stop one burn from doing both/i })).toBeVisible()
   })
 
   it('never asks the learner to copy or paste an engineered prompt', async () => {

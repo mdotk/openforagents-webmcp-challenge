@@ -79,7 +79,7 @@ const simulationSchema = Object.freeze({
     test_role: Object.freeze({
       type: 'string',
       enum: Object.freeze(['extreme', 'compromise', 'counterexample']),
-      description: 'Use extreme for the first two clear outcomes, compromise for a middle option, or counterexample for a test designed to prove the learner’s answer wrong.',
+      description: 'Use extreme for the first two clear outcomes, compromise for a middle option, or counterexample for a different test that may challenge the person’s prediction.',
     }),
   }),
   required: Object.freeze(['expected_revision', 'burn_at_probe_second', 'delta_v_mps', 'packet_ids', 'hypothesis', 'expected_outcome', 'test_role']),
@@ -96,11 +96,20 @@ const choicesSchema = Object.freeze({
       type: 'string',
       minLength: 1,
       maxLength: 40,
-      description: 'Choose the tested option that matches the person’s priority from read_mission_state.',
+      description: 'Choose the tested option that matches the person’s starting preference from read_mission_state.',
     }),
     recommendation_rationale: Object.freeze({ type: 'string', minLength: 1, maxLength: 240 }),
-    prediction_assessment: Object.freeze({ type: 'string', enum: Object.freeze(['correct', 'partly_correct', 'not_supported']) }),
-    teaching_explanation: Object.freeze({ type: 'string', minLength: 1, maxLength: 320 }),
+    prediction_assessment: Object.freeze({
+      type: 'string',
+      enum: Object.freeze(['correct', 'partly_correct', 'not_supported']),
+      description: 'Use correct only if the tests support the whole prediction, partly_correct if they support only part of it, or not_supported if they do not support it.',
+    }),
+    teaching_explanation: Object.freeze({
+      type: 'string',
+      minLength: 1,
+      maxLength: 320,
+      description: 'Explain in plain language what the tests showed about the person’s prediction, using the tested burn times, speed changes and antenna result.',
+    }),
   }),
   required: Object.freeze(['expected_revision', 'option_a_simulation_id', 'option_b_simulation_id', 'recommended_simulation_id', 'recommendation_rationale', 'prediction_assessment', 'teaching_explanation']),
   additionalProperties: false as const,
@@ -139,8 +148,8 @@ type ActivityReporter = (message: string) => void
 
 function plainPhase(phase: WorldlineSnapshot['phase']) {
   if (phase === 'investigating_extremes') return 'the agent should test one escape burn and one send-files burn'
-  if (phase === 'prediction') return 'waiting for the learner’s calculation and answer'
-  if (phase === 'investigating_prediction') return 'the agent should test the learner’s answer'
+  if (phase === 'prediction') return 'waiting for the person’s calculation and prediction'
+  if (phase === 'investigating_prediction') return 'the agent should test the person’s prediction'
   if (phase === 'review') return 'waiting for the person to choose what to save'
   if (phase === 'authorized') return 'the person’s chosen burn is ready'
   return 'the mission is complete'
@@ -152,47 +161,47 @@ function guidanceFor(snapshot: WorldlineSnapshot) {
       command: 'Begin WORLDLINE.',
       objective: 'Find one burn that lets the probe escape and one burn that sends the gravity map and light spectrum to Earth.',
       permittedNextActions: [
-        'Inspect the three files and the engine, antenna and contact limits.',
+        'Inspect the three files and the engine, antenna and radio-link limits.',
         'Test exactly two clearly different options with test_role extreme.',
         'Call present_learning_checkpoint after both outcomes are established.',
       ],
-      stopWhen: 'The learning checkpoint opens. Stop and wait for the learner to calculate the signal time and make a prediction on the page.',
+      stopWhen: 'The calculation screen opens. Stop and wait for the person to calculate the sending time and make a prediction on the page.',
     }
   }
   if (snapshot.phase === 'prediction') {
     const learnerStep = snapshot.learnerCalculation
-      ? 'The learner has calculated the signal time and must now predict why one burn cannot save both outcomes.'
-      : 'The learner must first calculate the signal time, then predict why one burn cannot save both outcomes.'
+      ? 'The person has calculated the sending time and must now predict what might stop one burn from saving the probe and sending the files.'
+      : 'The person must first calculate the sending time, then predict what might stop one burn from saving the probe and sending the files.'
     return {
       command: null,
       objective: learnerStep,
       permittedNextActions: [],
-      stopWhen: 'The learner has not completed both steps yet. Do not run another simulation.',
+      stopWhen: 'The person has not completed both steps yet. Do not run another simulation.',
     }
   }
   if (snapshot.phase === 'investigating_prediction') {
     const requiredRecommendation = snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.discovery
-      ? 'Recommend sending the gravity map and light spectrum because the learner chose to send the files that Earth does not have.'
+      ? 'Recommend sending the gravity map and light spectrum because the person asked for that recommendation before the tests.'
       : snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.probe
-        ? 'Recommend the escape option because the learner chose to save the probe.'
-        : `Follow this recorded learner priority exactly: ${snapshot.humanPriority}`
+        ? 'Recommend the escape option because the person asked for that recommendation before the tests.'
+        : `Follow this recorded recommendation preference exactly: ${snapshot.humanPriority}`
     return {
       command: 'Test my prediction.',
-      objective: 'Test the learner’s answer and explain which parts the results support.',
+      objective: 'Test the person’s prediction and explain which parts the results support.',
       permittedNextActions: [
-        'Use learnerCalculation to acknowledge the learner’s transmission-time answer and its correction, if needed.',
+        'Use learnerCalculation to acknowledge the person’s sending-time answer and its correction, if needed.',
         'Test one middle option with test_role compromise.',
-        'Test one option designed to prove the learner’s answer wrong with test_role counterexample.',
+        'Test a different option with test_role counterexample to find out whether it supports or challenges the person’s prediction.',
         `Call present_worldline_choices with a prediction assessment and teaching explanation. ${requiredRecommendation}`,
       ],
       recommendationRule: requiredRecommendation,
-      stopWhen: 'The two possible outcomes appear. Stop and wait for the learner to choose which loss to accept.',
+      stopWhen: 'The two possible outcomes appear. Stop and wait for the person to choose which loss to accept.',
     }
   }
   if (snapshot.phase === 'review') {
     return {
       command: null,
-      objective: 'Wait for the learner to choose one of the two tested outcomes on the page.',
+      objective: 'Wait for the person to choose one of the two tested outcomes on the page.',
       permittedNextActions: [],
       stopWhen: 'The person has not approved a burn yet. Do not choose for them.',
     }
@@ -219,17 +228,17 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
   return [
     {
       name: 'read_mission_state',
-      description: 'Start or continue WORLDLINE. Call this first when the person says “Begin WORLDLINE” or “Test my prediction.” It returns what has happened, what the learner entered, what to do next and when to stop for the learner.',
+      description: 'Start or continue WORLDLINE. Call this first when the person says “Begin WORLDLINE” or “Test my prediction.” It returns what has happened, what the person entered, what to do next and when to stop for them.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
         const guidance = guidanceFor(snapshot)
         reportActivity(snapshot.phase === 'investigating_prediction' && snapshot.learnerPrediction
-          ? 'Learner prediction inspected'
-          : 'Mission state inspected')
+          ? 'Agent read your calculation and prediction'
+          : 'Agent read the mission')
         return result(
-          `Mission revision ${snapshot.revision}. Current step: ${plainPhase(snapshot.phase)}. ${snapshot.contactSecondsRemaining} seconds of final contact remain. What to do: ${guidance.objective} ${guidance.stopWhen} Use this result and do not read the mission again in the same turn.`,
+          `Mission revision ${snapshot.revision}. Current step: ${plainPhase(snapshot.phase)}. The radio link closes at probe second ${snapshot.contactSecondsRemaining}. What to do: ${guidance.objective} ${guidance.stopWhen} Use this result and do not read the mission again in the same turn.`,
           {
             revision: snapshot.revision,
             phase: snapshot.phase,
@@ -271,27 +280,27 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
-        reportActivity('Three files inspected')
-        return result('The probe holds a gravity map, a light spectrum and a navigation record. Earth has no copy of the first two files, but it already has the navigation record. Use their sizes with the radio speed and final contact time.', control.getSnapshot().packets)
+        reportActivity('Agent checked the three files')
+        return result('The probe holds a gravity map, a light spectrum and a navigation record. Earth has no copy of the first two files, but it already has the navigation record. Use their sizes with the radio speed and the time when the radio link closes.', control.getSnapshot().packets)
       },
     },
     {
       name: 'inspect_maneuver_window',
-      description: 'Read when the probe can escape, when its antenna can stay pointed at Earth, how powerful each burn must be and how fast the radio sends files.',
+      description: 'Read when the probe can escape, when its antenna can stay pointed at Earth, how powerful each burn must be, when the radio link closes and how fast it sends files.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
-        reportActivity('Engine, antenna and contact limits inspected')
+        reportActivity('Agent checked the engine, antenna and radio limits')
         return result(
-          `Final contact ends at probe second ${snapshot.contactSecondsRemaining}. The radio sends ${snapshot.downlinkMegabytesPerSecond} MB each second. To escape, the probe must burn by second 42 and change speed by at least 3,400 m/s. To keep its antenna pointed at Earth, it must burn from second 44 to 50 and change speed by 2,000 to 2,400 m/s. Every selected file must finish sending before final contact.`,
+          `The radio link closes at probe second ${snapshot.contactSecondsRemaining}. It sends ${snapshot.downlinkMegabytesPerSecond} MB each second. To escape, the probe must burn by second 42 and change speed by at least 3,400 m/s. To keep its antenna pointed at Earth, it must burn from second 44 to 50 and change speed by 2,000 to 2,400 m/s. Every selected file must finish sending before the radio link closes.`,
           {
             downlinkMegabytesPerSecond: snapshot.downlinkMegabytesPerSecond,
             contactEndsAtProbeSecond: snapshot.contactSecondsRemaining,
             propulsionTelemetry: {
               burnRangeProbeSeconds: [34, 58],
               deltaVRangeMetersPerSecond: [1800, 3800],
-              escapeThrustEffectiveThroughProbeSecond: 42,
+              escapeBurnEffectiveThroughProbeSecond: 42,
               minimumEscapeDeltaVMetersPerSecond: 3400,
             },
             antennaTelemetry: {
@@ -345,7 +354,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             ? 'Test complete · both files can be sent, but the probe cannot escape'
             : 'Test complete · the probe is lost and Earth receives no complete files')
         return result(
-          `Test ${simulation.id} ${simulation.expectationMatched ? 'matched' : 'did not match'} the predicted result. ${simulation.explanation} ${reused ? 'This exact test was already recorded, so the mission number did not change. The repeated call still used one of the five test attempts.' : `The mission is now at revision ${after.revision}.`} This was a simulation; no real burn occurred. ${after.phase === 'investigating_extremes' && extremesEstablished ? 'You have shown the two clear outcomes. Call present_learning_checkpoint now, then stop so the learner can calculate the sending time and answer why one burn cannot do both.' : investigationComplete ? 'The middle option and the attempt to disprove the learner’s answer are complete. Present the two possible choices, explain what the tests taught and do not run another simulation.' : `${remainingAttempts} test attempt${remainingAttempts === 1 ? '' : 's'} remain. Use this result to choose the next test.`}`,
+          `Test ${simulation.id} ${simulation.expectationMatched ? 'matched' : 'did not match'} the predicted result. ${simulation.explanation} ${reused ? 'This exact test was already recorded, so the page state did not change. Repeating it still used one of the five test attempts.' : `The mission is now at revision ${after.revision}.`} This was a simulation; no real burn occurred. ${after.phase === 'investigating_extremes' && extremesEstablished ? 'You have shown the two starting possibilities. Call present_learning_checkpoint now, then stop so the person can calculate the sending time and predict what might stop one burn from doing both.' : investigationComplete ? 'The middle option and the different test that challenged the person’s prediction are complete. Present the two possible choices, explain what the tests taught and do not run another simulation.' : `${remainingAttempts} test attempt${remainingAttempts === 1 ? '' : 's'} remain. Use this result to choose the next test.`}`,
           {
             ...simulation,
             reused,
@@ -359,7 +368,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'present_learning_checkpoint',
-      description: 'After showing one escape outcome and one send-files outcome, ask the learner to calculate how long sending takes and answer why one burn cannot do both. Stop testing until the learner completes both steps on the page.',
+      description: 'After showing one escape outcome and one send-files outcome, ask the person to calculate how long sending takes and predict what might stop one burn from doing both. Stop testing until the person completes both steps on the page.',
       inputSchema: Object.freeze({
         type: 'object' as const,
         properties: Object.freeze({ expected_revision: revision }),
@@ -372,14 +381,14 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
         const snapshot = control.getSnapshot()
         reportActivity('Two clear outcomes found · your calculation is next')
         return result(
-          'The page now shows one burn that lets the probe escape and one that sends both files. The learner must calculate how long both files take to send, then answer why one burn cannot save the probe and send the files. Stop and wait until both answers are saved on the page.',
+          'The page now shows one burn that lets the probe escape and one that sends both files. The person must calculate how long both files take to send, then predict what might stop one burn from saving the probe and sending the files. Stop and wait until both responses are saved on the page.',
           { revision: snapshot.revision, checkpoint, simulationPaused: true, resumeInstruction: 'Test my prediction.' },
         )
       },
     },
     {
       name: 'present_worldline_choices',
-      description: 'After testing a middle option and an option designed to disprove the learner’s answer, explain what the tests showed and present the two possible outcomes. Recommend the outcome that matches the person’s priority from read_mission_state. Do not choose or run a burn.',
+      description: 'After testing a middle option and a different option that may challenge the person’s prediction, explain what the tests showed and present the two possible outcomes. Recommend the outcome that matches the person’s starting preference from read_mission_state. Do not choose or run a burn.',
       inputSchema: choicesSchema,
       annotations: write,
       execute: (args) => {
@@ -401,7 +410,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
         const recommended = snapshot.simulations.find((simulation) => simulation.id === choices.recommendedSimulationId)!
         reportActivity(`Recommendation ready · ${recommended.discoveryDelivered ? 'send both files' : 'save the probe'}`)
         return result(
-          'The page explains the learner’s answer and shows the two possible outcomes. The person must now choose which loss to accept. No burn can run until the person chooses. Stop and wait for them.',
+          'The page explains what the tests showed about the person’s prediction and shows the two possible outcomes. The person must now choose which loss to accept. No burn can run until the person chooses. Stop and wait for them.',
           {
             revision: snapshot.revision,
             review,

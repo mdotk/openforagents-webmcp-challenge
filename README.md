@@ -1,10 +1,10 @@
-# WORLDLINE: One probe. One signal.
+# WORLDLINE
 
 WORLDLINE is an interactive science lesson from
 [Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
 the WebMCP Challenge. You and a browser agent explore black holes, light-years
-and possible futures by deciding whether a stranded probe escapes or Earth
-receives its two files.
+and worldlines, the paths objects take through space and time. You test whether a stranded probe can both escape and
+send its two files to Earth. If it cannot, you choose what to save.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
@@ -25,29 +25,32 @@ WORLDLINE turns difficult space ideas into one mission you can take part in:
 
 ## Try it with a browser agent
 
-Open the live page in a browser with WebMCP support. Choose what matters most,
-then open your browser agent and say:
+Open the live page in a browser with WebMCP support. Before the investigation,
+choose which outcome you want the agent to recommend if the tests show that one
+burn cannot do both. This does not make the final choice. Then open your browser
+agent and say:
 
 > Begin WORLDLINE.
 
 The page gives the agent separate information about the files, engine, antenna
-and final contact, not the burn values or answer. The first mission read returns the
+and closing radio link, not the tested burn values or a preselected conclusion. The first mission read returns the
 current phase, permitted work and exact stopping point, so the person does not
 have to paste operating instructions. After the agent establishes the two
-clear outcomes, the simulation pauses. The learner first calculates how long the
-files need to send, then answers why one burn cannot save both. After the learner
-says **Test my prediction**, the agent reads both answers from shared page
-state, tests a middle option and an option designed to prove the learner wrong,
-then explains what the learner got right. Five simulation calls is a hard
-limit.
+starting outcomes, the simulation pauses. You first calculate how long
+it takes to send the files, then predict what might prevent one burn from saving
+the probe and sending the files. After you say **Test my prediction**,
+the agent reads the calculation and prediction from shared page state, tests a
+middle option and a different option that challenges the prediction, then explains
+what the results support. The agent can run at most five simulations.
 
 The agent can finish its tool calls faster than a person can follow them, so
 the page replays the real shared state as a paced investigation. Each tested
-future appears as a question, attempted maneuver, result, calculation and
-lesson. Only after both investigation acts does the page present two possible
-outcomes and a recommendation tied to the learner's stated priority.
-The learner chooses whether to send the two files Earth does not have or save the
-probe. That choice adds one exact execution tool. The learner says **Carry out
+future appears as a question, attempted maneuver, result and lesson. The page
+keeps the exact sending-time answer hidden until you calculate it. Only after
+both investigation acts does the page present two possible
+outcomes and a recommendation tied to the starting preference you chose.
+You choose whether to send the two files Earth does not have or save the
+probe. That choice adds one exact execution tool. You say **Carry out
 my choice.** The agent uses the approved action once and verifies the result.
 
 The opening screen says whether WebMCP is available and does not claim that an
@@ -60,7 +63,7 @@ with a scripted demonstration.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
 After the approved send-files burn, the page shows the antenna holding Earth,
-each of the two files leaving, final contact ending, the signal
+each of the two files leaving, the radio link closing, the signal
 crossing 23 light-years and the verified final receipt. The 23-year wait is
 the signal's travel time from a probe 23 light-years away; the experience does
 not invent an unsupported probe-time comparison. Reduced-motion preferences
@@ -70,26 +73,27 @@ skip directly to the same completed outcome.
 
 This is not an agent clicking a prepared sequence of buttons. The three-part
 investigation stops twice for the person to take part, while the tools expose
-evidence and a simulation rather than burn values or a recommended answer. The
+evidence and a simulation rather than burn values or a prepared recommendation. The
 agent must:
 
 1. inspect separate mission, file, engine and antenna information;
-2. choose which facts matter for the learner's stated priority;
-3. stop after the two clear outcomes and ask the learner to calculate the sending time;
-4. ask the learner why one burn cannot do both, then read both answers from shared state;
-5. test a middle option and try to prove the learner wrong;
+2. use your starting preference when it eventually recommends an outcome;
+3. stop after the two clear outcomes and ask you to calculate the sending time;
+4. ask what you think might prevent one burn from doing both, then read your calculation and prediction from shared state;
+5. test a middle option and a different option that challenges your prediction;
 6. recommend one possible outcome and explain why;
-7. stop at the irreversible decision that belongs to the learner.
+7. stop at the irreversible decision that belongs to you.
 
-The learner performs the central calculation on the shared page. Helping the probe escape
-requires a burn by second 42 with at least 3,400 m/s of delta-v. Sending the
+You perform the central calculation on the shared page. Helping the probe escape
+requires a burn by second 42 that changes the probe’s speed by at least 3,400 m/s. Sending the
 files requires a burn between seconds 44 and 50 that changes the probe's speed
 by 2,000 to 2,400 m/s. Those requirements happen at different times. The page
 also shows that 30 MB at 1.2 MB/s takes 25 seconds to send.
 
-The learner's priority, tested ideas, recommendation and execution all
-share the same revisioned mission state. The agent may read the priority but
-cannot rewrite it. Person approval adds one exact, argument-free action. The
+Your starting preference, tested ideas, recommendation and execution
+all share the same revisioned mission state. The agent may read the preference
+but cannot rewrite it. The preference guides only the recommendation. The
+person still makes the final choice. That choice adds one exact, argument-free action. The
 action works once, removes itself after use and leaves a verifiable final
 receipt.
 
@@ -104,7 +108,7 @@ The document initially registers six closed-schema tools:
 5. `present_learning_checkpoint`
 6. `present_worldline_choices`
 
-The learner's choice adds only `execute_authorized_burn`. It accepts `{}` and
+The person's choice adds only `execute_authorized_burn`. It accepts `{}` and
 closes over the exact selected simulation, so the agent cannot replace its
 timing, speed change, files or consequence during execution.
 
@@ -157,7 +161,7 @@ for the new phase.
 The schemas reject additional properties. Mutations require the current
 revision. The initial mission read does not reveal the file information, and it
 never returns the internal approval identity. The one-use execution tool is
-registered only after the learner selects one of the two exact simulations on
+registered only after the person selects one of the two exact simulations on
 the page.
 
 The state machine is implemented in

@@ -68,18 +68,19 @@ On 3 September 2026, the entrant qualified WORLDLINE as a separate
 reasoning-first WebMCP experience and promoted it to the root route. The
 Adaptive Shopping Canvas remains available at `?experience=shopping`.
 WORLDLINE's current browser lifecycle changes from six investigation tools to
-seven after the learner's choice, then to two read-only verification tools after the
+seven after the person's choice, then to two read-only verification tools after the
 one-use action is consumed.
 
 The candidate first moved from a prescribed journey to an open investigation
 contract. Its latest learning design splits that investigation into three
 exchanges. The agent establishes one burn that lets the probe escape and one
-that sends the two files, then stops. The learner
-calculates the signal time and predicts why one burn cannot save both. The agent
+that sends the two files, then stops. The person
+calculates the sending time and predicts what might stop one burn from both
+letting the probe escape and sending the two files. The agent
 then reads those shared answers,
-tests a middle option and an option designed to prove the learner wrong,
+tests a middle option and a different option that challenges the person's prediction,
 explains the result and stops again. Only
-after the learner chooses a future can the agent execute and verify the exact
+after the person chooses a future can the agent execute and verify the exact
 one-use burn.
 
 The current source passed local automated and responsive acceptance plus one

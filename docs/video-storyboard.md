@@ -18,8 +18,8 @@ under three minutes and include audio.
 
 ## 0:00–0:10: The impossible choice
 
-Open on the large investigation chapter asking **Can one middle option save
-both?** The result changes to **No** and the page explains that trying to split
+Open on the large investigation chapter asking **Can one middle burn save the
+probe and send the files?** The result changes to **No** and the page explains that trying to split
 the difference loses the probe and both files. Cut immediately to the recommendation
 and the two choice cards headed **What do you save?**
 
@@ -28,27 +28,29 @@ On-screen text: **You calculate. You predict. The agent tests it.**
 Narration:
 
 > WORLDLINE is an interactive science lesson about a probe beside a black hole.
-> Each path it could take is a possible future called a worldline. Instead of watching
+> A worldline is the path an object takes through space and time. Instead of watching
 > a fixed animation, I work with a browser agent to investigate which futures
 > are physically possible.
 
 ## 0:10–0:42: Investigate, predict, investigate again
 
-Jump back to the six-tool opening. Say **Begin WORLDLINE.** Show the agent test
+Jump back to the six-tool opening. Show the starting preference set to
+**Recommend the two files** and make clear that it guides only the
+agent's recommendation. Say **Begin WORLDLINE.** Show the agent test
 one burn that lets the probe escape and one that sends the two files. When it stops, solve
 **18 MB + 12 MB, divided by 1.2 MB/s** by choosing **25 seconds**. Then choose
-**All three conflict** at **Why can't one burn save the probe and send both
-files?** Say **Test my prediction**
-to the same agent. Show it read the learner's answer, test a middle option and
-an option designed to prove the answer wrong, then explain the result.
+**The requirements may conflict** at **What might stop one burn from doing
+both?** Say **Test my prediction**
+to the same agent. Show it read your prediction, test a middle option and
+a different option that challenges the prediction, then explain the result.
 
 Narration:
 
-> WORLDLINE gives the agent the learning goal and my priority, not the burn
-> values or answer. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
+> WORLDLINE gives the agent the learning goal and my starting preference, not the burn
+> values or a prepared conclusion. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
 > then I work out that the antenna must stay pointed at Earth for 25 seconds. WebMCP
 > turns my calculation and prediction into shared state. The agent must challenge
-> my answer with a middle option and an attempt to prove me wrong before it can teach the result.
+> my prediction with a middle option and a second test before it can teach the result.
 
 Hold briefly on the visible proof: helping the probe escape requires a burn by
 second 42 and a speed change of at least 3,400 m/s. Sending the files requires
@@ -58,16 +60,16 @@ requirements do not overlap.
 ## 0:42–1:02: Stop at the human decision
 
 Hold the recommendation and both choice cards on screen. Show that the
-recommendation answers the priority selected at the start, six tools remain
+recommendation follows the starting preference selected before the tests, six tools remain
 and the agent has stopped.
 
 Narration:
 
-> It recommends sending the gravity map and light spectrum because I said Earth
-> should receive the two files it does not have. But it cannot accept that loss
+> It recommends sending the gravity map and light spectrum because I asked for
+> that recommendation before the tests. That preference did not choose the outcome. The agent cannot accept that loss
 > for me. Do I save the probe, or send the only copies to Earth?
 
-## 1:02–1:20: Create one exact capability
+## 1:02–1:20: Your choice unlocks one exact burn
 
 Choose **Send both files, lose the probe**. Show the inventory change from six tools to seven
 and identify `execute_authorized_burn`.
@@ -83,16 +85,16 @@ Narration:
 ## 1:20–1:48: The cinematic payoff
 
 Say **Carry out my choice.** Show the burn flash, the antenna
-pointing at Earth, the gravity map and light spectrum sending separately, final
-contact ending, the probe falling silent and the signal crossing 23
+pointing at Earth, the gravity map and light spectrum sending separately, the
+radio link closing, the probe falling silent and the signal crossing 23
 light-years. Finish on **Both files reached Earth.**
 
 Narration:
 
-> The approved burn runs once. Thirty megabytes finish sending before final
-> contact ends. The probe is 23 light-years away, so the signal takes 23 years to
-> reach Earth. The probe cannot escape, but Earth receives both files from its
-> one close pass.
+> The approved burn runs once. Thirty megabytes finish sending before the
+> radio link closes. The probe is 23 light-years away, so the signal takes 23 years to
+> reach Earth. The probe cannot escape, but Earth receives both files it
+> recorded near the black hole.
 
 ## 1:48–2:07: Prove the WebMCP lifecycle
 
@@ -129,15 +131,15 @@ Narration:
 
 Title:
 
-> WORLDLINE: Explore a black hole rescue with an AI agent
+> WORLDLINE: Investigate a black hole mission with a browser agent
 
 Description:
 
 > WORLDLINE is an interactive science lesson where you and a browser agent
 > explore black holes, light-years and possible futures. The agent tests two
 > clear outcomes for a stranded probe, then pauses while you calculate how long
-> its files take to send and answer why one burn cannot do everything. In a second
-> investigation, it tests a middle option and tries to prove your answer wrong.
+> its files take to send and predict what might stop one burn from doing both. In a second
+> investigation, it tests a middle option and challenges your prediction.
 > It explains the results and recommends one possible future; you choose whether
 > the probe escapes or Earth receives the gravity map and light spectrum.
 > That choice creates one exact, one-use WebMCP tool; after execution, only

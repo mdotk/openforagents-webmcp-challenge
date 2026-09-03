@@ -54,20 +54,22 @@ export function storyForSimulation(
       question: 'Can a later, gentler burn send both files?',
       plan: `At second ${simulation.burnAtProbeSecond}, fire a gentler ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s burn while sending ${selectedPackets}.`,
       outcomeSummary: 'Both files are sent. The probe cannot escape.',
-      result: `${megabytes} MB finishes sending at t+${simulation.transmissionCompletesAtProbeSecond}s. The gentler burn is not powerful enough for the probe to escape.`,
+      result: `The ${megabytes} MB transfer finishes at t+${simulation.transmissionCompletesAtProbeSecond}s. The gentler burn is not powerful enough for the probe to escape.`,
       lesson: 'The files reach Earth only if the probe gives up the powerful burn it needs to escape.',
-      calculation: `${megabytes} MB ÷ 1.2 MB/s = ${simulation.transmissionSeconds}s · finished ${remaining} second${remaining === 1 ? '' : 's'} before final contact`,
+      calculation: `${megabytes} MB ÷ 1.2 MB/s = ${simulation.transmissionSeconds}s · finished ${remaining} second${remaining === 1 ? '' : 's'} before the radio link closed`,
     }
   }
 
   return {
-    question: simulation.expectedOutcome === 'total_loss'
-      ? 'Does the simulator reject an unsafe burn?'
-      : 'Can one middle option save both?',
+    question: simulation.testRole === 'counterexample'
+      ? 'Does a different burn support or challenge your prediction?'
+      : 'Can one middle burn save the probe and send the files?',
     plan: `At second ${simulation.burnAtProbeSecond}, try a ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s burn${simulation.packetIds.length ? ` while sending ${selectedPackets}` : ' without transmitting data'}.`,
-    outcomeSummary: 'The probe is lost. Earth receives no complete files.',
-    result: 'No. This burn is too weak for escape and does not keep the antenna pointed at Earth long enough to finish sending a file.',
-    lesson: 'Trying to split the difference loses the probe and the files.',
+    outcomeSummary: 'The probe does not escape. Earth receives no complete files.',
+    result: simulation.explanation,
+    lesson: simulation.testRole === 'counterexample'
+      ? 'Changing only one part of the burn still does not meet both sets of requirements.'
+      : 'Trying to split the difference saves neither the probe nor the files.',
     calculation: megabytes
       ? `${megabytes} MB selected · no complete file sent`
       : 'No file selected to send',
@@ -80,14 +82,14 @@ export function recommendationStory(
 ) {
   if (recommendation.discoveryDelivered) {
     const framing = choices.priority.toLowerCase().includes('gravity map')
-      ? 'You asked the agent to send the two files that Earth does not have.'
-      : 'The mission priority favors sending the two files that Earth does not have.'
-    return `${framing} This option sends the gravity map and light spectrum before final contact. The other option lets the probe escape, but Earth never receives those files.`
+      ? 'Before the tests, you asked the agent to recommend sending the two files that Earth does not have.'
+      : 'The starting preference asks the agent to recommend sending the two files that Earth does not have.'
+    return `${framing} This option sends the gravity map and light spectrum before the radio link closes. The other option lets the probe escape, but Earth never receives those files.`
   }
 
   const framing = choices.priority.toLowerCase().includes('probe')
-    ? 'You asked the agent to save the probe.'
-    : 'The mission priority favors saving the probe.'
+    ? 'Before the tests, you asked the agent to recommend saving the probe.'
+    : 'The starting preference asks the agent to recommend saving the probe.'
   return `${framing} This is the only tested option that lets the probe escape. The other option sends both files, but its gentler burn is not powerful enough to save the probe.`
 }
 

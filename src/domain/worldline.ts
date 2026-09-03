@@ -34,7 +34,7 @@ const packets: readonly SciencePacket[] = Object.freeze([
     sizeMegabytes: 18,
     scientificValue: 10,
     replicatedOnEarth: false,
-    observation: 'Measurements showing how strongly gravity bends space around the black hole. Earth has no copy.',
+    observation: 'Measurements showing how strongly the black hole bends nearby space. Earth has no copy.',
   },
   {
     id: 'horizon-spectrum',
@@ -42,7 +42,7 @@ const packets: readonly SciencePacket[] = Object.freeze([
     sizeMegabytes: 12,
     scientificValue: 9,
     replicatedOnEarth: false,
-    observation: 'A breakdown of the light recorded during the probe’s one close pass. Earth has no copy.',
+    observation: 'Measurements showing which colours of light the probe recorded near the black hole. Earth has no copy.',
   },
   {
     id: 'navigation-archive',
@@ -65,16 +65,16 @@ export const WORLDLINE_CONSTRAINTS = Object.freeze({
 })
 export const MAX_WORLDLINE_SIMULATIONS = 5
 export const WORLDLINE_HUMAN_PRIORITIES = Object.freeze({
-  discovery: 'Send the gravity map and light spectrum to Earth, even if the probe cannot escape.',
-  probe: 'Help the probe escape, even though Earth will not receive the gravity map or light spectrum.',
+  discovery: 'If one burn cannot do both, recommend sending the gravity map and light spectrum to Earth.',
+  probe: 'If one burn cannot do both, recommend helping the probe escape.',
 })
 export const DEFAULT_WORLDLINE_PRIORITY = WORLDLINE_HUMAN_PRIORITIES.discovery
 
 export const learnerPredictionStatements: Readonly<Record<LearnerPredictionId, string>> = Object.freeze({
-  time: 'There is not enough contact time to send both files and still escape.',
-  fuel: 'There is not enough fuel to send both files and still escape.',
-  antenna: 'The escape burn points the antenna away from Earth.',
-  combination: 'The timing, fuel and antenna requirements conflict with one another.',
+  time: 'There may not be enough time to send both files and make an escape burn.',
+  fuel: 'A burn that keeps the antenna pointed at Earth may not change the probe’s speed enough for escape.',
+  antenna: 'A powerful escape burn may point the antenna away from Earth.',
+  combination: 'The timing, speed-change and antenna requirements may conflict with one another.',
 })
 
 interface MutableState {
@@ -157,7 +157,31 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
     if (input.deltaVMetersPerSecond < 3400) failureReasons.push('DELTA_V_BELOW_ESCAPE_CORRIDOR')
   }
 
-  let explanation = 'This burn is too late and too weak for escape, and it does not keep the antenna pointed at Earth long enough to send a complete file.'
+  const escapeFailures: string[] = []
+  if (input.burnAtProbeSecond > WORLDLINE_CONSTRAINTS.escapeLatestProbeSecond) {
+    escapeFailures.push(`it starts after the last escape time of second ${WORLDLINE_CONSTRAINTS.escapeLatestProbeSecond}`)
+  }
+  if (input.deltaVMetersPerSecond < WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond) {
+    escapeFailures.push(`it changes speed by less than the ${WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond.toLocaleString()} m/s needed for escape`)
+  }
+
+  const sendingFailures: string[] = []
+  if (!size) sendingFailures.push('no file was selected')
+  if (input.packetIds.includes('navigation-archive')) sendingFailures.push('the selection includes the 72 MB navigation record that Earth already has')
+  if (size > 30) sendingFailures.push('the selected files are larger than the 30 MB that can be sent in this lesson')
+  if (input.burnAtProbeSecond < WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[0]
+    || input.burnAtProbeSecond > WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[1]) {
+    sendingFailures.push(`the burn starts outside the antenna-safe time from second ${WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[0]} to ${WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[1]}`)
+  }
+  if (input.deltaVMetersPerSecond < WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[0]
+    || input.deltaVMetersPerSecond > WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[1]) {
+    sendingFailures.push(`the speed change is outside the antenna-safe range of ${WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[0].toLocaleString()} to ${WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[1].toLocaleString()} m/s`)
+  }
+  if (size && input.burnAtProbeSecond + transmissionSeconds > WORLDLINE_CONSTRAINTS.contactEndsAtProbeSecond) {
+    sendingFailures.push(`the selected files would finish after the radio link closes at second ${WORLDLINE_CONSTRAINTS.contactEndsAtProbeSecond}`)
+  }
+
+  let explanation = `The probe cannot escape because ${escapeFailures.join(' and ')}. Earth receives no complete files because ${sendingFailures.join(' and ')}.`
   if (escape) explanation = 'The early, powerful burn lets the probe escape, but turns its antenna away before either file is sent to Earth.'
   if (science) explanation = 'The later, gentler burn keeps the antenna pointed at Earth long enough to send the selected files, but is not powerful enough for the probe to escape.'
 
@@ -234,12 +258,12 @@ export function createWorldlineControl(): WorldlineControl {
     },
     setHumanPriority(priority, expectedRevision) {
       if (state.phase !== 'investigating_extremes' || state.simulationAttemptsUsed > 0) {
-        throw new WorldlineStateError('The human priority can change only before the investigation begins.')
+        throw new WorldlineStateError('The recommendation preference can change only before the investigation begins.')
       }
       assertRevision(state, expectedRevision)
       const normalized = priority.trim()
       if (!normalized || normalized.length > 180) {
-        throw new WorldlineStateError('The human priority must contain 1 to 180 characters.')
+        throw new WorldlineStateError('The recommendation preference must contain 1 to 180 characters.')
       }
       if (normalized === state.humanPriority) return
       mutate(() => { state.humanPriority = normalized })
@@ -254,18 +278,18 @@ export function createWorldlineControl(): WorldlineControl {
         throw new WorldlineStateError('The first investigation act can test only the two extreme outcomes.')
       }
       if (state.phase === 'investigating_prediction' && !['compromise', 'counterexample'].includes(testRole ?? '')) {
-        throw new WorldlineStateError('After the learner answers, run one middle-option test and one test designed to prove their answer wrong.')
+        throw new WorldlineStateError('After the person makes a prediction, run one middle-option test and one different test designed to challenge that prediction.')
       }
       const actSimulations = state.phase === 'investigating_prediction' && state.learnerPrediction
         ? state.simulations.slice(state.learnerPrediction.selectedAfterSimulationCount)
         : state.simulations
       const initialOutcomes = new Set(state.simulations.map((simulation) => simulation.outcome))
       if (state.phase === 'investigating_extremes' && initialOutcomes.has('probe_return') && initialOutcomes.has('science_transmission')) {
-        throw new WorldlineStateError('The two extreme futures are established. Present the learning checkpoint now; no additional simulation was recorded.')
+        throw new WorldlineStateError('The two starting outcomes are established. Show the calculation screen now; no additional test was recorded.')
       }
       const roles = new Set(actSimulations.map((simulation) => simulation.testRole))
       if (state.phase === 'investigating_prediction' && roles.has('compromise') && roles.has('counterexample') && actSimulations.some((simulation) => simulation.outcome === 'total_loss')) {
-        throw new WorldlineStateError('The learner’s answer has been tested. Show the two possible choices now. No additional test was recorded.')
+        throw new WorldlineStateError('The person’s prediction has been tested. Show the two possible choices now. No additional test was recorded.')
       }
       if (state.simulationAttemptsUsed >= MAX_WORLDLINE_SIMULATIONS) {
         throw new WorldlineStateError('The five-simulation investigation budget is exhausted. Use the tested outcomes or restart the mission; no additional simulation was recorded.')
@@ -303,11 +327,11 @@ export function createWorldlineControl(): WorldlineControl {
       return result
     },
     presentLearningCheckpoint(expectedRevision) {
-      if (state.phase !== 'investigating_extremes') throw new WorldlineStateError('The learning checkpoint is not available now.')
+      if (state.phase !== 'investigating_extremes') throw new WorldlineStateError('The calculation screen is not available now.')
       assertRevision(state, expectedRevision)
       const outcomes = new Set(state.simulations.map((simulation) => simulation.outcome))
       if (!outcomes.has('probe_return') || !outcomes.has('science_transmission')) {
-        throw new WorldlineStateError('Test one burn that lets the probe escape and one that sends both files before asking the learner to calculate the sending time and answer why both cannot happen.')
+        throw new WorldlineStateError('Test one burn that lets the probe escape and one that sends both files before asking the person to calculate the sending time and predict what might stop one burn from doing both.')
       }
       const checkpoint: LearningCheckpoint = deepFreeze({ id: 'learning-checkpoint-01', status: 'waiting' })
       mutate(() => {
@@ -318,12 +342,12 @@ export function createWorldlineControl(): WorldlineControl {
     },
     selectLearnerTransmissionEstimate(seconds, expectedRevision) {
       if (state.phase !== 'prediction' || state.learningCheckpoint?.status !== 'waiting' || state.learnerCalculation) {
-        throw new WorldlineStateError('There is no transmission-time calculation waiting for an answer.')
+        throw new WorldlineStateError('There is no sending-time calculation waiting for an answer.')
       }
       assertRevision(state, expectedRevision)
       const permitted: readonly LearnerTransmissionEstimateSeconds[] = [12, 25, 36]
       if (!permitted.includes(seconds)) {
-        throw new WorldlineStateError('Choose one of the three displayed transmission times.')
+        throw new WorldlineStateError('Choose one of the three displayed sending times.')
       }
       const correctSeconds = Math.ceil(
         packetSize(['gravity-map', 'horizon-spectrum']) / WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond,
@@ -338,11 +362,11 @@ export function createWorldlineControl(): WorldlineControl {
     },
     selectLearnerPrediction(predictionId, expectedRevision) {
       if (state.phase !== 'prediction' || state.learningCheckpoint?.status !== 'waiting') {
-        throw new WorldlineStateError('There is no learner prediction waiting for an answer.')
+        throw new WorldlineStateError('There is no prediction waiting for an answer.')
       }
       assertRevision(state, expectedRevision)
       if (!state.learnerCalculation) {
-        throw new WorldlineStateError('Calculate the transmission time before predicting why one burn cannot save both.')
+        throw new WorldlineStateError('Calculate the sending time before predicting what might stop one burn from doing both.')
       }
       const statement = learnerPredictionStatements[predictionId]
       if (!statement) throw new WorldlineStateError('Choose one of the four displayed predictions.')
@@ -359,7 +383,7 @@ export function createWorldlineControl(): WorldlineControl {
       return prediction
     },
     presentChoices(optionASimulationId, optionBSimulationId, expectedRevision, suppliedRecommendation: WorldlineRecommendationInput, predictionAssessment: PredictionAssessment, teachingExplanation: string) {
-      if (state.phase !== 'investigating_prediction' || !state.learnerPrediction) throw new WorldlineStateError('The learner prediction must be tested before the final choice can be presented.')
+      if (state.phase !== 'investigating_prediction' || !state.learnerPrediction) throw new WorldlineStateError('The person’s prediction must be tested before the final choice can be presented.')
       assertRevision(state, expectedRevision)
       if (optionASimulationId === optionBSimulationId) {
         throw new WorldlineStateError('The two choices must use distinct simulations.')
@@ -367,7 +391,7 @@ export function createWorldlineControl(): WorldlineControl {
       const predictionTests = state.simulations.slice(state.learnerPrediction.selectedAfterSimulationCount)
       const testRoles = new Set(predictionTests.map((simulation) => simulation.testRole))
       if (predictionTests.length < 2 || !testRoles.has('compromise') || !testRoles.has('counterexample') || !predictionTests.some((simulation) => simulation.outcome === 'total_loss')) {
-        throw new WorldlineStateError('After the learner answers, test one middle option and one option designed to prove their answer wrong. At least one test must show the probe and files are both lost before you present the choice.')
+        throw new WorldlineStateError('After the person makes a prediction, test one middle option and one different option designed to challenge that prediction. At least one test must show that the probe does not escape and Earth receives no complete files before you present the choice.')
       }
       const options = [optionASimulationId, optionBSimulationId]
         .map((id) => state.simulations.find((candidate) => candidate.id === id))
@@ -387,7 +411,7 @@ export function createWorldlineControl(): WorldlineControl {
           ? 'probe_return'
           : null
       if (requiredOutcome && recommendedSimulation?.outcome !== requiredOutcome) {
-        throw new WorldlineStateError('The recommendation must follow the learner’s recorded priority.')
+        throw new WorldlineStateError('The recommendation must follow the person’s starting preference.')
       }
       if (!recommendation.rationale.trim() || recommendation.rationale.length > 240) {
         throw new WorldlineStateError('The recommendation rationale must contain 1 to 240 characters.')
@@ -421,7 +445,7 @@ export function createWorldlineControl(): WorldlineControl {
         throw new WorldlineStateError('There is no pending burn review with that identity.')
       }
       if (!state.choices || ![state.choices.probeReturnSimulationId, state.choices.scienceTransmissionSimulationId].includes(simulationId)) {
-        throw new WorldlineStateError('Choose one of the two exact worldlines displayed for review.')
+        throw new WorldlineStateError('Choose one of the two tested outcomes displayed for review.')
       }
       const grant: BurnGrant = deepFreeze({
         id: 'burn-grant-01',
@@ -453,7 +477,7 @@ export function createWorldlineControl(): WorldlineControl {
         verified: true,
         summary: simulation.discoveryDelivered
           ? `${simulation.packetIds.map((id) => packets.find((packet) => packet.id === id)?.name ?? id).join(' and ')} reached Earth ${WORLDLINE_CONSTRAINTS.distanceFromEarthLightYears} years after they were sent. The probe did not escape.`
-          : 'The probe escaped the black hole. Earth did not receive the gravity map or light spectrum before final contact ended.',
+          : 'The probe escaped the black hole. Earth did not receive the gravity map or light spectrum before the radio link closed.',
       })
       mutate(() => {
         state.review = deepFreeze({ ...state.review!, status: 'consumed' })

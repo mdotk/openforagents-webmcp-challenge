@@ -29,14 +29,35 @@ const copy = new Map<string, string>([
 
 describe('WORLDLINE copy contract', () => {
   it('makes the final choice conditional on the investigation result', () => {
-    expect(app).toContain('Work with your browser agent to find out whether one burn can both let the probe escape and send the files. If it cannot, you decide what to save.')
+    expect(app).toContain('Can one engine burn save the probe and send both files?')
+    expect(app).toContain('It has fuel for one engine burn, a short firing that changes its speed.')
+    expect(app).toContain('Work with your browser agent to find out whether that burn can both let the probe escape and send the files. If it cannot, you decide what to save.')
     expect(app).not.toContain('somehow do both. Then decide what to save.')
     expect(app).not.toContain('somehow do both')
   })
 
+  it('explains the starting preference before the instruction to begin', () => {
+    const preferenceStep = 'Step 1 of 2 · Set the agent’s recommendation'
+    const instructionStep = 'Step 2 of 2 · Tell your browser agent'
+    expect(app).toContain(preferenceStep)
+    expect(app).toContain('It does not choose or approve anything. You will decide later.')
+    expect(app).toContain(instructionStep)
+    expect(app.indexOf(preferenceStep)).toBeLessThan(app.indexOf(instructionStep))
+    expect(app).not.toContain('What should the agent protect?')
+  })
+
+  it('asks questions that match the learner actions available on each screen', () => {
+    expect(app).toContain('How long do both files take to send?')
+    expect(app).toContain('What might stop one burn from doing both?')
+    expect(app).toContain('The agent has not tested a middle burn yet.')
+    expect(app).not.toContain('Can both files finish sending?')
+    expect(app).not.toContain('Why can’t one burn save the probe and send both files?')
+    expect(app).toContain('The agent found the file sizes and radio speed without revealing the answer.')
+  })
+
   it('states the two proven outcomes without implying that the probe returns to Earth', () => {
-    expect(app).toContain('The probe gets away from the black hole. Its final contact ends before Earth receives either file.')
-    expect(app).toContain('Earth receives both files after 23 years. The probe cannot escape.')
+    expect(app).toContain('The probe gets away from the black hole. Its radio link closes before Earth receives either file.')
+    expect(app).toContain('The files finish sending before the radio link closes. Earth receives them 23 years later. The probe cannot escape.')
     expect(narrative).toContain('The probe escapes. Earth receives no files.')
     expect(narrative).toContain('Both files are sent. The probe cannot escape.')
     expect(domain).toContain('The early, powerful burn lets the probe escape, but turns its antenna away before either file is sent to Earth.')
@@ -52,6 +73,11 @@ describe('WORLDLINE copy contract', () => {
     expect(submission).toContain('the page does not claim that the probe travelled home')
   })
 
+  it('makes the post-choice next action explicit', () => {
+    expect(app).toContain('Final step · Tell the same browser agent')
+    expect(app).toContain('Only the browser agent can use the one-time burn you approved. It will run the burn and check the result.')
+  })
+
   it('rejects known vague or contradictory wording across every public copy surface', () => {
     const prohibited = [
       /observations that can never be repeated/i,
@@ -61,8 +87,20 @@ describe('WORLDLINE copy contract', () => {
       /somehow do both/i,
       /then decide what to save/i,
       /what comes home/i,
+      /what should the agent protect/i,
+      /can both files finish sending/i,
+      /why can.t one burn save the probe and send both files/i,
+      /the files cannot finish sending before final contact ends/i,
+      /your answer is saved/i,
+      /calculation, answer and priority/i,
+      /across three steps/i,
+      /your starting priority/i,
+      /prove (?:the )?(?:person|learner).*(?:answer|prediction) wrong/i,
+      /disprove (?:the )?(?:person|learner).*(?:answer|prediction)/i,
       /the probe returns? (?:to earth|home)/i,
       /bring the probe home/i,
+      /not enough thrust/i,
+      /timing, thrust/i,
       /\u2014/,
     ]
 

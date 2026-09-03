@@ -7,25 +7,30 @@ shopping root unless its own release gate passes.
 
 ## The experience
 
-A fictional probe has completed its only close pass beside a black hole. It
-holds a gravity map, a light spectrum and a navigation record. Earth already
+A fictional probe has flown close enough to a black hole to measure how it
+bends space and changes light. It holds a gravity map, a light spectrum and a navigation record. Earth already
 has the navigation record, but it has no copy of the first two files. The probe
-has 71 seconds of final contact and one remaining burn. There is enough fuel to
-escape, or enough time to send the two files, but not both.
+has one final radio link that closes in 71 seconds and one remaining burn. An early, powerful burn
+can let the probe escape. A later, gentler burn can keep the antenna pointed at
+Earth long enough to send the files. The permitted burn times and speed changes
+do not overlap.
 
-The agent must inspect the files and the engine, antenna and contact limits,
+The agent must inspect the files and the engine, antenna and radio-link limits,
 compare multiple burns and distinguish the navigation record Earth already has
-from the gravity map and light spectrum it does not have. The three-part
-investigation begins when the learner says **Begin WORLDLINE.** The agent shows
-the two clear outcomes, then stops for the learner to calculate the sending time and answer why no burn can
-achieve both. The learner says **Test my prediction.** The agent reads both
-shared answers, tests a middle option and an option designed to prove the
-learner wrong, explains what the results support and puts both possible
+from the gravity map and light spectrum it does not have. Before the
+investigation, the person chooses which outcome the agent should recommend if
+both goals prove impossible. That starting preference does not make the final
+choice. The person then says **Begin WORLDLINE.** The agent shows the two
+starting outcomes, then stops for the person to calculate the sending time and
+predict what might stop one burn from achieving both goals. The person says
+**Test my prediction.** The agent reads the calculation and prediction, tests a
+middle option and a different option that challenges the prediction, explains what
+the results support and puts both possible
 outcomes on the page. It cannot
 decide which outcome matters to the person.
 
 The person chooses which consequence to accept. That choice creates a one-use
-tool for the exact selected burn. The learner says **Carry out my choice.**
+tool for the exact selected burn. The person says **Carry out my choice.**
 Execution bends the visible worldline and
 either lets the probe escape or sends the files. The send-files path advances
 Earth's clock by the signal's 23-year travel time while the probe's recorded
@@ -47,23 +52,23 @@ The initial document registers six closed-schema tools:
 6. `present_worldline_choices`
 
 The mission read provides phase-aware guidance: the current objective,
-permitted next work and exact stopping condition. The maneuver tool provides the engine and antenna limits, radio speed, final contact
-deadline and completion rule. Simulation accepts the exact probe-second,
-delta-v and packet IDs to test. It returns structured outcomes and failure
+permitted next work and exact stopping condition. The maneuver tool provides the engine and antenna limits, radio speed, the time when the radio link closes
+and the file-completion rule. Simulation accepts the exact probe-second,
+speed change, also called delta-v, and file IDs to test. It returns structured outcomes and failure
 reasons. The document permits at most five simulation calls. The first act
 accepts only `extreme` tests and pauses once both clearly different outcomes have
-been found. `present_learning_checkpoint` moves the page to the learner's
-calculation and prediction and prevents further simulation until the learner
+been found. `present_learning_checkpoint` moves the page to the person's
+calculation and prediction and prevents further simulation until the person
 completes both. The
 second act accepts one `compromise` and one `counterexample`. In the code, these
-mean a middle option and an option designed to prove the learner wrong. Exact duplicate
+mean a middle option and a different option designed to challenge the person's prediction. Exact duplicate
 calls consume an attempt but do not create duplicate mission state. Revision
 checks reject stale planning.
 
 `present_worldline_choices` accepts the IDs of the two possible
-simulations. It is unavailable until the learner has made a prediction and the
+simulations. It is unavailable until the person has made a prediction and the
 agent has tested both second-act roles, including a total-loss result. The tool
-must assess the learner's prediction and explain what the tests taught. The
+must assess the person's prediction and explain what the tests taught. The
 state machine creates the factual two-option review; the agent cannot choose,
 approve or execute either future.
 
@@ -81,13 +86,15 @@ registers only:
 2. `verify_transmission_receipt`
 
 The visible and browser-discovered lifecycle is therefore exactly 6 → 7 → 2.
-The learner uses three short instructions across that lifecycle: **Begin
+The person uses three short instructions across that lifecycle: **Begin
 WORLDLINE**, **Test my prediction**, and **Carry out my choice**.
 
 ## Human-first presentation
 
 The route uses one large space scene rather than a control dashboard. The
-opening states the dilemma in one sentence. Earth and probe clocks, three
+opening asks the investigation question in one sentence, labels the starting
+recommendation preference as step one and labels the browser-agent instruction
+as step two. Earth and probe clocks, three
 possible worldlines, one probe and one signal carry the state change.
 
 Detailed file facts and exact tool names stay collapsed. If no compatible
@@ -103,11 +110,13 @@ stop. A visible control can unregister the page tools during an investigation.
 WORLDLINE may replace the root only after all of the following are true:
 
 - A person can understand the dilemma from the first screen.
+- The person can tell that the opening preference guides only the agent's
+  recommendation and must be set before the investigation begins.
 - A supported browser discovers exactly six initial tools.
 - The agent finds both clear outcomes, opens the learning checkpoint and
-  stops for the learner.
-- The learner's transmission calculation and prediction become shared page state.
-- In a second turn, the agent tests a middle option and an attempt to prove the learner wrong, explains
+  stops for the person.
+- The person's transmission calculation and prediction become shared page state.
+- In a second turn, the agent tests a middle option and a different option that challenges the person's prediction, explains
   the evidence and stops at the value decision.
 - The page and structured tool results remain consistent.
 - The agent stops with both possible outcomes visible and does not choose one.
