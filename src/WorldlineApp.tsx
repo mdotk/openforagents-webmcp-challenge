@@ -444,9 +444,11 @@ export default function WorldlineApp() {
 
           {stage === 'decision' && snapshot.choices && probeReturnChoice && scienceTransmissionChoice && (
             <div className="worldline-decision">
-              <p className="worldline-eyebrow">Your decision</p>
-              <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>What comes home?</h1>
-              <p className="worldline-lede">The agent found both possible futures. It cannot decide which loss you accept.</p>
+              <div className="worldline-decision-intro">
+                <p className="worldline-eyebrow">Your decision</p>
+                <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>What comes home?</h1>
+                <p className="worldline-lede">The agent found both possible futures. It cannot decide which loss you accept.</p>
+              </div>
               <div className="worldline-choice-grid">
                 <article>
                   <p>Save the spacecraft</p>
