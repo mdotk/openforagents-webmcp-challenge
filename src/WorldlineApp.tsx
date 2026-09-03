@@ -198,7 +198,7 @@ export default function WorldlineApp() {
     }
   }, [control, snapshot.review])
 
-  const executeGuided = useCallback(() => {
+  const executeAuthorized = useCallback(() => {
     if (!snapshot.activeGrant) return
     try {
       setActivityMessage('The authorized burn is executing')
@@ -470,16 +470,13 @@ export default function WorldlineApp() {
 
           {stage === 'authorized' && (
             <>
-              <p className="worldline-eyebrow">One exact burn is now possible</p>
-              <h1 id="worldline-title">Decision made.</h1>
-              <p className="worldline-lede">Your choice added a temporary WebMCP tool. It can execute only the selected {selectedSimulation?.discoveryDelivered ? 'science-transmission' : 'probe-return'} burn, once.</p>
-              {guided ? (
-                <button className="worldline-primary" onClick={executeGuided}>
-                  {selectedSimulation?.discoveryDelivered ? 'Send the signal' : 'Bring the probe home'} <ArrowRight aria-hidden="true" />
-                </button>
-              ) : (
-                <p className="worldline-agent-wait">Your browser agent can now execute the authorized burn.</p>
-              )}
+              <p className="worldline-eyebrow">Your burn is ready</p>
+              <h1 id="worldline-title">{selectedSimulation?.discoveryDelivered ? 'Send the discovery.' : 'Bring the probe home.'}</h1>
+              <p className="worldline-lede">This is the final step. Execute the burn to {selectedSimulation?.discoveryDelivered ? 'send the discovery to Earth. The probe will not return.' : 'return the probe. The discovery will be lost.'}</p>
+              <button className="worldline-primary" onClick={executeAuthorized}>
+                {selectedSimulation?.discoveryDelivered ? 'Send the discovery' : 'Execute the return burn'} <ArrowRight aria-hidden="true" />
+              </button>
+              <p className="worldline-agent-wait">You can finish here now. A WebMCP-enabled browser agent can use the same one-use action.</p>
             </>
           )}
 

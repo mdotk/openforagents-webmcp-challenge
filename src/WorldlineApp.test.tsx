@@ -90,13 +90,52 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByText('+23 years')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: /choose the discovery/i }))
-    expect(await screen.findByRole('heading', { name: 'Decision made.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Send the discovery.' })).toBeVisible()
     expect(screen.getByText('Guided mode · 6 modeled tools')).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: /send the signal/i }))
+    await user.click(screen.getByRole('button', { name: /send the discovery/i }))
     expect(await screen.findByRole('heading', { name: /23 years later,\s*earth sees what it saw/i })).toBeVisible()
     expect(screen.getByText('Guided mode · 2 modeled tools')).toBeVisible()
     expect(screen.getByText('Transmission verified')).toBeVisible()
+  })
+
+  it('keeps a visible completion action after an agent stops for the human choice', async () => {
+    const model = installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 5 tools')
+
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 0,
+      burn_at_probe_second: 40,
+      delta_v_mps: 3500,
+      packet_ids: [],
+    })
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 1,
+      burn_at_probe_second: 55,
+      delta_v_mps: 2600,
+      packet_ids: [],
+    })
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 2,
+      burn_at_probe_second: 46,
+      delta_v_mps: 2200,
+      packet_ids: ['gravity-map', 'horizon-spectrum'],
+    })
+    await model.tools.get('present_worldline_choices')!.execute({
+      expected_revision: 3,
+      probe_return_simulation_id: 'worldline-01',
+      science_transmission_simulation_id: 'worldline-03',
+    })
+
+    expect(await screen.findByRole('heading', { name: 'What comes home?' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /choose the probe/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Bring the probe home.' })).toBeVisible()
+    expect(screen.getByText(/this is the final step/i)).toBeVisible()
+    expect(screen.getByRole('button', { name: /execute the return burn/i })).toBeEnabled()
+    expect(screen.getByText(/you can finish here now/i)).toBeVisible()
   })
 
   it('shows the live 5 to 6 to 2 inventory when WebMCP is available', async () => {
@@ -109,6 +148,8 @@ describe('WORLDLINE experience', () => {
     await user.click(screen.getByRole('button', { name: /choose the discovery/i }))
     await waitFor(() => expect(model.tools).toHaveLength(6))
     expect(screen.getByText('WebMCP ready · 6 tools')).toBeVisible()
+    expect(screen.getByRole('button', { name: /send the discovery/i })).toBeVisible()
+    expect(screen.getByText(/you can finish here now/i)).toBeVisible()
 
     const execute = model.tools.get('execute_authorized_burn')
     expect(execute).toBeDefined()
