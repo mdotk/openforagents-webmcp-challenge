@@ -23,13 +23,12 @@ person selects one of the tested outcomes.
 
 ## Automated acceptance
 
-The source deployed from commit `d217359a765c56cbbbd90172322ca71c0fabce5a`
-passes:
+The current candidate passes:
 
 - lint;
 - TypeScript;
 - the production build; and
-- 113 tests across 18 files.
+- 116 tests across 18 files.
 
 The tests cover the five-attempt simulation budget, two mutually exclusive
 possible outcomes, the mandatory calculation screen, the person's calculation with
@@ -37,6 +36,12 @@ corrective feedback, four predictions,
 the post-prediction middle test and different challenge test, prediction assessment,
 recommendation integrity, one-use execution, replay rejection and the
 6 → 7 → 2 WebMCP tool lifecycle.
+
+The investigation no longer advances through results on a timer. The first
+completed test appears automatically, then the page waits for the person to
+choose **Show next test**. Separate controls continue to the calculation and
+final results. Automated page tests confirm that later results and checkpoints
+remain hidden until those controls are used.
 
 The opening no longer asks the person to set a recommendation before seeing the
 evidence. The state machine requires the agent to recommend sending the two

@@ -728,6 +728,27 @@
   line-height: 1.4;
 }
 
+.worldline-narrative-controls {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: .85rem;
+}
+
+.worldline-narrative-controls .worldline-primary {
+  width: auto;
+  min-height: 2.9rem;
+  margin: 0;
+  padding: .7rem 1rem;
+}
+
+.worldline-narrative-controls small {
+  max-width: 24rem;
+  color: rgba(247,245,242,.78);
+  font-size: .75rem;
+  line-height: 1.4;
+}
+
 .worldline-evidence {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1302,6 +1323,8 @@
   .worldline-investigation > header span { font-size: .64rem; }
   .worldline-investigation__active > strong { font-size: .96rem; }
   .worldline-investigation__history { max-height: 12rem; }
+  .worldline-narrative-controls { align-items: stretch; flex-direction: column; }
+  .worldline-narrative-controls .worldline-primary { width: 100%; }
   .worldline-execution-progress,
   .worldline-receipt { grid-template-columns: 1fr; }
   .worldline-cinematic-status { right: 1rem; bottom: 1rem; left: 1rem; max-width: none; }

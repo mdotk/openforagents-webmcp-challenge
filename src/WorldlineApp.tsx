@@ -134,30 +134,6 @@ export default function WorldlineApp() {
   }, [predictionNarrativeReady, snapshot.phase])
 
   useEffect(() => {
-    if (visibleSimulationCount >= snapshot.simulations.length) {
-      if (snapshot.phase === 'prediction' && !predictionNarrativeReady) {
-        const delay = import.meta.env.MODE === 'test' || typeof window.matchMedia !== 'function'
-          || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1_200
-        const revealPrediction = window.setTimeout(() => setPredictionNarrativeReady(true), delay)
-        return () => window.clearTimeout(revealPrediction)
-      }
-      if (snapshot.phase !== 'review' || decisionNarrativeReady) return
-      const delay = import.meta.env.MODE === 'test' || typeof window.matchMedia !== 'function'
-        || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1_700
-      const revealDecision = window.setTimeout(() => setDecisionNarrativeReady(true), delay)
-      return () => window.clearTimeout(revealDecision)
-    }
-
-    const delay = import.meta.env.MODE === 'test' || typeof window.matchMedia !== 'function'
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2_700
-    const revealNext = window.setTimeout(
-      () => setVisibleSimulationCount((count) => Math.min(count + 1, snapshot.simulations.length)),
-      delay,
-    )
-    return () => window.clearTimeout(revealNext)
-  }, [decisionNarrativeReady, predictionNarrativeReady, snapshot.phase, snapshot.simulations.length, visibleSimulationCount])
-
-  useEffect(() => {
     if (!receiptId) return
     const shouldAnimate = typeof window.matchMedia === 'function'
       && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -249,7 +225,19 @@ export default function WorldlineApp() {
     }
   }, [control])
 
-  const visibleSimulations = snapshot.simulations.slice(0, visibleSimulationCount)
+  const showNextSimulation = useCallback(() => {
+    setVisibleSimulationCount((count) => Math.min(Math.max(count, 1) + 1, snapshot.simulations.length))
+  }, [snapshot.simulations.length])
+
+  const continueNarrative = useCallback(() => {
+    if (snapshot.phase === 'prediction') setPredictionNarrativeReady(true)
+    if (snapshot.phase === 'review') setDecisionNarrativeReady(true)
+  }, [snapshot.phase])
+
+  const effectiveVisibleSimulationCount = snapshot.simulations.length > 0
+    ? Math.max(visibleSimulationCount, 1)
+    : 0
+  const visibleSimulations = snapshot.simulations.slice(0, effectiveVisibleSimulationCount)
   const activeSimulation = visibleSimulations.at(-1) ?? null
   const activeStory = activeSimulation ? storyForSimulation(activeSimulation, snapshot.packets) : null
   const predictionActStarted = Boolean(snapshot.learnerPrediction && (
@@ -495,7 +483,7 @@ export default function WorldlineApp() {
               <p className="worldline-lede">{snapshot.phase === 'investigating_prediction'
                 ? `You predicted: ${snapshot.learnerPrediction?.statement} The agent is trying a middle burn and a different burn to see whether your prediction still holds. Then it will explain what the results show.`
                 : 'It is testing one burn that lets the probe escape and one that sends the two files. Then it must stop for your calculation and prediction.'}</p>
-              {snapshot.simulations.length > visibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has completed {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. Replaying the investigation at a pace you can follow.</p> : null}
+              {snapshot.simulations.length > effectiveVisibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has finished {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. You are viewing test {effectiveVisibleSimulationCount}. The page will wait until you are ready for the next one.</p> : null}
               <div className="worldline-evidence" aria-label="Evidence learned">
                 <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `Two compressed files only on the probe · ${uniqueScienceMegabytes} MB` : 'Checking which files matter'}</b><small>{packetsRead ? 'The files were made from raw measurements. Earth already has a complete copy of the separate 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
                 <span className={packetsRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead && maneuverRead ? showSendingCalculation ? `${transmissionSeconds} seconds to send both files` : 'You will calculate the sending time' : 'Finding the numbers you will need'}</b><small>{packetsRead && maneuverRead ? showSendingCalculation ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'The agent found the file sizes and radio speed without revealing the answer.' : 'Waiting for the file sizes and radio speed.'}</small></span>
@@ -503,8 +491,8 @@ export default function WorldlineApp() {
               </div>
               <div className="worldline-investigation" aria-label="Agent investigation">
                 <header>
-                  <strong>{activeStory ? `Test ${visibleSimulationCount}` : activityMessage ?? 'Reading the mission facts…'}</strong>
-                  <span>{visibleSimulationCount} of 5 tests shown</span>
+                  <strong>{activeStory ? `Test ${effectiveVisibleSimulationCount}` : activityMessage ?? 'Reading the mission facts…'}</strong>
+                  <span>{effectiveVisibleSimulationCount} of 5 tests shown</span>
                 </header>
                 {activeStory && activeSimulation ? (
                   <article className={`worldline-investigation__active worldline-investigation__active--${activeSimulation.outcome}`}>
@@ -526,6 +514,16 @@ export default function WorldlineApp() {
                     })}
                   </ol>
                 ) : null}
+              </div>
+              <div className="worldline-narrative-controls" aria-label="Investigation playback controls">
+                {snapshot.simulations.length > effectiveVisibleSimulationCount ? (
+                  <button className="worldline-primary" onClick={showNextSimulation}>Show next test <ArrowRight aria-hidden="true" /></button>
+                ) : snapshot.phase === 'prediction' && !predictionNarrativeReady ? (
+                  <button className="worldline-primary" onClick={continueNarrative}>Continue to my calculation <ArrowRight aria-hidden="true" /></button>
+                ) : snapshot.phase === 'review' && !decisionNarrativeReady ? (
+                  <button className="worldline-primary" onClick={continueNarrative}>Continue to the results <ArrowRight aria-hidden="true" /></button>
+                ) : null}
+                <small>This result stays on screen until you choose to continue.</small>
               </div>
               {agentActivityDetected && registration && !toolsPaused ? (
                 <button className="worldline-secondary" onClick={() => { void stopAgentTools() }}>Stop agent tools</button>

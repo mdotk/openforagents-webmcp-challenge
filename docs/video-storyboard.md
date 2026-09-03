@@ -36,13 +36,16 @@ Narration:
 
 Jump back to the six-tool opening. The page has one instruction: say **Begin
 WORLDLINE.** Show the agent test
-one burn that lets the probe escape and one that sends the two files. When it stops, solve
+one burn that lets the probe escape and one that sends the two files.
+Use **Show next test** to move between the two results, leaving each explanation
+on screen long enough to read. Choose **Continue to my calculation**, then solve
 the two compressed files, **18 MB + 12 MB, divided by 1.2 MB/s**, by choosing
 **25 seconds**. Then choose
 **The requirements may conflict** at **What might stop one burn from doing
 both?** Say **Test my prediction**
 to the same agent. Show it read your prediction, test a middle option and
-a different option that challenges the prediction, then explain the result.
+a different option that challenges the prediction. Use **Show next test** to
+reveal each result, then choose **Continue to the results**.
 
 Narration:
 

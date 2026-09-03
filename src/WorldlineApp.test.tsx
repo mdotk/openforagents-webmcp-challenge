@@ -35,6 +35,9 @@ async function completeFirstAct(model: ReturnType<typeof installModelContext>) {
     hypothesis: 'A later burn may keep the antenna pointed at Earth long enough to send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
   })
   await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
+  const user = userEvent.setup()
+  await user.click(await screen.findByRole('button', { name: /show next test/i }))
+  await user.click(await screen.findByRole('button', { name: /continue to my calculation/i }))
 }
 
 async function completeSecondAct(model: ReturnType<typeof installModelContext>) {
@@ -54,6 +57,10 @@ async function completeSecondAct(model: ReturnType<typeof installModelContext>) 
     prediction_assessment: 'correct',
     teaching_explanation: 'You were right that the constraints combine: escape needs an earlier, larger speed change, while sending needs a later, smaller one that keeps the antenna on Earth.',
   })
+  const user = userEvent.setup()
+  await user.click(await screen.findByRole('button', { name: /show next test/i }))
+  await user.click(await screen.findByRole('button', { name: /show next test/i }))
+  await user.click(await screen.findByRole('button', { name: /continue to the results/i }))
 }
 
 describe('WORLDLINE experience', () => {
@@ -115,6 +122,32 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByRole('heading', { name: 'Now ask the agent to test your prediction.' })).toBeVisible()
     expect(screen.getByLabelText('Next instruction for your browser agent')).toHaveTextContent('Test my prediction.')
     expect(screen.queryByRole('button', { name: /copy follow-up/i })).not.toBeInTheDocument()
+  })
+
+  it('holds every investigation result until the person chooses to continue', async () => {
+    const model = installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 6 tools')
+
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
+      hypothesis: 'An early, powerful burn may let the probe escape.', expected_outcome: 'probe_return', test_role: 'extreme',
+    })
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'A later burn may send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
+    })
+    await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
+
+    expect(await screen.findByText('Test 1')).toBeVisible()
+    expect(screen.getByText(/the page will wait until you are ready for the next one/i)).toBeVisible()
+    expect(screen.getByText(/this result stays on screen until you choose to continue/i)).toBeVisible()
+    expect(screen.queryByText('Test 2')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /show next test/i }))
+    expect(await screen.findByText('Test 2')).toBeVisible()
+    expect(screen.getByRole('button', { name: /continue to my calculation/i })).toBeVisible()
   })
 
   it('does not reveal the sending-time answer before the person calculates it', async () => {

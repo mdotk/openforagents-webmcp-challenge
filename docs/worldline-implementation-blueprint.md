@@ -104,7 +104,11 @@ than silently running a scripted replacement. Tool availability is reported
 without claiming that an agent is connected. Each browser-agent handoff shows
 one short natural instruction. The phase-aware tool result carries the
 investigation rules, shows the five-call budget and tells the agent where to
-stop. A visible control can unregister the page tools during an investigation.
+stop. The agent may finish several simulations before the person has read them,
+so the page reveals the first result and waits. The person chooses **Show next
+test** for each remaining result, then explicitly continues to the calculation
+or final results. There is no timed narrative progression. A visible control
+can unregister the page tools during an investigation.
 
 ## Promotion gate
 
@@ -120,6 +124,7 @@ WORLDLINE may replace the root only after all of the following are true:
 - In a second turn, the agent tests a middle option and a different option that challenges the person's prediction, explains
   the evidence and stops at the value decision.
 - The page and structured tool results remain consistent.
+- Every test remains visible until the person chooses to continue.
 - The agent recommends sending the files because Earth has no copies, explains
   that the probe will not escape, and stops with both possible outcomes visible.
 - The person's choice alone creates the seventh, argument-free tool.

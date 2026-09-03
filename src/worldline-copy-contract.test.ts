@@ -58,6 +58,15 @@ describe('WORLDLINE copy contract', () => {
     expect(app).not.toContain('What should the agent protect?')
   })
 
+  it('puts the person in control of investigation playback', () => {
+    expect(app).toContain('The page will wait until you are ready for the next one.')
+    expect(app).toContain('Show next test')
+    expect(app).toContain('Continue to my calculation')
+    expect(app).toContain('Continue to the results')
+    expect(app).toContain('This result stays on screen until you choose to continue.')
+    expect(app).not.toContain('Replaying the investigation at a pace you can follow.')
+  })
+
   it('asks questions that match the learner actions available on each screen', () => {
     expect(app).toContain('How long do both files take to send?')
     expect(app).toContain('What might stop one burn from doing both?')

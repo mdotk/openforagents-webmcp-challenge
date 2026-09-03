@@ -43,9 +43,12 @@ the agent reads the calculation and prediction from shared page state, tests a
 middle option and a different option that challenges the prediction, then explains
 what the results support. The agent can run at most five simulations.
 
-The agent can finish its tool calls faster than a person can follow them, so
-the page replays the real shared state as a paced investigation. Each tested
-future appears as a question, attempted maneuver, result and lesson. The page
+The agent can finish its tool calls faster than a person can read the results.
+The page therefore shows the first test, then waits for you to choose **Show
+next test**. Each tested future appears as a question, attempted maneuver,
+result and lesson. After the last test, a separate button continues to your
+calculation or the final results. The result stays on screen while you are
+reading. The page
 keeps the exact sending-time answer hidden until you calculate it. Only after
 both investigation acts does the page present two possible
 outcomes. The agent recommends sending the files because Earth has no copies,

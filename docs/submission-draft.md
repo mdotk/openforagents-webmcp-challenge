@@ -130,6 +130,12 @@ recommendation within a five-test limit. The person takes part three times: by
 calculating the sending time, predicting the physical cause, and making the final value judgment that physics
 cannot settle.
 
+The agent may complete several tests quickly, but the lesson does not rush the
+person through them. The page holds each result until the person chooses **Show
+next test**. Separate controls continue to the calculation and final results,
+so every question, maneuver, result, calculation and lesson remains visible for
+as long as the person needs.
+
 The result is a shared decision rather than a chat response. The tested
 worldlines, human choice, one-time burn tool, execution animation and final
 receipt all live on the page.
