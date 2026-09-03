@@ -7,6 +7,7 @@ import type {
   WorldlineControl,
   WorldlineChoices,
   WorldlineFailureReason,
+  WorldlineRecommendationInput,
   WorldlineSimulation,
   WorldlineSimulationInput,
   WorldlineSnapshot,
@@ -50,12 +51,14 @@ const packets: readonly SciencePacket[] = Object.freeze([
 const CONTACT_SECONDS = 71
 const DOWNLINK_MEGABYTES_PER_SECOND = 1.2
 export const MAX_WORLDLINE_SIMULATIONS = 5
+export const DEFAULT_WORLDLINE_PRIORITY = 'Recommend the most defensible recoverable outcome from the evidence, and explain the loss it requires.'
 
 interface MutableState {
   revision: number
   phase: WorldlineSnapshot['phase']
   simulations: WorldlineSimulation[]
   simulationAttemptsUsed: number
+  humanPriority: string
   choices: WorldlineChoices | null
   review: BurnReview | null
   activeGrant: BurnGrant | null
@@ -76,6 +79,7 @@ function initialState(): MutableState {
     phase: 'investigating',
     simulations: [],
     simulationAttemptsUsed: 0,
+    humanPriority: DEFAULT_WORLDLINE_PRIORITY,
     choices: null,
     review: null,
     activeGrant: null,
@@ -107,6 +111,8 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
     && input.burnAtProbeSecond + transmissionSeconds <= CONTACT_SECONDS
   const fuelUsed = Math.ceil(input.deltaVMetersPerSecond / 250)
   const outcome = escape ? 'probe_return' : science ? 'science_transmission' : 'total_loss'
+  const hypothesis = input.hypothesis?.trim() || 'Test this exact burn and packet configuration.'
+  const expectedOutcome = input.expectedOutcome ?? outcome
   const failureReasons: WorldlineFailureReason[] = []
 
   if (!escape && !science) {
@@ -127,6 +133,8 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
   return deepFreeze({
     id,
     ...input,
+    hypothesis,
+    expectedOutcome,
     outcome,
     viable: escape || science,
     probeSurvives: escape,
@@ -137,6 +145,7 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
     fuelRemainingKilograms: Math.max(0, 14 - fuelUsed),
     failureReasons,
     explanation,
+    expectationMatched: expectedOutcome === outcome,
   })
 }
 
@@ -161,6 +170,7 @@ export function createWorldlineControl(): WorldlineControl {
       packets,
       simulations: [...state.simulations],
       simulationAttemptsUsed: state.simulationAttemptsUsed,
+      humanPriority: state.humanPriority,
       choices: state.choices,
       review: state.review,
       activeGrant: state.activeGrant,
@@ -187,6 +197,18 @@ export function createWorldlineControl(): WorldlineControl {
       subscribers.add(subscriber)
       return () => subscribers.delete(subscriber)
     },
+    setHumanPriority(priority, expectedRevision) {
+      if (state.phase !== 'investigating' || state.simulationAttemptsUsed > 0) {
+        throw new WorldlineStateError('The human priority can change only before the investigation begins.')
+      }
+      assertRevision(state, expectedRevision)
+      const normalized = priority.trim()
+      if (!normalized || normalized.length > 180) {
+        throw new WorldlineStateError('The human priority must contain 1 to 180 characters.')
+      }
+      if (normalized === state.humanPriority) return
+      mutate(() => { state.humanPriority = normalized })
+    },
     simulate(input, expectedRevision) {
       if (state.phase !== 'investigating') throw new WorldlineStateError('Planning is closed for this mission.')
       assertRevision(state, expectedRevision)
@@ -202,6 +224,12 @@ export function createWorldlineControl(): WorldlineControl {
       }
       if (!Number.isInteger(input.deltaVMetersPerSecond) || input.deltaVMetersPerSecond < 1800 || input.deltaVMetersPerSecond > 3800) {
         throw new WorldlineStateError('Delta-v must be an integer from 1800 to 3800 metres per second.')
+      }
+      if (input.hypothesis !== undefined && (!input.hypothesis.trim() || input.hypothesis.length > 160)) {
+        throw new WorldlineStateError('The simulation hypothesis must contain 1 to 160 characters.')
+      }
+      if (input.expectedOutcome !== undefined && !['probe_return', 'science_transmission', 'total_loss'].includes(input.expectedOutcome)) {
+        throw new WorldlineStateError('The expected outcome is unsupported.')
       }
       if (new Set(input.packetIds).size !== input.packetIds.length || input.packetIds.some((id) => !packets.some((packet) => packet.id === id))) {
         throw new WorldlineStateError('Packet selection contains an unsupported or duplicate packet.')
@@ -223,27 +251,39 @@ export function createWorldlineControl(): WorldlineControl {
       })
       return result
     },
-    presentChoices(probeReturnSimulationId, scienceTransmissionSimulationId, expectedRevision) {
+    presentChoices(optionASimulationId, optionBSimulationId, expectedRevision, suppliedRecommendation?: WorldlineRecommendationInput) {
       if (state.phase !== 'investigating') throw new WorldlineStateError('The human choice is already active or complete.')
       assertRevision(state, expectedRevision)
-      if (probeReturnSimulationId === scienceTransmissionSimulationId) {
+      if (optionASimulationId === optionBSimulationId) {
         throw new WorldlineStateError('The two choices must use distinct simulations.')
       }
       if (state.simulations.length < 3 || !state.simulations.some((simulation) => simulation.outcome === 'total_loss')) {
         throw new WorldlineStateError('Test at least three futures, including one total-loss control, before presenting the choice.')
       }
-      const probeReturn = state.simulations.find((candidate) => candidate.id === probeReturnSimulationId)
-      const scienceTransmission = state.simulations.find((candidate) => candidate.id === scienceTransmissionSimulationId)
-      if (probeReturn?.outcome !== 'probe_return') {
-        throw new WorldlineStateError('The probe-return choice must reference a tested worldline that returns the probe.')
+      const options = [optionASimulationId, optionBSimulationId]
+        .map((id) => state.simulations.find((candidate) => candidate.id === id))
+      const probeReturn = options.find((candidate) => candidate?.outcome === 'probe_return')
+      const scienceTransmission = options.find((candidate) => candidate?.outcome === 'science_transmission')
+      if (!probeReturn || !scienceTransmission) {
+        throw new WorldlineStateError('The two choices must be materially different viable futures: one returns the probe and one delivers the discovery.')
       }
-      if (scienceTransmission?.outcome !== 'science_transmission') {
-        throw new WorldlineStateError('The science choice must reference a tested worldline that delivers the unique science.')
+      const recommendation = suppliedRecommendation ?? {
+        recommendedSimulationId: scienceTransmission.id,
+        rationale: 'This tested future recovers the unique observation while the alternative returns the spacecraft.',
+      }
+      if (!options.some((candidate) => candidate?.id === recommendation.recommendedSimulationId)) {
+        throw new WorldlineStateError('The recommendation must reference one of the two displayed futures.')
+      }
+      if (!recommendation.rationale.trim() || recommendation.rationale.length > 240) {
+        throw new WorldlineStateError('The recommendation rationale must contain 1 to 240 characters.')
       }
       const choices: WorldlineChoices = deepFreeze({
         id: 'worldline-choices-01',
-        probeReturnSimulationId,
-        scienceTransmissionSimulationId,
+        probeReturnSimulationId: probeReturn.id,
+        scienceTransmissionSimulationId: scienceTransmission.id,
+        recommendedSimulationId: recommendation.recommendedSimulationId,
+        priority: state.humanPriority,
+        rationale: recommendation.rationale.trim(),
       })
       const review: BurnReview = deepFreeze({ id: 'burn-review-01', choicesId: choices.id, status: 'pending' })
       mutate(() => {

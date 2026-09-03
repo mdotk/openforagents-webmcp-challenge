@@ -114,6 +114,7 @@ export type {
   WorldlineFailureReason,
   WorldlineOutcome,
   WorldlinePhase,
+  WorldlineRecommendationInput,
   WorldlineSimulation,
   WorldlineSimulationInput,
   WorldlineSnapshot,

@@ -27,7 +27,8 @@ describe('WORLDLINE experience', () => {
   it('opens with one immediate dilemma and an honest guided fallback', async () => {
     render(<WorldlineApp />)
 
-    expect(screen.getByRole('heading', { name: /one probe\. one signal\.\s*you can’t save both/i })).toBeVisible()
+    expect(screen.getByRole('heading', { name: /one probe\. one signal\.\s*71 seconds/i })).toBeVisible()
+    expect(screen.getByRole('combobox', { name: /what should the agent protect/i })).toHaveValue('evidence')
     expect(screen.getByRole('button', { name: 'Run guided mission' })).toBeEnabled()
     expect(screen.getByAltText('The probe approaching the black hole')).toBeVisible()
     expect(await screen.findByText('Guided mode · 5 modeled tools')).toBeVisible()
@@ -47,6 +48,21 @@ describe('WORLDLINE experience', () => {
     expect(screen.queryByText(/agent connected/i)).not.toBeInTheDocument()
   })
 
+  it('stores the person-selected priority in the shared mission state', async () => {
+    const model = installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 5 tools')
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /what should the agent protect/i }), 'discovery')
+    const result = await model.tools.get('read_mission_state')!.execute({})
+
+    expect(result.structuredContent).toMatchObject({
+      revision: 1,
+      humanPriority: 'Preserve observations that cannot be recreated, even if the spacecraft cannot return.',
+    })
+  })
+
   it('shows an explicit handoff instead of implying that the agent started', async () => {
     installModelContext()
     const user = userEvent.setup()
@@ -57,7 +73,7 @@ describe('WORLDLINE experience', () => {
 
     expect(screen.getByRole('heading', { name: 'Open your browser agent.' })).toBeVisible()
     expect(screen.getByText(/paste this request and press Send/i)).toBeVisible()
-    expect(screen.getByText(/agent will call tools automatically/i)).toBeVisible()
+    expect(screen.getByText(/form its own hypotheses/i)).toBeVisible()
     expect(screen.getByText(agentRequestForTest())).toBeVisible()
     expect(screen.getByText('Mission copied')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Copy request again' })).toBeEnabled()
@@ -84,7 +100,9 @@ describe('WORLDLINE experience', () => {
 
     await user.click(screen.getByRole('button', { name: 'Run guided mission' }))
     expect(await screen.findByRole('heading', { name: 'What comes home?' }, { timeout: 6000 })).toBeVisible()
-    expect(screen.getByText('The agent found both possible futures. It cannot decide which loss you accept.')).toBeVisible()
+    expect(screen.getByText(/tested 3 futures and found two credible paths/i)).toBeVisible()
+    expect(screen.getByText('Agent recommendation')).toBeVisible()
+    expect(screen.getByText(/the two unique packets cannot be recreated.*probe-return alternative discards both/i)).toBeVisible()
     expect(screen.getByRole('button', { name: /choose the probe/i })).toBeVisible()
     expect(screen.getByRole('button', { name: /choose the discovery/i })).toBeVisible()
     expect(screen.getByText('+23 years')).toBeVisible()
@@ -110,23 +128,31 @@ describe('WORLDLINE experience', () => {
       burn_at_probe_second: 40,
       delta_v_mps: 3500,
       packet_ids: [],
+      hypothesis: 'An early high-energy burn may return the probe.',
+      expected_outcome: 'probe_return',
     })
     await model.tools.get('simulate_worldline')!.execute({
       expected_revision: 1,
       burn_at_probe_second: 55,
       delta_v_mps: 2600,
       packet_ids: [],
+      hypothesis: 'A later compromise may preserve both probe and science.',
+      expected_outcome: 'probe_return',
     })
     await model.tools.get('simulate_worldline')!.execute({
       expected_revision: 2,
       burn_at_probe_second: 46,
       delta_v_mps: 2200,
       packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'An Earth-lock burn may deliver both unique packets.',
+      expected_outcome: 'science_transmission',
     })
     await model.tools.get('present_worldline_choices')!.execute({
       expected_revision: 3,
-      probe_return_simulation_id: 'worldline-01',
-      science_transmission_simulation_id: 'worldline-03',
+      option_a_simulation_id: 'worldline-01',
+      option_b_simulation_id: 'worldline-03',
+      recommended_simulation_id: 'worldline-03',
+      recommendation_rationale: 'Both unique packets fit inside the remaining contact window.',
     })
 
     expect(await screen.findByRole('heading', { name: 'What comes home?' })).toBeVisible()
@@ -168,12 +194,15 @@ describe('WORLDLINE experience', () => {
       burn_at_probe_second: 40,
       delta_v_mps: 3500,
       packet_ids: [],
+      hypothesis: 'An early high-energy burn may return the probe.',
+      expected_outcome: 'probe_return',
     })
 
     await waitFor(() => expect(screen.getByTestId('worldline-path-escape')).toHaveClass('is-tested'))
     expect(screen.getByTestId('worldline-path-lost')).not.toHaveClass('is-tested')
     expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
-    expect(screen.getAllByText(/probe saved, discovery lost/i)[0]).toBeVisible()
+    expect(screen.getByText('Confirmed')).toBeVisible()
+    expect(screen.getByText(/early high-energy burn saves the probe/i)).toBeVisible()
   })
 
   it('does not turn three failed attempts into a false success message', async () => {
@@ -187,10 +216,13 @@ describe('WORLDLINE experience', () => {
         burn_at_probe_second: burnAtProbeSecond,
         delta_v_mps: 1800,
         packet_ids: [],
+        hypothesis: `A low-energy burn at ${burnAtProbeSecond} seconds may recover the probe.`,
+        expected_outcome: 'probe_return',
       })
     }
 
-    expect(screen.getByRole('heading', { name: '1 of 3 outcomes found.' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'The agent is testing futures.' })).toBeVisible()
+    expect(screen.getByText('3 / 5 tests')).toBeVisible()
     expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
     expect(screen.queryByText(/final transmission window carries/i)).not.toBeInTheDocument()
   })
@@ -202,15 +234,16 @@ describe('WORLDLINE experience', () => {
     await screen.findByText('WebMCP ready · 5 tools')
 
     await model.tools.get('read_mission_state')!.execute({})
+    await waitFor(() => expect(screen.getByText('Mission state').closest('span')).toHaveClass('is-read'))
     await user.click(await screen.findByRole('button', { name: 'Stop agent tools' }))
 
     await waitFor(() => expect(model.tools).toHaveLength(0))
     expect(screen.getByText('WebMCP paused')).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Agent tools stopped.' })).toBeVisible()
+    expect(screen.getByText('Agent tools stopped')).toBeVisible()
     expect(screen.getByRole('button', { name: /start over/i })).toBeVisible()
   })
 })
 
 function agentRequestForTest() {
-  return 'Prepare this decision for me. Read the mission, science packets and maneuver window once. Use that evidence to test a probe-return route, one failed control and a science-transmission route. Use no more than five simulations. Present both viable futures together, then stop. Do not select a future or execute anything.'
+  return 'Investigate this mission and recommend the best recoverable future. My priority is: Recommend the most defensible recoverable outcome from the evidence, and explain the loss it requires. Read the available mission evidence. You have at most five simulations. Before each test, state a concise hypothesis and the outcome you expect, then adapt to what the test reveals. When the evidence supports a real decision, challenge your leading hypothesis with a control test, then place the strongest materially different viable alternatives on the shared page. Recommend one for my priority and explain why the alternative is weaker. Do not choose or execute a burn for me.'
 }

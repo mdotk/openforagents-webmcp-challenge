@@ -20,6 +20,7 @@ export {
 export type { ShoppingControlOptions } from './shopping'
 export {
   createWorldlineControl,
+  DEFAULT_WORLDLINE_PRIORITY,
   MAX_WORLDLINE_SIMULATIONS,
   WorldlineStateError,
 } from './worldline'

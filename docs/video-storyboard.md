@@ -18,10 +18,11 @@ under three minutes and include audio.
 
 ## 0:00–0:10 — The impossible choice
 
-Open on the agent testing the final route while the page draws the three
-worldlines. Cut immediately to the two choice cards.
+Open on a failed prediction changing from **Expected: probe returns** to
+**Found: nothing returns**, while the page draws that worldline. Cut
+immediately to the agent's recommendation and the two choice cards.
 
-On-screen text: **The agent found two futures. You choose the loss.**
+On-screen text: **The evidence changed its mind. You choose the loss.**
 
 Narration:
 
@@ -36,20 +37,22 @@ simulation calls. Keep the animated paths visible.
 
 Narration:
 
-> WORLDLINE does not hand the agent a sequence of buttons or a recommended
-> answer. WebMCP exposes evidence and a bounded simulator. The agent has to
-> recognise that only two packets are unique, calculate that they need 25
-> seconds, test a failed control and find both viable routes within five tries.
+> WORLDLINE gives the agent an objective and my priority—not a route. WebMCP
+> exposes separate evidence and a five-test simulator. Before every test the
+> agent predicts what will happen. Here its compromise fails, so the evidence
+> changes the next hypothesis and the recommendation shown on the page.
 
 ## 0:35–0:55 — Stop at the human decision
 
-Hold both choice cards on screen. Show that five tools remain and that the
-agent has stopped.
+Hold the recommendation and both choice cards on screen. Show that the
+recommendation answers the priority selected at the start, five tools remain
+and the agent has stopped.
 
 Narration:
 
-> It can investigate and explain, but physics cannot decide what I value. Do I
-> bring the spacecraft home, or preserve the observation no one else has?
+> It recommends sending the discovery because I said irreplaceable evidence
+> matters most. But it cannot accept that loss for me. Do I bring the
+> spacecraft home, or preserve the observation no one else has?
 
 ## 0:55–1:15 — Create one exact capability
 
@@ -103,15 +106,17 @@ Narration:
 
 Title:
 
-> WORLDLINE — An AI agent investigates two futures. You choose one.
+> WORLDLINE — The evidence changes an AI agent's mind. You decide.
 
 Description:
 
-> WORLDLINE is an interactive WebMCP science story. A browser agent reads
-> mission evidence, calculates and tests possible worldlines for a probe beside
-> a black hole, then stops with two viable futures. The learner chooses whether
-> the probe or its unique discovery comes home. That choice creates one exact,
-> one-use WebMCP tool; after execution, only verification remains.
+> WORLDLINE is an interactive WebMCP science story. A browser agent receives an
+> open objective and a learner's priority, forms competing hypotheses, predicts
+> and tests possible worldlines for a probe beside a black hole, then visibly
+> revises its plan when evidence disagrees. It recommends one viable future;
+> the learner chooses whether the probe or its unique discovery comes home.
+> That choice creates one exact, one-use WebMCP tool; after execution, only
+> verification remains.
 >
 > This is a deterministic educational simulation, not a precision model or a
 > real spacecraft interface.

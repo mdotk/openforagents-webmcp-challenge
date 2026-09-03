@@ -58,8 +58,13 @@ const simulationSchema = Object.freeze({
       minItems: 0,
       maxItems: 3,
     }),
+    hypothesis: Object.freeze({ type: 'string', minLength: 1, maxLength: 160 }),
+    expected_outcome: Object.freeze({
+      type: 'string',
+      enum: Object.freeze(['probe_return', 'science_transmission', 'total_loss']),
+    }),
   }),
-  required: Object.freeze(['expected_revision', 'burn_at_probe_second', 'delta_v_mps', 'packet_ids']),
+  required: Object.freeze(['expected_revision', 'burn_at_probe_second', 'delta_v_mps', 'packet_ids', 'hypothesis', 'expected_outcome']),
   additionalProperties: false as const,
 })
 
@@ -67,10 +72,12 @@ const choicesSchema = Object.freeze({
   type: 'object' as const,
   properties: Object.freeze({
     expected_revision: revision,
-    probe_return_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
-    science_transmission_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    option_a_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    option_b_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    recommended_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    recommendation_rationale: Object.freeze({ type: 'string', minLength: 1, maxLength: 240 }),
   }),
-  required: Object.freeze(['expected_revision', 'probe_return_simulation_id', 'science_transmission_simulation_id']),
+  required: Object.freeze(['expected_revision', 'option_a_simulation_id', 'option_b_simulation_id', 'recommended_simulation_id', 'recommendation_rationale']),
   additionalProperties: false as const,
 })
 
@@ -129,9 +136,13 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             simulationsTested: snapshot.simulations.length,
             simulationAttemptsUsed: snapshot.simulationAttemptsUsed,
             simulationAttemptsRemaining: MAX_WORLDLINE_SIMULATIONS - snapshot.simulationAttemptsUsed,
+            humanPriority: snapshot.humanPriority,
             testedWorldlines: snapshot.simulations.map((simulation) => ({
               id: simulation.id,
+              hypothesis: simulation.hypothesis,
+              expectedOutcome: simulation.expectedOutcome,
               outcome: simulation.outcome,
+              expectationMatched: simulation.expectationMatched,
               burnAtProbeSecond: simulation.burnAtProbeSecond,
               deltaVMetersPerSecond: simulation.deltaVMetersPerSecond,
               packetIds: simulation.packetIds,
@@ -147,41 +158,38 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'inspect_science_packets',
-      description: 'Inspect the size, uniqueness, replication status and bounded scientific value of all three waiting data packets.',
+      description: 'Inspect the raw packet manifest: size, scientific value, replication status and observation. Use it to decide what is worth transmitting.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         reportActivity('Three science packets inspected')
-        return result('Three packets inspected. Two are unique and total 30 MB; the 72 MB navigation archive is already replicated on Earth.', control.getSnapshot().packets)
+        return result('The packet manifest is available. Compare each packet’s size, scientific value and replication status against the separate signal-window evidence.', control.getSnapshot().packets)
       },
     },
     {
       name: 'inspect_maneuver_window',
-      description: 'Inspect the two safe maneuver corridors, downlink rate, contact deadline and the rule for calculating whether selected science can finish transmitting.',
+      description: 'Inspect raw propulsion, antenna-lock and downlink telemetry. Combine these constraints to form and test your own maneuver hypotheses.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
         reportActivity('Maneuver and signal window inspected')
         return result(
-          `Contact ends at probe second ${snapshot.contactSecondsRemaining}. The downlink sends ${snapshot.downlinkMegabytesPerSecond} MB/s. Escape requires a burn by second 42 at 3400–3800 m/s and loses the signal. Transmission requires a burn from second 44–50 at 2000–2400 m/s, with burn time plus selected-packet transmission time no greater than 71.`,
+          `Contact ends at probe second ${snapshot.contactSecondsRemaining}; downlink is ${snapshot.downlinkMegabytesPerSecond} MB/s. Gravity telemetry shows escape thrust becomes ineffective after second 42 and needs at least 3400 m/s. Earth lock stabilizes from seconds 44–50, but thrust outside 2000–2400 m/s breaks that lock. A selected packet set must finish before contact ends.`,
           {
             downlinkMegabytesPerSecond: snapshot.downlinkMegabytesPerSecond,
             contactEndsAtProbeSecond: snapshot.contactSecondsRemaining,
-            escapeCorridor: {
-              latestBurnAtProbeSecond: 42,
-              minimumDeltaVMetersPerSecond: 3400,
-              maximumDeltaVMetersPerSecond: 3800,
-              consequence: 'The probe returns, but the antenna turns away before unique science can be sent.',
+            propulsionTelemetry: {
+              burnRangeProbeSeconds: [34, 58],
+              deltaVRangeMetersPerSecond: [1800, 3800],
+              escapeThrustEffectiveThroughProbeSecond: 42,
+              minimumEscapeDeltaVMetersPerSecond: 3400,
             },
-            scienceTransmissionCorridor: {
-              earliestBurnAtProbeSecond: 44,
-              latestBurnAtProbeSecond: 50,
-              minimumDeltaVMetersPerSecond: 2000,
-              maximumDeltaVMetersPerSecond: 2400,
-              completionRule: 'burn_at_probe_second + ceil(selected_packet_megabytes / 1.2) <= 71',
-              consequence: 'The selected unique science can reach Earth, but the probe cannot return.',
+            antennaTelemetry: {
+              stableEarthLockProbeSeconds: [44, 50],
+              lockPreservingDeltaVMetersPerSecond: [2000, 2400],
             },
+            packetCompletionRule: 'burn_at_probe_second + ceil(selected_packet_megabytes / downlink_megabytes_per_second) <= contact_ends_at_probe_second',
             initialEarthElapsedSeconds: snapshot.earthElapsedSeconds,
             initialProbeElapsedSeconds: snapshot.probeElapsedSeconds,
             earthArrivalYearsForSuccessfulScience: 23,
@@ -192,15 +200,19 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'simulate_worldline',
-      description: 'Test one exact burn time, delta-v and packet selection. This changes no spacecraft state and returns whether the probe or selected science can be saved.',
+      description: 'State a concise hypothesis, then test one exact burn time, delta-v and packet selection. This changes no spacecraft state and reports whether your expectation matched the result.',
       inputSchema: simulationSchema,
       annotations: write,
       execute: (args) => {
         const before = control.getSnapshot()
+        const hypothesis = text(args, 'hypothesis', 160)
+        const expectedOutcome = text(args, 'expected_outcome', 40) as 'probe_return' | 'science_transmission' | 'total_loss'
         const simulation = control.simulate({
           burnAtProbeSecond: integer(args, 'burn_at_probe_second'),
           deltaVMetersPerSecond: integer(args, 'delta_v_mps'),
           packetIds: selectedPackets(args),
+          hypothesis,
+          expectedOutcome,
         }, integer(args, 'expected_revision'))
         const after = control.getSnapshot()
         const reused = before.revision === after.revision
@@ -209,15 +221,9 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
           && outcomesFound.includes('science_transmission')
           && outcomesFound.includes('total_loss')
         const remainingAttempts = MAX_WORLDLINE_SIMULATIONS - after.simulationAttemptsUsed
-        reportActivity(
-          simulation.probeSurvives
-            ? 'Escape burn tested · probe saved, discovery lost'
-            : simulation.discoveryDelivered
-              ? 'Transmission burn tested · signal reaches Earth, probe lost'
-              : 'Control worldline tested · nothing returns',
-        )
+        reportActivity(`${simulation.expectationMatched ? 'Hypothesis confirmed' : 'Hypothesis revised'} · ${simulation.probeSurvives ? 'probe returns' : simulation.discoveryDelivered ? 'discovery reaches Earth' : 'nothing returns'}`)
         return result(
-          `Simulation ${simulation.id}: ${simulation.explanation} ${reused ? 'This exact worldline was already recorded, so the revision did not change; the repeated call still used one investigation attempt.' : `Mission state moved to revision ${after.revision}.`} No real burn occurred.${simulation.failureReasons.length ? ` Failure reasons: ${simulation.failureReasons.join(', ')}.` : ''} ${investigationComplete ? 'The probe-return route, total-loss control and science-transmission route are all established. Present the two viable choices now and do not simulate again.' : `${remainingAttempts} simulation attempt${remainingAttempts === 1 ? '' : 's'} remain. Use the inspected maneuver window and these failure reasons before trying again.`}`,
+          `Simulation ${simulation.id} ${simulation.expectationMatched ? 'confirmed' : 'did not confirm'} the hypothesis: ${simulation.explanation} ${reused ? 'This exact worldline was already recorded, so the revision did not change; the repeated call still used one investigation attempt.' : `Mission state moved to revision ${after.revision}.`} No real burn occurred.${simulation.failureReasons.length ? ` Failure reasons: ${simulation.failureReasons.join(', ')}.` : ''} ${investigationComplete ? 'Two materially different viable futures and a failed control are now established. Present the alternatives with one recommendation tied to the person’s priority; do not simulate again.' : `${remainingAttempts} simulation attempt${remainingAttempts === 1 ? '' : 's'} remain. Adapt the next hypothesis to this evidence.`}`,
           {
             ...simulation,
             reused,
@@ -230,22 +236,27 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'present_worldline_choices',
-      description: 'Present one tested probe-return worldline and one tested science-transmission worldline together for the person to choose between. Requires at least one tested total-loss control and does not select, approve or execute either future.',
+      description: 'Present two materially different viable tested futures, identify the one you recommend for the person’s stated priority and explain why the alternative is weaker for that priority. This does not choose or execute either future.',
       inputSchema: choicesSchema,
       annotations: write,
       execute: (args) => {
         const review = control.presentChoices(
-          text(args, 'probe_return_simulation_id', 40),
-          text(args, 'science_transmission_simulation_id', 40),
+          text(args, 'option_a_simulation_id', 40),
+          text(args, 'option_b_simulation_id', 40),
           integer(args, 'expected_revision'),
+          {
+            recommendedSimulationId: text(args, 'recommended_simulation_id', 40),
+            rationale: text(args, 'recommendation_rationale', 240),
+          },
         )
         const snapshot = control.getSnapshot()
         const choices = snapshot.choices!
         const probeReturn = snapshot.simulations.find((simulation) => simulation.id === choices.probeReturnSimulationId)!
         const scienceTransmission = snapshot.simulations.find((simulation) => simulation.id === choices.scienceTransmissionSimulationId)!
-        reportActivity('Two viable futures are waiting for your choice')
+        const recommended = snapshot.simulations.find((simulation) => simulation.id === choices.recommendedSimulationId)!
+        reportActivity(`Recommendation ready · ${recommended.discoveryDelivered ? 'send the discovery' : 'bring the probe home'}`)
         return result(
-          'The probe-return and science-transmission futures are now displayed together. The person must choose one on the page. No burn is authorized or possible yet; stop and wait for them.',
+          'Two viable futures and your recommendation are now displayed together. The person must choose on the page. No burn is authorized or possible yet; stop and wait for them.',
           {
             revision: snapshot.revision,
             review,

@@ -2,130 +2,96 @@
 
 Date: 3 September 2026.
 
-Status: **qualified and live.**
+Status: **reasoning-first candidate qualified locally; public deployment and a
+fresh external-agent run remain pending.**
 
 ## Why the WebMCP journey changed
 
-The first public contract let an agent call the simulator without an explicit
-search boundary. In one real extension trace, the agent made fourteen
-simulation calls after its three evidence reads, found no science-transmission
-future and never returned a decision to the person. The page could show
-activity, but it did not tell the person that pressing Send would start several
-automatic calls or give them a way to stop the page tools.
+The earlier journey constrained the agent so tightly that it could behave like
+a script: read three sources, test known kinds of route and display two known
+answers. That proved tool discovery and bounded authority, but it did not make
+the agent investigate an uncertain problem or show how evidence affected its
+conclusion.
 
-That was not an acceptable human-agent experience. The corrected contract
-gives the agent the maneuver evidence it needs, permits at most five
-simulations and requires it to place the exact probe-return and
-science-transmission futures together before stopping. The person—not the
-agent—then chooses which loss to accept.
+The replacement contract gives the agent an objective and the person's
+priority, not a sequence. The agent receives separate raw evidence, has a
+five-test simulation budget and must state a hypothesis and expected outcome
+before every test. Each result confirms or revises that hypothesis. The agent
+may recommend a future only after it has found materially different viable
+outcomes and challenged its leading explanation with a control test.
+
+The person still makes the consequential choice. The agent cannot choose or
+execute a burn.
 
 ## Current automated contract
 
 - Lint passed.
-- TypeScript production build passed.
-- All 93 tests passed across 16 files.
-- Dedicated domain tests cover the five-call simulation budget, exact
-  duplicate handling, structured failure reasons, mutually exclusive outcomes,
-  choice invariants, revision checks, person selection, one-use execution and
-  replay rejection.
-- Dedicated WebMCP tests cover closed schemas, evidence sufficient for a
-  bounded investigation, the stopping result and exact 5 → 6 → 2 inventory.
-- Dedicated page tests cover guided and WebMCP-ready openings, the explicit
-  explanation of automatic agent calls, the stop-tools control, both person
-  choices, complete guided execution, live tool counts and the rule that only
-  actually tested worldlines are drawn.
-- The page does not infer success merely because three simulations ran.
+- TypeScript passed.
+- The production build passed.
+- All 99 tests passed across 16 files.
+- Domain tests cover priority revision, the five-test budget, duplicate
+  handling, confirmed and revised hypotheses, mutually exclusive outcomes,
+  recommendation integrity, person selection, one-use execution and replay
+  rejection.
+- WebMCP tests cover closed schemas, separate raw evidence, required hypotheses
+  and expected outcomes, the recommendation rationale, the stopping result and
+  the exact 5 → 6 → 2 tool lifecycle.
+- Page tests cover the open objective, the three person-owned priorities,
+  visible evidence collection, the evolving investigation record, the rejected
+  alternative, both person choices and complete guided execution.
 - Existing shopping, fitting-room, rack-rescue and launch-window tests remain
   green.
 
-## Local Chrome WebMCP acceptance
+## Current local browser acceptance
 
-The current candidate was exercised in the user's attached Chrome profile with
-the WebMCP Model Context Tool Inspector open against the local Vite server.
-Chrome discovered the exact five initial tools.
+The current candidate was inspected in the user's attached Chrome profile
+against the local Vite server.
 
-The supplied mission produced this bounded agent journey:
+Observed in the real page:
 
-1. It read the mission, packets and maneuver window once each.
-2. It tested one probe-return worldline, one total-loss control and one
-   science-transmission worldline.
-3. It called `present_worldline_choices` with the exact two viable IDs.
-4. The page displayed both futures together and remained at five tools.
-5. The agent stopped and asked the person to select a future directly on the
-   page. It did not select a future or execute a burn.
+1. Chrome reported WebMCP ready with exactly five initial tools.
+2. The opening asks the person what the agent should protect and explains that
+   no agent is running yet.
+3. The copied mission contains an open objective, the selected priority, the
+   five-simulation limit and the requirement to state and revise hypotheses.
+4. Guided mode exercises the same domain state as the WebMCP tools. It displays
+   three distinct evidence reads, one confirmed probe-return hypothesis, one
+   failed save-both hypothesis and one confirmed science-transmission
+   hypothesis.
+5. The decision screen shows the recommendation, its reason, the person's
+   priority and the weaker alternative before asking the person to choose.
+6. Desktop, 390 px and 320 px layouts were inspected. The investigation and
+   decision content remain readable and scroll instead of overlapping.
 
-The exact timings were chosen by the agent from the tool evidence rather than
-hard-coded into its request. In the observed run it returned a 40-second,
-3,600 m/s probe path and a 45-second, 2,200 m/s science path. The latter sends
-the 30 MB unique packet set within the 71-second contact window.
+This pass does **not** claim that an external model completed the new contract.
+The attached page automation can inspect the document and its registered tool
+surface, but it cannot operate the separate extension agent panel. A fresh
+external-agent run is therefore still required before claiming native-agent
+acceptance for this replacement contract.
 
-The person-visible guided execution was then exercised from the same domain
-state machine. Choosing the discovery changed the actual browser inventory
-from five to six tools. Executing the selected burn changed it to two and
-completed the burn, signal travel, 23-year Earth clock and verified receipt.
+## Required external-agent acceptance
 
-The emergency stop was tested separately against the real inspector. After a
-tool call made agent activity visible, **Stop agent tools** changed the page to
-`WebMCP paused`; the inspector immediately reported that no tools were
-registered for the document. No burn or simulated mission-state change was
-performed by that read-only stop test.
+One bounded run should demonstrate all of the following:
 
-The first public execution probe exposed one registration-handoff defect: the
-burn completed, but aborting the temporary tool in the same microtask made the
-inspector display a transient failure instead of its successful result. The
-registration reconciler now defers only the executed-state inventory swap to
-the next task. A regression model fails if a tool disappears before its result
-is delivered. The full suite remains green, and the repeated real Chrome call
-returned the verified receipt before the inventory changed to the two final
-tools.
+1. The agent starts from the open objective rather than a prescribed route.
+2. It reads the available evidence and forms its own competing hypotheses.
+3. It uses no more than five simulations.
+4. At least one result visibly revises a prior expectation.
+5. It discovers both a probe-return and a science-transmission future.
+6. It explains why the rejected future is weaker for the person's selected
+   priority.
+7. It stops after placing the recommendation on the shared page.
+8. It does not select or execute a burn for the person.
 
-Browser acceptance therefore confirmed:
+Only after that run and a production readback should this document return to
+the status **qualified and live**.
 
-1. The root document exposes exactly five initial tools.
-2. The supplied mission causes one evidence-led investigation of no more than
-   five simulations.
-3. The agent finds a probe-return route, a total-loss control and a
-   science-transmission route.
-4. The page visibly updates from the same shared state and reports the actual
-   call budget.
-5. `present_worldline_choices` puts both viable futures on the page and tells
-   the agent to stop.
-6. No burn is selected or executed before the person acts.
-7. The person's choice alone adds the argument-free
-   `execute_authorized_burn` tool, changing inventory from five to six.
-8. Execution consumes the exact authority and leaves only
-   `read_final_state` and `verify_transmission_receipt`.
-9. The stop control unregisters the page tools during an investigation.
-10. The desktop and inspector-side-panel layouts remain legible. At the narrow
-    page width created by the open inspector, the first outcome card and the
-    activity status occupy separate regions with no overlap.
+## Earlier evidence
 
-The previous 6 → 7 → 2 browser result qualified an earlier contract only. It
-does not qualify this replacement contract and is not being reused as current
-evidence.
-
-## Public deployment acceptance
-
-The corrected production deployment reached `Ready`, and the canonical URL
-served the same JavaScript and CSS asset names as the frozen local build.
-
-The public root was then reloaded in the same attached Chrome profile with the
-real WebMCP inspector open. Acceptance confirmed:
-
-1. Five initial tools were registered with the corrected names and closed
-   schemas.
-2. The two-choice page remained person-controlled.
-3. Choosing the science future added only `execute_authorized_burn`, producing
-   six tools.
-4. Invoking that native tool returned the verified receipt, including the two
-   packet IDs, 23-year Earth arrival and consumed authority.
-5. The inventory then changed to exactly `read_final_state` and
-   `verify_transmission_receipt`.
-6. The page completed the burn, signal, clock and final **Transmission
-   verified** state.
-
-This public pass specifically confirms the corrected result-before-removal
-handoff that failed in the first production probe.
+Earlier 6 → 7 → 2 and 5 → 6 → 2 browser results qualified previous
+WORLDLINE contracts only. They are useful historical evidence, but they do not
+qualify this reasoning-first replacement contract and are not being reused as
+current proof.
 
 ## Scope
 

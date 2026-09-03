@@ -36,6 +36,27 @@ describe('WORLDLINE mission control', () => {
     })
   })
 
+  it('records whether evidence confirmed or revised the stated hypothesis', () => {
+    const control = createWorldlineControl()
+    const confirmed = control.simulate({
+      burnAtProbeSecond: 40,
+      deltaVMetersPerSecond: 3500,
+      packetIds: [],
+      hypothesis: 'An early high-energy burn may return the probe.',
+      expectedOutcome: 'probe_return',
+    }, 0)
+    const revised = control.simulate({
+      burnAtProbeSecond: 55,
+      deltaVMetersPerSecond: 2600,
+      packetIds: [],
+      hypothesis: 'A late compromise may still return the probe.',
+      expectedOutcome: 'probe_return',
+    }, 1)
+
+    expect(confirmed).toMatchObject({ expectationMatched: true, expectedOutcome: 'probe_return' })
+    expect(revised).toMatchObject({ expectationMatched: false, expectedOutcome: 'probe_return', outcome: 'total_loss' })
+  })
+
   it('returns actionable reasons when science cannot finish before contact ends', () => {
     const control = createWorldlineControl()
     const tooLate = control.simulate({
@@ -82,6 +103,33 @@ describe('WORLDLINE mission control', () => {
     expect(control.getSnapshot()).toMatchObject({ phase: 'review', activeGrant: null, review: { id: review.id } })
     expect(() => control.executeAuthorizedBurn('burn-grant-01')).toThrow('one-use burn authority is not active')
     expect(() => control.approveBurnReview(review.id, 'worldline-03')).toThrow('two exact worldlines')
+  })
+
+  it('preserves the human priority and requires a recommendation among the displayed futures', () => {
+    const control = createWorldlineControl()
+    control.setHumanPriority('Preserve irreplaceable science.', 0)
+    const probeReturn = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 1)
+    control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: [] }, 2)
+    const science = control.simulate({
+      burnAtProbeSecond: 46,
+      deltaVMetersPerSecond: 2200,
+      packetIds: ['gravity-map', 'horizon-spectrum'],
+    }, 3)
+
+    expect(() => control.presentChoices(probeReturn.id, science.id, 4, {
+      recommendedSimulationId: 'worldline-does-not-exist',
+      rationale: 'The packets cannot be recreated.',
+    })).toThrow('displayed futures')
+
+    control.presentChoices(probeReturn.id, science.id, 4, {
+      recommendedSimulationId: science.id,
+      rationale: 'Both unique packets fit inside the remaining contact window.',
+    })
+    expect(control.getSnapshot().choices).toMatchObject({
+      recommendedSimulationId: science.id,
+      priority: 'Preserve irreplaceable science.',
+      rationale: 'Both unique packets fit inside the remaining contact window.',
+    })
   })
 
   it('closes simulation as soon as all three required outcomes exist', () => {

@@ -15,6 +15,8 @@ export interface WorldlineSimulationInput {
   readonly burnAtProbeSecond: number
   readonly deltaVMetersPerSecond: number
   readonly packetIds: readonly SciencePacketId[]
+  readonly hypothesis?: string
+  readonly expectedOutcome?: WorldlineOutcome
 }
 
 export type WorldlineOutcome = 'probe_return' | 'science_transmission' | 'total_loss'
@@ -31,6 +33,8 @@ export type WorldlineFailureReason =
 
 export interface WorldlineSimulation extends WorldlineSimulationInput {
   readonly id: string
+  readonly hypothesis: string
+  readonly expectedOutcome: WorldlineOutcome
   readonly outcome: WorldlineOutcome
   readonly viable: boolean
   readonly probeSurvives: boolean
@@ -41,12 +45,21 @@ export interface WorldlineSimulation extends WorldlineSimulationInput {
   readonly fuelRemainingKilograms: number
   readonly failureReasons: readonly WorldlineFailureReason[]
   readonly explanation: string
+  readonly expectationMatched: boolean
+}
+
+export interface WorldlineRecommendationInput {
+  readonly recommendedSimulationId: string
+  readonly rationale: string
 }
 
 export interface WorldlineChoices {
   readonly id: string
   readonly probeReturnSimulationId: string
   readonly scienceTransmissionSimulationId: string
+  readonly recommendedSimulationId: string
+  readonly priority: string
+  readonly rationale: string
 }
 
 export interface BurnReview {
@@ -85,6 +98,7 @@ export interface WorldlineSnapshot {
   readonly packets: readonly SciencePacket[]
   readonly simulations: readonly WorldlineSimulation[]
   readonly simulationAttemptsUsed: number
+  readonly humanPriority: string
   readonly choices: WorldlineChoices | null
   readonly review: BurnReview | null
   readonly activeGrant: BurnGrant | null
@@ -96,8 +110,9 @@ export type WorldlineSubscriber = (snapshot: WorldlineSnapshot) => void
 export interface WorldlineControl {
   getSnapshot(): WorldlineSnapshot
   subscribe(subscriber: WorldlineSubscriber): () => void
+  setHumanPriority(priority: string, expectedRevision: number): void
   simulate(input: WorldlineSimulationInput, expectedRevision: number): WorldlineSimulation
-  presentChoices(probeReturnSimulationId: string, scienceTransmissionSimulationId: string, expectedRevision: number): BurnReview
+  presentChoices(optionASimulationId: string, optionBSimulationId: string, expectedRevision: number, recommendation?: WorldlineRecommendationInput): BurnReview
   approveBurnReview(reviewId: string, simulationId: string): BurnGrant
   executeAuthorizedBurn(grantId: string): TransmissionReceipt
   reset(): void

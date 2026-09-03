@@ -71,6 +71,14 @@ WORLDLINE's observed browser lifecycle changes from five investigative tools to
 six after person approval, then to two read-only verification tools after the
 one-use action is consumed.
 
+Later that day, the candidate moved from a bounded prescribed journey to an
+open investigation contract. The agent now receives the person's priority and
+raw evidence, must state a hypothesis before each of at most five simulations,
+and places a recommendation plus its rejected alternative on the shared page.
+Local automated and responsive acceptance passed. A fresh external-agent run
+and public deployment readback remain pending for this replacement contract;
+earlier agent traces are not reused as current qualification.
+
 Matt Gibbs has joined the challenge on Devpost. No entry video has been
 published to YouTube and no final challenge submission has been made. This
 chronology does not claim a challenge result.

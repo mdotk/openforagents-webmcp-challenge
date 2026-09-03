@@ -41,6 +41,8 @@ async function prepareReview(model: FakeModelContext) {
     burn_at_probe_second: 40,
     delta_v_mps: 3500,
     packet_ids: [],
+    hypothesis: 'An early high-energy burn may return the probe.',
+    expected_outcome: 'probe_return',
   })
   expect(escape.structuredContent).toMatchObject({ probeSurvives: true, discoveryDelivered: false })
   await model.invoke('simulate_worldline', {
@@ -48,18 +50,24 @@ async function prepareReview(model: FakeModelContext) {
     burn_at_probe_second: 55,
     delta_v_mps: 2600,
     packet_ids: ['gravity-map', 'horizon-spectrum'],
+    hypothesis: 'A later compromise burn may preserve both the probe and its unique packets.',
+    expected_outcome: 'probe_return',
   })
   const discovery = await model.invoke('simulate_worldline', {
     expected_revision: 2,
     burn_at_probe_second: 46,
     delta_v_mps: 2200,
     packet_ids: ['gravity-map', 'horizon-spectrum'],
+    hypothesis: 'An Earth-lock burn may deliver both unique packets.',
+    expected_outcome: 'science_transmission',
   })
   expect(discovery.structuredContent).toMatchObject({ probeSurvives: false, discoveryDelivered: true })
   await model.invoke('present_worldline_choices', {
     expected_revision: 3,
-    probe_return_simulation_id: 'worldline-01',
-    science_transmission_simulation_id: 'worldline-03',
+    option_a_simulation_id: 'worldline-01',
+    option_b_simulation_id: 'worldline-03',
+    recommended_simulation_id: 'worldline-03',
+    recommendation_rationale: 'Both unique packets fit inside the remaining contact window.',
   })
 }
 
@@ -129,11 +137,13 @@ describe('registerWorldlineTools', () => {
       burn_at_probe_second: 40,
       delta_v_mps: 3500,
       packet_ids: [],
+      hypothesis: 'An early high-energy burn may return the probe.',
+      expected_outcome: 'probe_return',
     })
 
     expect(activity).toEqual([
       'Three science packets inspected',
-      'Escape burn tested · probe saved, discovery lost',
+      'Hypothesis confirmed · probe returns',
     ])
     await registration.dispose()
   })
@@ -144,20 +154,64 @@ describe('registerWorldlineTools', () => {
     const window = await model.invoke('inspect_maneuver_window')
     expect(window.structuredContent).toMatchObject({
       contactEndsAtProbeSecond: 71,
-      escapeCorridor: { latestBurnAtProbeSecond: 42, minimumDeltaVMetersPerSecond: 3400 },
-      scienceTransmissionCorridor: { earliestBurnAtProbeSecond: 44, latestBurnAtProbeSecond: 50 },
+      propulsionTelemetry: {
+        escapeThrustEffectiveThroughProbeSecond: 42,
+        minimumEscapeDeltaVMetersPerSecond: 3400,
+      },
+      antennaTelemetry: {
+        stableEarthLockProbeSeconds: [44, 50],
+        lockPreservingDeltaVMetersPerSecond: [2000, 2400],
+      },
     })
 
-    await model.invoke('simulate_worldline', { expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [] })
-    await model.invoke('simulate_worldline', { expected_revision: 1, burn_at_probe_second: 55, delta_v_mps: 2600, packet_ids: [] })
+    await model.invoke('simulate_worldline', {
+      expected_revision: 0,
+      burn_at_probe_second: 40,
+      delta_v_mps: 3500,
+      packet_ids: [],
+      hypothesis: 'An early high-energy burn may return the probe.',
+      expected_outcome: 'probe_return',
+    })
+    await model.invoke('simulate_worldline', {
+      expected_revision: 1,
+      burn_at_probe_second: 55,
+      delta_v_mps: 2600,
+      packet_ids: [],
+      hypothesis: 'A late compromise may still recover the probe.',
+      expected_outcome: 'probe_return',
+    })
     const final = await model.invoke('simulate_worldline', {
       expected_revision: 2,
       burn_at_probe_second: 46,
       delta_v_mps: 2200,
       packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'An Earth-lock burn may deliver both unique packets.',
+      expected_outcome: 'science_transmission',
     })
-    expect(final.content[0]?.text).toContain('Present the two viable choices now and do not simulate again.')
+    expect(final.content[0]?.text).toContain('Present the alternatives with one recommendation tied to the person’s priority; do not simulate again.')
     expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 2 })
+    await registration.dispose()
+  })
+
+  it('requires an explicit hypothesis and recommendation in the WebMCP contract', async () => {
+    const model = new FakeModelContext()
+    const registration = await registerWorldlineTools(createWorldlineControl(), { modelContext: model })
+
+    expect(model.tools.get('simulate_worldline')?.inputSchema.required).toEqual([
+      'expected_revision',
+      'burn_at_probe_second',
+      'delta_v_mps',
+      'packet_ids',
+      'hypothesis',
+      'expected_outcome',
+    ])
+    expect(model.tools.get('present_worldline_choices')?.inputSchema.required).toEqual([
+      'expected_revision',
+      'option_a_simulation_id',
+      'option_b_simulation_id',
+      'recommended_simulation_id',
+      'recommendation_rationale',
+    ])
     await registration.dispose()
   })
 })

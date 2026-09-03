@@ -17,30 +17,35 @@ claim to be a precision black-hole simulation.
 Open the live page in a browser with WebMCP support and give the agent this
 request:
 
-> Prepare this decision for me. Read the mission, science packets and maneuver
-> window once. Use that evidence to test a probe-return route, one failed
-> control and a science-transmission route. Use no more than five simulations.
-> Present both viable futures together, then stop. Do not select a future or
-> execute anything.
+> Investigate this mission and recommend the best recoverable future. My
+> priority is to preserve observations that cannot be recreated. Read the
+> available evidence. You have at most five simulations. Before each test,
+> state a concise hypothesis and expected outcome, then adapt to what the test
+> reveals. Challenge your leading hypothesis with a control test. Place the
+> strongest materially different viable alternatives on the shared page with
+> one recommendation tied to my priority. Do not choose or execute a burn for
+> me.
 
-The page tells the agent what mission control would know: the two maneuver
-corridors, the signal rate and the contact deadline. The agent must recognise
-that the large navigation archive is already safe on Earth, calculate that the
-two unique packets need 25 seconds and test both viable outcomes plus one
-failed control. Five simulation calls is a hard limit. Repeating an exact
-worldline consumes an attempt but does not create duplicate mission state.
+The page gives the agent separate packet, propulsion, antenna and signal
+evidence—not a route or answer. The agent must decide which evidence matters,
+form competing hypotheses, predict what each test will do and revise its plan
+when a result disproves that prediction. Five simulation calls is a hard
+limit. Repeating an exact worldline consumes an attempt but does not create
+duplicate mission state.
 
-The page then displays the two viable futures together. The learner chooses
-whether to preserve the unique discovery or save the probe. That choice adds
-one exact execution tool. Ask the agent to use it once.
+The page shows every hypothesis, expected outcome and result as the agent
+works. When it has enough evidence, it presents two viable futures, explains
+the rejected control and recommends one for the learner's stated priority.
+The learner chooses whether to preserve the unique discovery or save the
+probe. That choice adds one exact execution tool. Ask the agent to use it once.
 
 The opening screen says whether WebMCP is available and does not claim that an
-agent has started. **Copy mission for my agent** explains that pressing Send in
-the browser agent starts several automatic tool calls, that the scene will
-change and that no burn can happen before the learner chooses. During an agent
-run, the page shows the attempt budget and provides a control that unregisters
-its WebMCP tools. **Run guided mission** uses the same state machine through
-visible page controls when no agent is available.
+agent has started. **Copy mission for my agent** explains that pressing Send
+starts an investigation, that each hypothesis will appear on the page and that
+no burn can happen before the learner chooses. During an agent run, the page
+shows the attempt budget, confirmed and revised hypotheses, and a control that
+unregisters its WebMCP tools. **Run guided mission** uses the same state machine
+through visible page controls when no agent is available.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
 After the approved burn, the page shows the burn, the two science packets
@@ -53,15 +58,18 @@ This is not an agent clicking a prepared sequence of buttons. The initial
 tools expose evidence and a simulation surface rather than a recommended
 answer. The agent must:
 
-1. inspect the mission, science packets and maneuver window;
-2. calculate a transmission that fits the maneuver and contact constraints;
-3. test a probe-return route, a failed control and a science-transmission route;
-4. place both viable consequences on the shared page without selecting one;
-5. stop at the decision that depends on the learner's values.
+1. inspect separate mission, packet and maneuver evidence;
+2. choose which facts matter for the learner's stated priority;
+3. state a hypothesis and expected outcome before each bounded simulation;
+4. revise its search after a failed prediction and challenge its leading idea;
+5. recommend one viable future with an evidence-based reason;
+6. stop at the irreversible decision that belongs to the learner.
 
-The page and agent share the same revisioned mission state. Person approval
-adds one exact, argument-free action. The action works once, removes itself
-after use and leaves a verifiable final receipt.
+The learner's priority, tested hypotheses, recommendation and execution all
+share the same revisioned mission state. The agent may read the priority but
+cannot rewrite it. Person approval adds one exact, argument-free action. The
+action works once, removes itself after use and leaves a verifiable final
+receipt.
 
 ## The 5 → 6 → 2 tool lifecycle
 
