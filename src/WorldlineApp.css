@@ -340,6 +340,17 @@
 .worldline-mode strong { color: #f7f5f2; font-size: .84rem; }
 .worldline-mode span { color: rgba(247,245,242,.64); font-size: .78rem; line-height: 1.45; }
 
+.worldline-agent-expectations {
+  display: grid;
+  gap: .35rem;
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  padding-left: 1.15rem;
+  color: rgba(247,245,242,.68);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
 .worldline-agent-prompt blockquote {
   max-width: 34rem;
   margin: 1.5rem 0 0;
@@ -352,6 +363,48 @@
   line-height: 1.55;
   user-select: all;
 }
+
+.worldline-attempts {
+  margin: 1rem 0 1.15rem;
+  color: rgba(247,245,242,.58);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.worldline--decision .worldline-story {
+  width: min(50rem, 57vw);
+}
+
+.worldline-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  margin-top: 1.4rem;
+}
+
+.worldline-choice-grid article {
+  display: grid;
+  align-content: start;
+  gap: .65rem;
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: .5rem;
+  background: rgba(5,8,15,.76);
+  backdrop-filter: blur(16px);
+}
+
+.worldline-choice-grid article > p,
+.worldline-choice-grid article > h2,
+.worldline-choice-grid article > span,
+.worldline-choice-grid dl { margin: 0; }
+.worldline-choice-grid article > p { color: #c4b9ff; font-size: .68rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.worldline-choice-grid article > h2 { color: white; font-family: Georgia, 'Times New Roman', serif; font-size: 1.45rem; font-weight: 400; }
+.worldline-choice-grid article > span { min-height: 3.6rem; color: rgba(247,245,242,.7); font-size: .82rem; line-height: 1.45; }
+.worldline-choice-grid dl { display: grid; gap: .35rem; padding: .65rem 0; border-top: 1px solid rgba(255,255,255,.12); }
+.worldline-choice-grid dl div { display: flex; justify-content: space-between; gap: 1rem; }
+.worldline-choice-grid dt { color: rgba(247,245,242,.5); font-size: .7rem; }
+.worldline-choice-grid dd { margin: 0; color: white; font-size: .72rem; font-weight: 700; text-align: right; }
+.worldline-choice-grid button { width: 100%; margin-top: auto; }
 
 .worldline-consequence {
   margin: 1rem 0 0;
@@ -475,6 +528,7 @@
     backdrop-filter: blur(16px);
   }
   .worldline-story h1 { font-size: clamp(2.7rem, 12vw, 4.5rem); }
+  .worldline--decision .worldline-story { width: auto; }
   .worldline-probe { top: 34%; left: 55%; width: min(44vw, 15rem); }
   .worldline-paths { top: 4rem; height: 58%; transform: scale(1.35); transform-origin: center; }
   .worldline-outcomes { right: 1.2rem; bottom: auto; left: 1.2rem; top: 10.5rem; width: auto; }
@@ -499,6 +553,8 @@
   .worldline-actions { display: grid; }
   .worldline-primary, .worldline-secondary { width: 100%; }
   .worldline-choice-facts { grid-template-columns: 1fr; }
+  .worldline-choice-grid { grid-template-columns: 1fr; max-height: 28rem; overflow-y: auto; }
+  .worldline-choice-grid article > span { min-height: 0; }
   .worldline-outcomes { right: .75rem; left: .75rem; top: 19rem; grid-template-columns: 1fr; gap: .35rem; }
   .worldline-outcome { grid-template-columns: 2rem 1fr; }
   .worldline-status { right: 1rem; bottom: 1rem; left: auto; }

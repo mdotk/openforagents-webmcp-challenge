@@ -17,24 +17,30 @@ claim to be a precision black-hole simulation.
 Open the live page in a browser with WebMCP support and give the agent this
 request:
 
-> Investigate the mission. Inspect the science and signal window, simulate at
-> least three distinct worldlines, put one viable plan and its exact
-> consequence on the page, request my review, and stop. Do not decide what
-> matters for me.
+> Prepare this decision for me. Read the mission, science packets and maneuver
+> window once. Use that evidence to test a probe-return route, one failed
+> control and a science-transmission route. Use no more than five simulations.
+> Present both viable futures together, then stop. Do not select a future or
+> execute anything.
 
-The agent must inspect three packets, recognise that the large navigation
-archive is already safe on Earth and test more than one burn. The viable
-science path starts at probe second 46 and sends 30 MB at 1.2 MB/s, completing
-exactly when the 71-second contact window closes.
+The page tells the agent what mission control would know: the two maneuver
+corridors, the signal rate and the contact deadline. The agent must recognise
+that the large navigation archive is already safe on Earth, calculate that the
+two unique packets need 25 seconds and test both viable outcomes plus one
+failed control. Five simulation calls is a hard limit. Repeating an exact
+worldline consumes an attempt but does not create duplicate mission state.
 
-The page then gives the learner one decision: preserve the unique discovery or
-save the probe. After the learner approves the displayed consequence, ask the
-agent to execute the authorized burn.
+The page then displays the two viable futures together. The learner chooses
+whether to preserve the unique discovery or save the probe. That choice adds
+one exact execution tool. Ask the agent to use it once.
 
 The opening screen says whether WebMCP is available and does not claim that an
-agent has started. **Use my browser agent** reveals the exact handoff when the
-browser supports WebMCP. **Run guided mission** uses the same state machine
-through visible page controls when no agent is available.
+agent has started. **Copy mission for my agent** explains that pressing Send in
+the browser agent starts several automatic tool calls, that the scene will
+change and that no burn can happen before the learner chooses. During an agent
+run, the page shows the attempt budget and provides a control that unregisters
+its WebMCP tools. **Run guided mission** uses the same state machine through
+visible page controls when no agent is available.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
 After the approved burn, the page shows the burn, the two science packets
@@ -47,29 +53,28 @@ This is not an agent clicking a prepared sequence of buttons. The initial
 tools expose evidence and a simulation surface rather than a recommended
 answer. The agent must:
 
-1. inspect the mission, science packets and signal window;
-2. test distinct timing, velocity and packet combinations;
-3. reject a worldline that loses both the probe and the discovery;
-4. explain one viable consequence on the shared page;
+1. inspect the mission, science packets and maneuver window;
+2. calculate a transmission that fits the maneuver and contact constraints;
+3. test a probe-return route, a failed control and a science-transmission route;
+4. place both viable consequences on the shared page without selecting one;
 5. stop at the decision that depends on the learner's values.
 
 The page and agent share the same revisioned mission state. Person approval
 adds one exact, argument-free action. The action works once, removes itself
 after use and leaves a verifiable final receipt.
 
-## The 6 → 7 → 2 tool lifecycle
+## The 5 → 6 → 2 tool lifecycle
 
-The document initially registers six closed-schema tools:
+The document initially registers five closed-schema tools:
 
 1. `read_mission_state`
 2. `inspect_science_packets`
-3. `read_signal_window`
+3. `inspect_maneuver_window`
 4. `simulate_worldline`
-5. `update_shared_plan`
-6. `request_burn_review`
+5. `present_worldline_choices`
 
-Person approval adds only `execute_authorized_burn`. It accepts `{}` and closes
-over the exact reviewed plan, so neither the agent nor page can replace its
+The learner's choice adds only `execute_authorized_burn`. It accepts `{}` and
+closes over the exact selected simulation, so the agent cannot replace its
 timing, velocity, packets or consequence during execution.
 
 After execution, every planning and execution tool disappears. Only
@@ -94,7 +99,8 @@ for the new phase.
 The schemas reject additional properties. Mutations require the current
 revision. The initial mission read does not reveal the packet evidence, and it
 never returns the temporary authority identity. The one-use execution tool is
-registered only after a person approves the exact plan on the page.
+registered only after the learner selects one of the two exact simulations on
+the page.
 
 The state machine is implemented in
 [`src/domain/worldline.ts`](src/domain/worldline.ts). The visible page, guided

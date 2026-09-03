@@ -20,5 +20,6 @@ export {
 export type { ShoppingControlOptions } from './shopping'
 export {
   createWorldlineControl,
+  MAX_WORLDLINE_SIMULATIONS,
   WorldlineStateError,
 } from './worldline'

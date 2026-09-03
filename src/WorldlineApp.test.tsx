@@ -30,10 +30,10 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByRole('heading', { name: /one probe\. one signal\.\s*you can’t save both/i })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Run guided mission' })).toBeEnabled()
     expect(screen.getByAltText('The probe approaching the black hole')).toBeVisible()
-    expect(await screen.findByText('Guided mode · 6 modeled tools')).toBeVisible()
+    expect(await screen.findByText('Guided mode · 5 modeled tools')).toBeVisible()
     expect(screen.getByText('Guided version')).toBeVisible()
     expect(screen.getByText(/no compatible browser agent detected/i)).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Use my browser agent' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copy mission for my agent' })).not.toBeInTheDocument()
     expect(screen.queryByText(/agent connected/i)).not.toBeInTheDocument()
   })
 
@@ -41,8 +41,8 @@ describe('WORLDLINE experience', () => {
     installModelContext()
     render(<WorldlineApp />)
 
-    expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Use my browser agent' })).toBeVisible()
+    expect(await screen.findByText('WebMCP ready · 5 tools')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Copy mission for my agent' })).toBeVisible()
     expect(screen.getByText(/no agent is running yet/i)).toBeVisible()
     expect(screen.queryByText(/agent connected/i)).not.toBeInTheDocument()
   })
@@ -51,12 +51,13 @@ describe('WORLDLINE experience', () => {
     installModelContext()
     const user = userEvent.setup()
     render(<WorldlineApp />)
-    await screen.findByText('WebMCP ready · 6 tools')
+    await screen.findByText('WebMCP ready · 5 tools')
 
-    await user.click(screen.getByRole('button', { name: 'Use my browser agent' }))
+    await user.click(screen.getByRole('button', { name: 'Copy mission for my agent' }))
 
     expect(screen.getByRole('heading', { name: 'Open your browser agent.' })).toBeVisible()
-    expect(screen.getByText(/paste this request, then leave WORLDLINE visible/i)).toBeVisible()
+    expect(screen.getByText(/paste this request and press Send/i)).toBeVisible()
+    expect(screen.getByText(/agent will call tools automatically/i)).toBeVisible()
     expect(screen.getByText(agentRequestForTest())).toBeVisible()
     expect(screen.getByRole('button', { name: 'Copy request again' })).toBeEnabled()
   })
@@ -64,16 +65,18 @@ describe('WORLDLINE experience', () => {
   it('runs the complete guided dilemma, approval and final receipt', async () => {
     const user = userEvent.setup()
     render(<WorldlineApp />)
-    await screen.findByText('Guided mode · 6 modeled tools')
+    await screen.findByText('Guided mode · 5 modeled tools')
 
     await user.click(screen.getByRole('button', { name: 'Run guided mission' }))
-    expect(await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 6000 })).toBeVisible()
-    expect(screen.getByText('The unique observation reaches Earth, but the probe cannot return.')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'What comes home?' }, { timeout: 6000 })).toBeVisible()
+    expect(screen.getByText('The agent found both possible futures. It cannot decide which loss you accept.')).toBeVisible()
+    expect(screen.getByRole('button', { name: /choose the probe/i })).toBeVisible()
+    expect(screen.getByRole('button', { name: /choose the discovery/i })).toBeVisible()
     expect(screen.getByText('+23 years')).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: /approve this one burn/i }))
+    await user.click(screen.getByRole('button', { name: /choose the discovery/i }))
     expect(await screen.findByRole('heading', { name: 'Decision made.' })).toBeVisible()
-    expect(screen.getByText('Guided mode · 7 modeled tools')).toBeVisible()
+    expect(screen.getByText('Guided mode · 6 modeled tools')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: /send the signal/i }))
     expect(await screen.findByRole('heading', { name: /23 years later,\s*earth sees what it saw/i })).toBeVisible()
@@ -81,28 +84,28 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByText('Transmission verified')).toBeVisible()
   })
 
-  it('shows the live 6 to 7 to 2 inventory when WebMCP is available', async () => {
+  it('shows the live 5 to 6 to 2 inventory when WebMCP is available', async () => {
     const model = installModelContext()
     const user = userEvent.setup()
     render(<WorldlineApp />)
-    expect(await screen.findByText('WebMCP ready · 6 tools')).toBeVisible()
+    expect(await screen.findByText('WebMCP ready · 5 tools')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Run guided mission' }))
-    await screen.findByRole('heading', { name: 'Send the discovery home?' }, { timeout: 6000 })
-    await user.click(screen.getByRole('button', { name: /approve this one burn/i }))
-    await waitFor(() => expect(model.tools).toHaveLength(7))
-    expect(screen.getByText('WebMCP ready · 7 tools')).toBeVisible()
+    await screen.findByRole('heading', { name: 'What comes home?' }, { timeout: 6000 })
+    await user.click(screen.getByRole('button', { name: /choose the discovery/i }))
+    await waitFor(() => expect(model.tools).toHaveLength(6))
+    expect(screen.getByText('WebMCP ready · 6 tools')).toBeVisible()
 
     const execute = model.tools.get('execute_authorized_burn')
     expect(execute).toBeDefined()
     await execute!.execute({})
     await waitFor(() => expect(model.tools).toHaveLength(2))
     expect(screen.getByText('WebMCP ready · 2 tools')).toBeVisible()
-  })
+  }, 10_000)
 
   it('draws only the worldlines that the agent has actually tested', async () => {
     const model = installModelContext()
     render(<WorldlineApp />)
-    await screen.findByText('WebMCP ready · 6 tools')
+    await screen.findByText('WebMCP ready · 5 tools')
 
     await model.tools.get('simulate_worldline')!.execute({
       expected_revision: 0,
@@ -114,10 +117,44 @@ describe('WORLDLINE experience', () => {
     await waitFor(() => expect(screen.getByTestId('worldline-path-escape')).toHaveClass('is-tested'))
     expect(screen.getByTestId('worldline-path-lost')).not.toHaveClass('is-tested')
     expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
-    expect(screen.getByText(/probe saved, discovery lost/i)).toBeVisible()
+    expect(screen.getAllByText(/probe saved, discovery lost/i)[0]).toBeVisible()
+  })
+
+  it('does not turn three failed attempts into a false success message', async () => {
+    const model = installModelContext()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 5 tools')
+
+    for (const [index, burnAtProbeSecond] of [35, 36, 37].entries()) {
+      await model.tools.get('simulate_worldline')!.execute({
+        expected_revision: index,
+        burn_at_probe_second: burnAtProbeSecond,
+        delta_v_mps: 1800,
+        packet_ids: [],
+      })
+    }
+
+    expect(screen.getByRole('heading', { name: '1 of 3 outcomes found.' })).toBeVisible()
+    expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
+    expect(screen.queryByText(/final transmission window carries/i)).not.toBeInTheDocument()
+  })
+
+  it('lets the person unregister the page tools during an external agent run', async () => {
+    const model = installModelContext()
+    const user = userEvent.setup()
+    render(<WorldlineApp />)
+    await screen.findByText('WebMCP ready · 5 tools')
+
+    await model.tools.get('read_mission_state')!.execute({})
+    await user.click(await screen.findByRole('button', { name: 'Stop agent tools' }))
+
+    await waitFor(() => expect(model.tools).toHaveLength(0))
+    expect(screen.getByText('WebMCP paused')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Agent tools stopped.' })).toBeVisible()
+    expect(screen.getByRole('button', { name: /start over/i })).toBeVisible()
   })
 })
 
 function agentRequestForTest() {
-  return 'Investigate this mission. Inspect the science packets and signal window, simulate at least three distinct worldlines, put one viable plan and its exact consequence on the shared page, request my review, and stop. Do not choose what matters for me.'
+  return 'Prepare this decision for me. Read the mission, science packets and maneuver window once. Use that evidence to test a probe-return route, one failed control and a science-transmission route. Use no more than five simulations. Present both viable futures together, then stop. Do not select a future or execute anything.'
 }

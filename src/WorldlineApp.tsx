@@ -18,7 +18,7 @@ import type { WorldlineToolsRegistration } from './types'
 import { registerWorldlineTools } from './webmcp'
 import './WorldlineApp.css'
 
-const agentRequest = 'Investigate this mission. Inspect the science packets and signal window, simulate at least three distinct worldlines, put one viable plan and its exact consequence on the shared page, request my review, and stop. Do not choose what matters for me.'
+const agentRequest = 'Prepare this decision for me. Read the mission, science packets and maneuver window once. Use that evidence to test a probe-return route, one failed control and a science-transmission route. Use no more than five simulations. Present both viable futures together, then stop. Do not select a future or execute anything.'
 const yearTicks = Object.freeze(Array.from({ length: 24 }, (_, year) => year))
 
 type ExecutionBeat = 'idle' | 'burn' | 'signal' | 'arrival' | 'complete'
@@ -27,11 +27,11 @@ function pause(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))
 }
 
-function missionStage(phase: string, simulationCount: number, executionBeat: ExecutionBeat) {
+function missionStage(phase: string, simulationCount: number, executionBeat: ExecutionBeat, activityStarted: boolean) {
   if (phase === 'executed') return executionBeat === 'complete' ? 'received' : 'executing'
   if (phase === 'authorized') return 'authorized'
   if (phase === 'review') return 'decision'
-  if (simulationCount) return 'investigating'
+  if (simulationCount || activityStarted) return 'investigating'
   return 'waiting'
 }
 
@@ -51,10 +51,18 @@ export default function WorldlineApp() {
   const [agentPromptVisible, setAgentPromptVisible] = useState(false)
   const [copied, setCopied] = useState(false)
   const [activityMessage, setActivityMessage] = useState<string | null>(null)
+  const [agentActivityDetected, setAgentActivityDetected] = useState(false)
+  const [toolsPaused, setToolsPaused] = useState(false)
   const [executionBeat, setExecutionBeat] = useState<ExecutionBeat>('idle')
   const [error, setError] = useState<string | null>(null)
   const decisionRef = useRef<HTMLHeadingElement>(null)
   const receiptId = snapshot.receipt?.id
+
+  const reportToolActivity = useCallback((message: string) => {
+    setAgentActivityDetected(true)
+    setAgentPromptVisible(false)
+    setActivityMessage(message)
+  }, [])
 
   useEffect(() => {
     const previous = document.title
@@ -65,7 +73,7 @@ export default function WorldlineApp() {
   useEffect(() => {
     let cancelled = false
     let active: WorldlineToolsRegistration | null = null
-    void registerWorldlineTools(control, undefined, setActivityMessage)
+    void registerWorldlineTools(control, undefined, reportToolActivity)
       .then(async (next) => {
         active = next
         if (cancelled) return next.dispose()
@@ -83,7 +91,7 @@ export default function WorldlineApp() {
       cancelled = true
       if (active) void active.dispose()
     }
-  }, [control])
+  }, [control, reportToolActivity])
 
   useEffect(() => {
     if (!registration) return
@@ -129,7 +137,7 @@ export default function WorldlineApp() {
     setError(null)
     try {
       setActivityMessage('Testing an early escape burn')
-      control.simulate({
+      const probeReturn = control.simulate({
         burnAtProbeSecond: 40,
         deltaVMetersPerSecond: 3500,
         packetIds: [],
@@ -149,16 +157,8 @@ export default function WorldlineApp() {
         packetIds: ['gravity-map', 'horizon-spectrum'],
       }, control.getSnapshot().revision)
       await pause(1100)
-      setActivityMessage('Placing one viable future on the shared page')
-      const plan = control.updatePlan(
-        discovery.id,
-        'Send the discovery home',
-        'The two unique packets finish transmitting at probe second 71. The navigation archive is already safe on Earth.',
-        control.getSnapshot().revision,
-      )
-      await pause(700)
-      setActivityMessage('The remaining choice is yours')
-      control.requestBurnReview(plan.id, control.getSnapshot().revision)
+      setActivityMessage('Placing both viable futures on the shared page')
+      control.presentChoices(probeReturn.id, discovery.id, control.getSnapshot().revision)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
     } finally {
@@ -166,10 +166,10 @@ export default function WorldlineApp() {
     }
   }, [control, snapshot.phase, working])
 
-  const approve = useCallback(() => {
+  const approve = useCallback((simulationId: string) => {
     if (!snapshot.review) return
     try {
-      control.approveBurnReview(snapshot.review.id)
+      control.approveBurnReview(snapshot.review.id, simulationId)
       setActivityMessage('One exact burn is authorized')
       setError(null)
     } catch (cause) {
@@ -200,8 +200,19 @@ export default function WorldlineApp() {
     setAgentPromptVisible(false)
     setCopied(false)
     setActivityMessage(null)
+    setAgentActivityDetected(false)
+    setToolsPaused(false)
     setExecutionBeat('idle')
     setError(null)
+  }, [registration])
+
+  const stopAgentTools = useCallback(async () => {
+    if (!registration) return
+    await registration.dispose()
+    setRegistration(null)
+    setToolNames([])
+    setToolsPaused(true)
+    setActivityMessage('Agent tools stopped')
   }, [registration])
 
   const copyRequest = useCallback(async () => {
@@ -216,28 +227,34 @@ export default function WorldlineApp() {
     }
   }, [])
 
-  const stage = missionStage(snapshot.phase, snapshot.simulations.length, executionBeat)
-  const selectedSimulation = snapshot.plan
-    ? snapshot.simulations.find((simulation) => simulation.id === snapshot.plan?.simulationId)
+  const stage = missionStage(snapshot.phase, snapshot.simulations.length, executionBeat, agentActivityDetected || working)
+  const selectedSimulationId = snapshot.receipt?.simulationId ?? snapshot.activeGrant?.simulationId
+  const selectedSimulation = selectedSimulationId
+    ? snapshot.simulations.find((simulation) => simulation.id === selectedSimulationId)
     : null
-  const agentReady = registration?.supported && toolNames.length > 0
-  const modeledToolCount = snapshot.phase === 'executed' ? 2 : snapshot.activeGrant ? 7 : 6
+  const probeReturnChoice = snapshot.choices
+    ? snapshot.simulations.find((simulation) => simulation.id === snapshot.choices?.probeReturnSimulationId)
+    : null
+  const scienceTransmissionChoice = snapshot.choices
+    ? snapshot.simulations.find((simulation) => simulation.id === snapshot.choices?.scienceTransmissionSimulationId)
+    : null
+  const agentReady = !toolsPaused && registration?.supported && toolNames.length > 0
+  const modeledToolCount = snapshot.phase === 'executed' ? 2 : snapshot.activeGrant ? 6 : 5
   const scienceReachedEarth = Boolean(snapshot.receipt?.packetIds.length)
-  const selectedPacketSize = selectedSimulation?.packetIds.reduce(
-    (total, id) => total + (snapshot.packets.find((packet) => packet.id === id)?.sizeMegabytes ?? 0),
-    0,
-  ) ?? 0
   const escapeTested = snapshot.simulations.some((simulation) => simulation.probeSurvives)
   const lossTested = snapshot.simulations.some((simulation) => !simulation.viable)
   const signalTested = snapshot.simulations.some((simulation) => simulation.discoveryDelivered)
-  const futureCount = snapshot.simulations.length
-  const futureHeading = futureCount === 1 ? 'One future.' : futureCount === 2 ? 'Two futures.' : 'Three futures.'
-  const futureExplanation = futureCount === 1
-    ? 'An early burn saves the probe—and loses every new observation.'
-    : futureCount === 2
-      ? 'A later burn loses the probe and the discovery.'
-      : 'The final transmission window carries the discovery to Earth.'
-  const activeCaption = stage === 'waiting'
+  const simulationAttemptsUsed = snapshot.simulationAttemptsUsed
+  const outcomesFound = [escapeTested, lossTested, signalTested].filter(Boolean).length
+  const futureHeading = toolsPaused
+    ? 'Agent tools stopped.'
+    : outcomesFound === 0
+      ? 'Investigation started.'
+      : `${outcomesFound} of 3 outcomes found.`
+  const futureExplanation = activityMessage ?? `${simulationAttemptsUsed} of 5 simulation attempts used.`
+  const activeCaption = toolsPaused
+    ? 'WebMCP tools paused'
+    : stage === 'waiting'
       ? 'Awaiting investigation'
       : stage === 'investigating' && activityMessage
         ? activityMessage
@@ -249,8 +266,8 @@ export default function WorldlineApp() {
             ? executionBeat === 'burn'
               ? 'Burn underway'
               : executionBeat === 'signal'
-                ? 'Two packets crossing space'
-                : 'Earth clock advancing'
+                ? scienceReachedEarth ? 'Two packets crossing space' : 'Probe returning'
+                : scienceReachedEarth ? 'Earth clock advancing' : 'Probe clear'
             : stage === 'received'
               ? scienceReachedEarth ? 'Transmission verified' : 'Recovery verified'
               : `${snapshot.simulations.length} future${snapshot.simulations.length === 1 ? '' : 's'} tested`
@@ -271,6 +288,8 @@ export default function WorldlineApp() {
             <span>
               {registrationPending
                 ? 'Loading tools'
+                : toolsPaused
+                  ? 'WebMCP paused'
                 : agentReady
                   ? `WebMCP ready · ${toolNames.length} tools`
                   : `Guided mode · ${modeledToolCount} modeled tools`}
@@ -349,7 +368,7 @@ export default function WorldlineApp() {
               <div className="worldline-actions">
                 {agentReady ? (
                   <button className="worldline-primary" onClick={copyRequest}>
-                    <Copy aria-hidden="true" /> Use my browser agent
+                    <Copy aria-hidden="true" /> Copy mission for my agent
                   </button>
                 ) : null}
                 <button className={agentReady ? 'worldline-secondary' : 'worldline-primary'} onClick={showFutures} disabled={working}>
@@ -364,7 +383,12 @@ export default function WorldlineApp() {
             <div className="worldline-agent-prompt">
               <p className="worldline-eyebrow">{copied ? <><Check weight="bold" /> Mission copied</> : 'Give this mission to your agent'}</p>
               <h1 id="worldline-title">Open your browser agent.</h1>
-              <p className="worldline-lede">Paste this request, then leave WORLDLINE visible. The scene will react to every future the agent tests.</p>
+              <p className="worldline-lede">Paste this request and press Send. The agent will call tools automatically; the scene will change as it tests up to five browser-local futures.</p>
+              <ul className="worldline-agent-expectations">
+                <li>No real burn occurs during investigation.</li>
+                <li>The agent must stop with two futures for you.</li>
+                <li>Only your choice can create the one-use burn tool.</li>
+              </ul>
               <blockquote>{agentRequest}</blockquote>
               <div className="worldline-actions">
                 <button className="worldline-primary" onClick={copyRequest}><Copy aria-hidden="true" /> Copy request again</button>
@@ -375,26 +399,40 @@ export default function WorldlineApp() {
 
           {stage === 'investigating' && (
             <>
-              <p className="worldline-eyebrow">The mission is changing</p>
+              <p className="worldline-eyebrow">{toolsPaused ? 'You stopped the tools' : agentActivityDetected ? 'Agent activity detected' : 'Guided investigation'}</p>
               <h1 id="worldline-title">{futureHeading}</h1>
               <p className="worldline-lede">{futureExplanation}</p>
+              <p className="worldline-attempts">{simulationAttemptsUsed} of 5 simulation attempts used</p>
+              {agentActivityDetected && !guided && registration && !toolsPaused ? (
+                <button className="worldline-secondary" onClick={() => { void stopAgentTools() }}>Stop agent tools</button>
+              ) : null}
+              {toolsPaused ? (
+                <button className="worldline-secondary" onClick={reset}><ArrowCounterClockwise aria-hidden="true" /> Start over</button>
+              ) : null}
             </>
           )}
 
-          {stage === 'decision' && snapshot.plan && selectedSimulation && (
+          {stage === 'decision' && snapshot.choices && probeReturnChoice && scienceTransmissionChoice && (
             <div className="worldline-decision">
               <p className="worldline-eyebrow">Your decision</p>
-              <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>{snapshot.plan.title}?</h1>
-              <p className="worldline-lede">{snapshot.plan.rationale}</p>
-              <p className="worldline-consequence">{snapshot.plan.consequence}</p>
-              <dl className="worldline-choice-facts">
-                <div><dt>Signal</dt><dd>{selectedPacketSize ? `${selectedPacketSize} MB` : 'None'}</dd></div>
-                <div><dt>Earth receives it</dt><dd>{selectedSimulation.earthArrivalYears ? `+${selectedSimulation.earthArrivalYears} years` : 'Never'}</dd></div>
-                <div><dt>Probe returns</dt><dd>{selectedSimulation.probeSurvives ? 'Yes' : 'No'}</dd></div>
-              </dl>
-              <button className="worldline-primary" onClick={approve}>
-                Approve this one burn <ArrowRight aria-hidden="true" />
-              </button>
+              <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>What comes home?</h1>
+              <p className="worldline-lede">The agent found both possible futures. It cannot decide which loss you accept.</p>
+              <div className="worldline-choice-grid">
+                <article>
+                  <p>Save the spacecraft</p>
+                  <h2>Bring the probe home</h2>
+                  <span>The probe returns. The unique discovery is lost.</span>
+                  <dl><div><dt>Burn</dt><dd>{probeReturnChoice.burnAtProbeSecond}s · {probeReturnChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Signal</dt><dd>None</dd></div></dl>
+                  <button className="worldline-secondary" onClick={() => approve(probeReturnChoice.id)}>Choose the probe</button>
+                </article>
+                <article>
+                  <p>Save the discovery</p>
+                  <h2>Send the science</h2>
+                  <span>Thirty megabytes reach Earth 23 years later. The probe does not return.</span>
+                  <dl><div><dt>Burn</dt><dd>{scienceTransmissionChoice.burnAtProbeSecond}s · {scienceTransmissionChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Arrival</dt><dd>+23 years</dd></div></dl>
+                  <button className="worldline-primary" onClick={() => approve(scienceTransmissionChoice.id)}>Choose the discovery <ArrowRight aria-hidden="true" /></button>
+                </article>
+              </div>
             </div>
           )}
 
@@ -402,10 +440,10 @@ export default function WorldlineApp() {
             <>
               <p className="worldline-eyebrow">One exact burn is now possible</p>
               <h1 id="worldline-title">Decision made.</h1>
-              <p className="worldline-lede">Approval added a temporary WebMCP tool. It can execute only this burn, once.</p>
+              <p className="worldline-lede">Your choice added a temporary WebMCP tool. It can execute only the selected {selectedSimulation?.discoveryDelivered ? 'science-transmission' : 'probe-return'} burn, once.</p>
               {guided ? (
                 <button className="worldline-primary" onClick={executeGuided}>
-                  Send the signal <ArrowRight aria-hidden="true" />
+                  {selectedSimulation?.discoveryDelivered ? 'Send the signal' : 'Bring the probe home'} <ArrowRight aria-hidden="true" />
                 </button>
               ) : (
                 <p className="worldline-agent-wait">Your browser agent can now execute the authorized burn.</p>
@@ -419,16 +457,20 @@ export default function WorldlineApp() {
               <h1 id="worldline-title">
                 {executionBeat === 'burn'
                   ? 'Burn.'
-                  : executionBeat === 'signal'
+                  : executionBeat === 'signal' && scienceReachedEarth
                     ? <>The discovery<br />is leaving.</>
-                    : <>Earth<br />waits.</>}
+                    : executionBeat === 'signal'
+                      ? <>The probe<br />turns home.</>
+                      : scienceReachedEarth ? <>Earth<br />waits.</> : <>The probe<br />is clear.</>}
               </h1>
               <p className="worldline-lede">
                 {executionBeat === 'burn'
-                  ? 'The probe turns its antenna toward Earth and commits to the chosen worldline.'
-                  : executionBeat === 'signal'
+                  ? 'The approved burn commits the probe to the future you chose.'
+                  : executionBeat === 'signal' && scienceReachedEarth
                     ? 'Gravity map. Horizon spectrum. Thirty megabytes cross the final signal window.'
-                    : 'The probe is gone. The signal continues across the distance to Earth.'}
+                    : executionBeat === 'signal'
+                      ? 'The high-energy burn carries the probe away from the black hole—and turns its antenna away from Earth.'
+                      : scienceReachedEarth ? 'The probe is gone. The signal continues across the distance to Earth.' : 'The spacecraft survives. The unique observation does not.'}
               </p>
             </>
           )}

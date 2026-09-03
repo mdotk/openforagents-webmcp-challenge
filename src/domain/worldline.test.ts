@@ -1,33 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import { createWorldlineControl, WorldlineStateError } from './worldline'
+import type { WorldlineControl } from '../types'
+import { createWorldlineControl, MAX_WORLDLINE_SIMULATIONS, WorldlineStateError } from './worldline'
+
+function prepareChoices(control: WorldlineControl) {
+  const probeReturn = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 0)
+  control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: ['gravity-map', 'horizon-spectrum'] }, 1)
+  const scienceTransmission = control.simulate({
+    burnAtProbeSecond: 46,
+    deltaVMetersPerSecond: 2200,
+    packetIds: ['gravity-map', 'horizon-spectrum'],
+  }, 2)
+  const review = control.presentChoices(probeReturn.id, scienceTransmission.id, 3)
+  return { probeReturn, scienceTransmission, review }
+}
 
 describe('WORLDLINE mission control', () => {
   it('makes the probe and discovery outcomes mutually exclusive', () => {
     const control = createWorldlineControl()
-    const escape = control.simulate({
-      burnAtProbeSecond: 40,
-      deltaVMetersPerSecond: 3500,
-      packetIds: [],
-    }, 0)
+    const escape = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 0)
     const discovery = control.simulate({
       burnAtProbeSecond: 46,
       deltaVMetersPerSecond: 2200,
       packetIds: ['gravity-map', 'horizon-spectrum'],
     }, 1)
 
-    expect(escape).toMatchObject({ viable: true, probeSurvives: true, discoveryDelivered: false })
+    expect(escape).toMatchObject({ outcome: 'probe_return', viable: true, probeSurvives: true, discoveryDelivered: false })
     expect(discovery).toMatchObject({
+      outcome: 'science_transmission',
       viable: true,
       probeSurvives: false,
       discoveryDelivered: true,
       earthArrivalYears: 23,
       transmissionSeconds: 25,
+      transmissionCompletesAtProbeSecond: 71,
     })
-    expect(discovery.packetIds).toEqual(['gravity-map', 'horizon-spectrum'])
-    expect(discovery.burnAtProbeSecond + discovery.transmissionSeconds).toBe(71)
   })
 
-  it('rejects a science path that cannot finish before contact ends', () => {
+  it('returns actionable reasons when science cannot finish before contact ends', () => {
     const control = createWorldlineControl()
     const tooLate = control.simulate({
       burnAtProbeSecond: 50,
@@ -35,45 +44,63 @@ describe('WORLDLINE mission control', () => {
       packetIds: ['gravity-map', 'horizon-spectrum'],
     }, 0)
 
-    expect(tooLate).toMatchObject({ viable: false, discoveryDelivered: false, transmissionSeconds: 25 })
+    expect(tooLate).toMatchObject({
+      outcome: 'total_loss',
+      transmissionCompletesAtProbeSecond: 75,
+      failureReasons: expect.arrayContaining(['TRANSMISSION_EXCEEDS_CONTACT', 'BURN_AFTER_ESCAPE_CORRIDOR']),
+    })
   })
 
-  it('requires a fresh revision, viable plan and explicit person approval', () => {
+  it('reuses exact duplicates without another revision while every call consumes the five-attempt budget', () => {
     const control = createWorldlineControl()
+    const first = control.simulate({ burnAtProbeSecond: 35, deltaVMetersPerSecond: 2000, packetIds: [] }, 0)
+    const duplicate = control.simulate({ burnAtProbeSecond: 35, deltaVMetersPerSecond: 2000, packetIds: [] }, 1)
+    expect(duplicate.id).toBe(first.id)
+    expect(control.getSnapshot()).toMatchObject({ revision: 1, simulationAttemptsUsed: 2, simulations: [{ id: first.id }] })
+
+    for (let index = 1; index < MAX_WORLDLINE_SIMULATIONS - 1; index += 1) {
+      control.simulate({ burnAtProbeSecond: 35 + index, deltaVMetersPerSecond: 1800, packetIds: [] }, index)
+    }
+    expect(control.getSnapshot()).toMatchObject({ revision: 4, simulationAttemptsUsed: 5 })
+    expect(() => control.simulate({ burnAtProbeSecond: 58, deltaVMetersPerSecond: 3800, packetIds: [] }, 4))
+      .toThrow('five-simulation investigation budget is exhausted')
+    expect(control.getSnapshot()).toMatchObject({ revision: 4, simulationAttemptsUsed: 5 })
+  })
+
+  it('requires a failed control and both opposite viable outcomes before opening the human choice', () => {
+    const control = createWorldlineControl()
+    const escape = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 0)
     const discovery = control.simulate({
       burnAtProbeSecond: 46,
       deltaVMetersPerSecond: 2200,
       packetIds: ['gravity-map', 'horizon-spectrum'],
-    }, 0)
+    }, 1)
+    expect(() => control.presentChoices(escape.id, discovery.id, 2)).toThrow('including one total-loss control')
 
-    expect(() => control.simulate({
-      burnAtProbeSecond: 40,
-      deltaVMetersPerSecond: 3500,
-      packetIds: [],
-    }, 0)).toThrow(WorldlineStateError)
-
-    const plan = control.updatePlan(discovery.id, 'Send the discovery home', 'The unique packets fit the final window.', 1)
-    const review = control.requestBurnReview(plan.id, 2)
-    expect(control.getSnapshot()).toMatchObject({ phase: 'review', activeGrant: null })
+    control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: [] }, 2)
+    const review = control.presentChoices(escape.id, discovery.id, 3)
+    expect(control.getSnapshot()).toMatchObject({ phase: 'review', activeGrant: null, review: { id: review.id } })
     expect(() => control.executeAuthorizedBurn('burn-grant-01')).toThrow('one-use burn authority is not active')
-
-    const grant = control.approveBurnReview(review.id)
-    expect(control.getSnapshot()).toMatchObject({ phase: 'authorized', activeGrant: { id: grant.id } })
+    expect(() => control.approveBurnReview(review.id, 'worldline-03')).toThrow('two exact worldlines')
   })
 
-  it('executes the immutable burn once and produces a verified receipt', () => {
+  it('closes simulation as soon as all three required outcomes exist', () => {
     const control = createWorldlineControl()
-    const simulation = control.simulate({
-      burnAtProbeSecond: 46,
-      deltaVMetersPerSecond: 2200,
-      packetIds: ['gravity-map', 'horizon-spectrum'],
-    }, 0)
-    const plan = control.updatePlan(simulation.id, 'Send the discovery home', 'Preserve the only unique observation.', 1)
-    const review = control.requestBurnReview(plan.id, 2)
-    const grant = control.approveBurnReview(review.id)
+    control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 0)
+    control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: [] }, 1)
+    control.simulate({ burnAtProbeSecond: 46, deltaVMetersPerSecond: 2200, packetIds: ['gravity-map', 'horizon-spectrum'] }, 2)
+    expect(() => control.simulate({ burnAtProbeSecond: 38, deltaVMetersPerSecond: 2400, packetIds: [] }, 3))
+      .toThrow('investigation is complete')
+    expect(control.getSnapshot()).toMatchObject({ revision: 3, simulationAttemptsUsed: 3 })
+  })
+
+  it('executes only the science future selected by the person and rejects replay', () => {
+    const control = createWorldlineControl()
+    const { scienceTransmission, review } = prepareChoices(control)
+    const grant = control.approveBurnReview(review.id, scienceTransmission.id)
     const receipt = control.executeAuthorizedBurn(grant.id)
 
-    expect(receipt).toMatchObject({ verified: true, earthArrivalYears: 23, probeElapsedSeconds: 557 })
+    expect(receipt).toMatchObject({ simulationId: scienceTransmission.id, verified: true, earthArrivalYears: 23, probeElapsedSeconds: 557 })
     expect(receipt.packetIds).toEqual(['gravity-map', 'horizon-spectrum'])
     expect(control.getSnapshot()).toMatchObject({
       phase: 'executed',
@@ -85,20 +112,21 @@ describe('WORLDLINE mission control', () => {
     expect(() => control.executeAuthorizedBurn(grant.id)).toThrow('one-use burn authority is not active')
   })
 
-  it('reports an approved probe-recovery outcome without inventing a transmission', () => {
+  it('executes the probe-return future selected by the person without inventing a transmission', () => {
     const control = createWorldlineControl()
-    const simulation = control.simulate({
-      burnAtProbeSecond: 40,
-      deltaVMetersPerSecond: 3500,
-      packetIds: [],
-    }, 0)
-    const plan = control.updatePlan(simulation.id, 'Bring the probe home', 'Preserve the spacecraft and its future missions.', 1)
-    const review = control.requestBurnReview(plan.id, 2)
-    const grant = control.approveBurnReview(review.id)
+    const { probeReturn, review } = prepareChoices(control)
+    const grant = control.approveBurnReview(review.id, probeReturn.id)
     const receipt = control.executeAuthorizedBurn(grant.id)
 
-    expect(receipt).toMatchObject({ packetIds: [], earthArrivalYears: 0 })
+    expect(receipt).toMatchObject({ simulationId: probeReturn.id, packetIds: [], earthArrivalYears: 0 })
     expect(receipt.summary).toBe('The probe escaped. The unique observation did not reach Earth.')
     expect(control.getSnapshot()).toMatchObject({ earthElapsedSeconds: 0, fuelKilograms: 0 })
+  })
+
+  it('still rejects stale revisions', () => {
+    const control = createWorldlineControl()
+    control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [] }, 0)
+    expect(() => control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: [] }, 0))
+      .toThrow(WorldlineStateError)
   })
 })

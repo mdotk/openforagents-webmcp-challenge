@@ -5,7 +5,8 @@ import type {
   SciencePacketId,
   TransmissionReceipt,
   WorldlineControl,
-  WorldlinePlan,
+  WorldlineChoices,
+  WorldlineFailureReason,
   WorldlineSimulation,
   WorldlineSimulationInput,
   WorldlineSnapshot,
@@ -48,12 +49,14 @@ const packets: readonly SciencePacket[] = Object.freeze([
 
 const CONTACT_SECONDS = 71
 const DOWNLINK_MEGABYTES_PER_SECOND = 1.2
+export const MAX_WORLDLINE_SIMULATIONS = 5
 
 interface MutableState {
   revision: number
   phase: WorldlineSnapshot['phase']
   simulations: WorldlineSimulation[]
-  plan: WorldlinePlan | null
+  simulationAttemptsUsed: number
+  choices: WorldlineChoices | null
   review: BurnReview | null
   activeGrant: BurnGrant | null
   receipt: TransmissionReceipt | null
@@ -72,7 +75,8 @@ function initialState(): MutableState {
     revision: 0,
     phase: 'investigating',
     simulations: [],
-    plan: null,
+    simulationAttemptsUsed: 0,
+    choices: null,
     review: null,
     activeGrant: null,
     receipt: null,
@@ -102,6 +106,19 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
     && !input.packetIds.includes('navigation-archive')
     && input.burnAtProbeSecond + transmissionSeconds <= CONTACT_SECONDS
   const fuelUsed = Math.ceil(input.deltaVMetersPerSecond / 250)
+  const outcome = escape ? 'probe_return' : science ? 'science_transmission' : 'total_loss'
+  const failureReasons: WorldlineFailureReason[] = []
+
+  if (!escape && !science) {
+    if (!size) failureReasons.push('NO_SCIENCE_SELECTED')
+    if (input.packetIds.includes('navigation-archive')) failureReasons.push('REPLICATED_ARCHIVE_SELECTED')
+    if (size > 30) failureReasons.push('PACKET_LOAD_TOO_LARGE')
+    if (size && input.burnAtProbeSecond + transmissionSeconds > CONTACT_SECONDS) failureReasons.push('TRANSMISSION_EXCEEDS_CONTACT')
+    if (input.burnAtProbeSecond < 44 || input.burnAtProbeSecond > 50) failureReasons.push('BURN_OUTSIDE_TRANSMISSION_CORRIDOR')
+    if (input.deltaVMetersPerSecond < 2000 || input.deltaVMetersPerSecond > 2400) failureReasons.push('DELTA_V_OUTSIDE_TRANSMISSION_CORRIDOR')
+    if (input.burnAtProbeSecond > 42) failureReasons.push('BURN_AFTER_ESCAPE_CORRIDOR')
+    if (input.deltaVMetersPerSecond < 3400) failureReasons.push('DELTA_V_BELOW_ESCAPE_CORRIDOR')
+  }
 
   let explanation = 'This burn misses both safe corridors: the probe is lost and no complete packet clears the signal window.'
   if (escape) explanation = 'The early high-energy burn saves the probe, but turns its antenna away before the unique science packets can leave.'
@@ -110,12 +127,15 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
   return deepFreeze({
     id,
     ...input,
+    outcome,
     viable: escape || science,
     probeSurvives: escape,
     discoveryDelivered: science,
     transmissionSeconds,
+    transmissionCompletesAtProbeSecond: size ? input.burnAtProbeSecond + transmissionSeconds : null,
     earthArrivalYears: science ? 23 : null,
     fuelRemainingKilograms: Math.max(0, 14 - fuelUsed),
+    failureReasons,
     explanation,
   })
 }
@@ -126,8 +146,9 @@ export function createWorldlineControl(): WorldlineControl {
   const subscribers = new Set<WorldlineSubscriber>()
 
   const buildSnapshot = (): WorldlineSnapshot => {
-    const selected = state.plan
-      ? state.simulations.find((simulation) => simulation.id === state.plan?.simulationId)
+    const selectedSimulationId = state.receipt?.simulationId ?? state.activeGrant?.simulationId
+    const selected = selectedSimulationId
+      ? state.simulations.find((simulation) => simulation.id === selectedSimulationId)
       : null
     return deepFreeze({
       revision: state.revision,
@@ -139,7 +160,8 @@ export function createWorldlineControl(): WorldlineControl {
       contactSecondsRemaining: state.receipt ? 0 : CONTACT_SECONDS,
       packets,
       simulations: [...state.simulations],
-      plan: state.plan,
+      simulationAttemptsUsed: state.simulationAttemptsUsed,
+      choices: state.choices,
       review: state.review,
       activeGrant: state.activeGrant,
       receipt: state.receipt,
@@ -168,6 +190,13 @@ export function createWorldlineControl(): WorldlineControl {
     simulate(input, expectedRevision) {
       if (state.phase !== 'investigating') throw new WorldlineStateError('Planning is closed for this mission.')
       assertRevision(state, expectedRevision)
+      const outcomes = new Set(state.simulations.map((simulation) => simulation.outcome))
+      if (outcomes.has('probe_return') && outcomes.has('science_transmission') && outcomes.has('total_loss')) {
+        throw new WorldlineStateError('The investigation is complete. Present the two viable choices now; no additional simulation was recorded.')
+      }
+      if (state.simulationAttemptsUsed >= MAX_WORLDLINE_SIMULATIONS) {
+        throw new WorldlineStateError('The five-simulation investigation budget is exhausted. Use the tested outcomes or restart the mission; no additional simulation was recorded.')
+      }
       if (!Number.isInteger(input.burnAtProbeSecond) || input.burnAtProbeSecond < 34 || input.burnAtProbeSecond > 58) {
         throw new WorldlineStateError('Burn time must be an integer from probe second 34 to 58.')
       }
@@ -177,48 +206,67 @@ export function createWorldlineControl(): WorldlineControl {
       if (new Set(input.packetIds).size !== input.packetIds.length || input.packetIds.some((id) => !packets.some((packet) => packet.id === id))) {
         throw new WorldlineStateError('Packet selection contains an unsupported or duplicate packet.')
       }
+      const duplicate = state.simulations.find((simulation) => (
+        simulation.burnAtProbeSecond === input.burnAtProbeSecond
+        && simulation.deltaVMetersPerSecond === input.deltaVMetersPerSecond
+        && simulation.packetIds.length === input.packetIds.length
+        && simulation.packetIds.every((id, index) => id === input.packetIds[index])
+      ))
+      state.simulationAttemptsUsed += 1
+      if (duplicate) {
+        publish()
+        return duplicate
+      }
       const result = simulationFor(input, `worldline-${String(state.simulations.length + 1).padStart(2, '0')}`)
       mutate(() => {
         state.simulations.push(result)
       })
       return result
     },
-    updatePlan(simulationId, title, rationale, expectedRevision) {
-      if (state.phase !== 'investigating') throw new WorldlineStateError('The shared plan can no longer be changed.')
+    presentChoices(probeReturnSimulationId, scienceTransmissionSimulationId, expectedRevision) {
+      if (state.phase !== 'investigating') throw new WorldlineStateError('The human choice is already active or complete.')
       assertRevision(state, expectedRevision)
-      const simulation = state.simulations.find((candidate) => candidate.id === simulationId)
-      if (!simulation?.viable) throw new WorldlineStateError('The plan must use a viable simulated worldline.')
-      if (!title.trim() || title.length > 80 || !rationale.trim() || rationale.length > 240) {
-        throw new WorldlineStateError('The plan needs a short title and a rationale of at most 240 characters.')
+      if (probeReturnSimulationId === scienceTransmissionSimulationId) {
+        throw new WorldlineStateError('The two choices must use distinct simulations.')
       }
-      const plan: WorldlinePlan = deepFreeze({
-        id: 'shared-plan-01',
-        simulationId,
-        title: title.trim(),
-        rationale: rationale.trim(),
-        consequence: simulation.probeSurvives
-          ? 'The probe returns, but the unique observation is lost.'
-          : 'The unique observation reaches Earth, but the probe cannot return.',
+      if (state.simulations.length < 3 || !state.simulations.some((simulation) => simulation.outcome === 'total_loss')) {
+        throw new WorldlineStateError('Test at least three futures, including one total-loss control, before presenting the choice.')
+      }
+      const probeReturn = state.simulations.find((candidate) => candidate.id === probeReturnSimulationId)
+      const scienceTransmission = state.simulations.find((candidate) => candidate.id === scienceTransmissionSimulationId)
+      if (probeReturn?.outcome !== 'probe_return') {
+        throw new WorldlineStateError('The probe-return choice must reference a tested worldline that returns the probe.')
+      }
+      if (scienceTransmission?.outcome !== 'science_transmission') {
+        throw new WorldlineStateError('The science choice must reference a tested worldline that delivers the unique science.')
+      }
+      const choices: WorldlineChoices = deepFreeze({
+        id: 'worldline-choices-01',
+        probeReturnSimulationId,
+        scienceTransmissionSimulationId,
       })
-      mutate(() => { state.plan = plan })
-      return plan
-    },
-    requestBurnReview(planId, expectedRevision) {
-      if (state.phase !== 'investigating') throw new WorldlineStateError('A burn review is already active or complete.')
-      assertRevision(state, expectedRevision)
-      if (state.plan?.id !== planId) throw new WorldlineStateError('The requested plan is not the current shared plan.')
-      const review: BurnReview = deepFreeze({ id: 'burn-review-01', planId, status: 'pending' })
+      const review: BurnReview = deepFreeze({ id: 'burn-review-01', choicesId: choices.id, status: 'pending' })
       mutate(() => {
+        state.choices = choices
         state.review = review
         state.phase = 'review'
       })
       return review
     },
-    approveBurnReview(reviewId) {
+    approveBurnReview(reviewId, simulationId) {
       if (state.phase !== 'review' || state.review?.id !== reviewId || state.review.status !== 'pending') {
         throw new WorldlineStateError('There is no pending burn review with that identity.')
       }
-      const grant: BurnGrant = deepFreeze({ id: 'burn-grant-01', reviewId, planId: state.review.planId, usesRemaining: 1 })
+      if (!state.choices || ![state.choices.probeReturnSimulationId, state.choices.scienceTransmissionSimulationId].includes(simulationId)) {
+        throw new WorldlineStateError('Choose one of the two exact worldlines displayed for review.')
+      }
+      const grant: BurnGrant = deepFreeze({
+        id: 'burn-grant-01',
+        reviewId,
+        choicesId: state.review.choicesId,
+        simulationId,
+        usesRemaining: 1,
+      })
       mutate(() => {
         state.review = deepFreeze({ ...state.review!, status: 'approved' })
         state.activeGrant = grant
@@ -227,14 +275,15 @@ export function createWorldlineControl(): WorldlineControl {
       return grant
     },
     executeAuthorizedBurn(grantId) {
-      if (state.phase !== 'authorized' || state.activeGrant?.id !== grantId || !state.plan) {
+      if (state.phase !== 'authorized' || state.activeGrant?.id !== grantId || !state.choices) {
         throw new WorldlineStateError('The one-use burn authority is not active.')
       }
-      const simulation = state.simulations.find((candidate) => candidate.id === state.plan?.simulationId)
+      const simulation = state.simulations.find((candidate) => candidate.id === state.activeGrant?.simulationId)
       if (!simulation?.viable) throw new WorldlineStateError('The approved simulation is no longer available.')
       const receipt: TransmissionReceipt = deepFreeze({
         id: 'transmission-receipt-01',
-        planId: state.plan.id,
+        choicesId: state.choices.id,
+        simulationId: simulation.id,
         packetIds: simulation.packetIds,
         earthArrivalYears: simulation.earthArrivalYears ?? 0,
         probeElapsedSeconds: 557,

@@ -17,41 +17,56 @@ export interface WorldlineSimulationInput {
   readonly packetIds: readonly SciencePacketId[]
 }
 
+export type WorldlineOutcome = 'probe_return' | 'science_transmission' | 'total_loss'
+
+export type WorldlineFailureReason =
+  | 'NO_SCIENCE_SELECTED'
+  | 'REPLICATED_ARCHIVE_SELECTED'
+  | 'PACKET_LOAD_TOO_LARGE'
+  | 'TRANSMISSION_EXCEEDS_CONTACT'
+  | 'BURN_OUTSIDE_TRANSMISSION_CORRIDOR'
+  | 'DELTA_V_OUTSIDE_TRANSMISSION_CORRIDOR'
+  | 'BURN_AFTER_ESCAPE_CORRIDOR'
+  | 'DELTA_V_BELOW_ESCAPE_CORRIDOR'
+
 export interface WorldlineSimulation extends WorldlineSimulationInput {
   readonly id: string
+  readonly outcome: WorldlineOutcome
   readonly viable: boolean
   readonly probeSurvives: boolean
   readonly discoveryDelivered: boolean
   readonly transmissionSeconds: number
+  readonly transmissionCompletesAtProbeSecond: number | null
   readonly earthArrivalYears: number | null
   readonly fuelRemainingKilograms: number
+  readonly failureReasons: readonly WorldlineFailureReason[]
   readonly explanation: string
 }
 
-export interface WorldlinePlan {
+export interface WorldlineChoices {
   readonly id: string
-  readonly simulationId: string
-  readonly title: string
-  readonly rationale: string
-  readonly consequence: string
+  readonly probeReturnSimulationId: string
+  readonly scienceTransmissionSimulationId: string
 }
 
 export interface BurnReview {
   readonly id: string
-  readonly planId: string
+  readonly choicesId: string
   readonly status: 'pending' | 'approved' | 'consumed'
 }
 
 export interface BurnGrant {
   readonly id: string
   readonly reviewId: string
-  readonly planId: string
+  readonly choicesId: string
+  readonly simulationId: string
   readonly usesRemaining: 1
 }
 
 export interface TransmissionReceipt {
   readonly id: string
-  readonly planId: string
+  readonly choicesId: string
+  readonly simulationId: string
   readonly packetIds: readonly SciencePacketId[]
   readonly earthArrivalYears: number
   readonly probeElapsedSeconds: number
@@ -69,7 +84,8 @@ export interface WorldlineSnapshot {
   readonly contactSecondsRemaining: number
   readonly packets: readonly SciencePacket[]
   readonly simulations: readonly WorldlineSimulation[]
-  readonly plan: WorldlinePlan | null
+  readonly simulationAttemptsUsed: number
+  readonly choices: WorldlineChoices | null
   readonly review: BurnReview | null
   readonly activeGrant: BurnGrant | null
   readonly receipt: TransmissionReceipt | null
@@ -81,9 +97,8 @@ export interface WorldlineControl {
   getSnapshot(): WorldlineSnapshot
   subscribe(subscriber: WorldlineSubscriber): () => void
   simulate(input: WorldlineSimulationInput, expectedRevision: number): WorldlineSimulation
-  updatePlan(simulationId: string, title: string, rationale: string, expectedRevision: number): WorldlinePlan
-  requestBurnReview(planId: string, expectedRevision: number): BurnReview
-  approveBurnReview(reviewId: string): BurnGrant
+  presentChoices(probeReturnSimulationId: string, scienceTransmissionSimulationId: string, expectedRevision: number): BurnReview
+  approveBurnReview(reviewId: string, simulationId: string): BurnGrant
   executeAuthorizedBurn(grantId: string): TransmissionReceipt
   reset(): void
 }

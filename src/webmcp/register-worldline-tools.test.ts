@@ -31,7 +31,7 @@ class FakeModelContext implements WebMcpModelContext {
 async function prepareReview(model: FakeModelContext) {
   await model.invoke('read_mission_state')
   await model.invoke('inspect_science_packets')
-  await model.invoke('read_signal_window')
+  await model.invoke('inspect_maneuver_window')
   const escape = await model.invoke('simulate_worldline', {
     expected_revision: 0,
     burn_at_probe_second: 40,
@@ -39,50 +39,51 @@ async function prepareReview(model: FakeModelContext) {
     packet_ids: [],
   })
   expect(escape.structuredContent).toMatchObject({ probeSurvives: true, discoveryDelivered: false })
-  const discovery = await model.invoke('simulate_worldline', {
+  await model.invoke('simulate_worldline', {
     expected_revision: 1,
+    burn_at_probe_second: 55,
+    delta_v_mps: 2600,
+    packet_ids: ['gravity-map', 'horizon-spectrum'],
+  })
+  const discovery = await model.invoke('simulate_worldline', {
+    expected_revision: 2,
     burn_at_probe_second: 46,
     delta_v_mps: 2200,
     packet_ids: ['gravity-map', 'horizon-spectrum'],
   })
   expect(discovery.structuredContent).toMatchObject({ probeSurvives: false, discoveryDelivered: true })
-  await model.invoke('update_shared_plan', {
-    expected_revision: 2,
-    simulation_id: 'worldline-02',
-    title: 'Send the discovery home',
-    rationale: 'The two unique packets fit the final signal window.',
-  })
-  await model.invoke('request_burn_review', {
+  await model.invoke('present_worldline_choices', {
     expected_revision: 3,
-    plan_id: 'shared-plan-01',
+    probe_return_simulation_id: 'worldline-01',
+    science_transmission_simulation_id: 'worldline-03',
   })
 }
 
 describe('registerWorldlineTools', () => {
-  it('registers six closed-schema tools without an execution shortcut', async () => {
+  it('registers five closed-schema tools without an execution shortcut', async () => {
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(createWorldlineControl(), { modelContext: model })
 
     expect(await registration.getRegisteredToolNames()).toEqual([...initialWorldlineToolNames].sort())
-    expect(model.tools).toHaveLength(6)
+    expect(model.tools).toHaveLength(5)
     expect([...model.tools.values()].every((tool) => tool.inputSchema.additionalProperties === false)).toBe(true)
     expect(model.tools.has(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)).toBe(false)
-    expect([...model.tools.keys()].join(' ')).not.toMatch(/recommend|choose|approve/)
+    expect([...model.tools.keys()].join(' ')).not.toMatch(/recommend|approve|execute/)
     await registration.dispose()
   })
 
-  it('exposes the exact 6 to 7 to 2 lifecycle and rejects replay', async () => {
+  it('exposes the exact 5 to 6 to 2 lifecycle and rejects replay', async () => {
     const control = createWorldlineControl()
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(control, { modelContext: model })
     await prepareReview(model)
     await registration.whenIdle()
 
-    expect(model.tools).toHaveLength(6)
+    expect(model.tools).toHaveLength(5)
     expect(model.tools.has(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)).toBe(false)
-    control.approveBurnReview('burn-review-01')
+    control.approveBurnReview('burn-review-01', 'worldline-03')
     await registration.whenIdle()
-    expect(await registration.getRegisteredToolNames()).toHaveLength(7)
+    expect(await registration.getRegisteredToolNames()).toHaveLength(6)
     expect(model.tools.get(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)?.inputSchema).toEqual(emptySchemaForTest())
 
     const execution = await model.invoke(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)
@@ -99,7 +100,7 @@ describe('registerWorldlineTools', () => {
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(control, { modelContext: model })
     await prepareReview(model)
-    control.approveBurnReview('burn-review-01')
+    control.approveBurnReview('burn-review-01', 'worldline-03')
     await registration.whenIdle()
     const state = await model.invoke('read_mission_state')
 
@@ -130,6 +131,29 @@ describe('registerWorldlineTools', () => {
       'Three science packets inspected',
       'Escape burn tested · probe saved, discovery lost',
     ])
+    await registration.dispose()
+  })
+
+  it('gives the agent the maneuver evidence and a bounded stopping signal', async () => {
+    const model = new FakeModelContext()
+    const registration = await registerWorldlineTools(createWorldlineControl(), { modelContext: model })
+    const window = await model.invoke('inspect_maneuver_window')
+    expect(window.structuredContent).toMatchObject({
+      contactEndsAtProbeSecond: 71,
+      escapeCorridor: { latestBurnAtProbeSecond: 42, minimumDeltaVMetersPerSecond: 3400 },
+      scienceTransmissionCorridor: { earliestBurnAtProbeSecond: 44, latestBurnAtProbeSecond: 50 },
+    })
+
+    await model.invoke('simulate_worldline', { expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [] })
+    await model.invoke('simulate_worldline', { expected_revision: 1, burn_at_probe_second: 55, delta_v_mps: 2600, packet_ids: [] })
+    const final = await model.invoke('simulate_worldline', {
+      expected_revision: 2,
+      burn_at_probe_second: 46,
+      delta_v_mps: 2200,
+      packet_ids: ['gravity-map', 'horizon-spectrum'],
+    })
+    expect(final.content[0]?.text).toContain('Present the two viable choices now and do not simulate again.')
+    expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 2 })
     await registration.dispose()
   })
 })

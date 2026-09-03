@@ -7,14 +7,14 @@ import type {
   WorldlineControl,
   WorldlineToolsRegistration,
 } from '../types'
+import { MAX_WORLDLINE_SIMULATIONS } from '../domain/worldline'
 
 export const initialWorldlineToolNames = Object.freeze([
   'read_mission_state',
   'inspect_science_packets',
-  'read_signal_window',
+  'inspect_maneuver_window',
   'simulate_worldline',
-  'update_shared_plan',
-  'request_burn_review',
+  'present_worldline_choices',
 ] as const)
 
 export const EXECUTE_AUTHORIZED_BURN_TOOL_NAME = 'execute_authorized_burn'
@@ -63,25 +63,14 @@ const simulationSchema = Object.freeze({
   additionalProperties: false as const,
 })
 
-const planSchema = Object.freeze({
+const choicesSchema = Object.freeze({
   type: 'object' as const,
   properties: Object.freeze({
     expected_revision: revision,
-    simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
-    title: Object.freeze({ type: 'string', minLength: 1, maxLength: 80 }),
-    rationale: Object.freeze({ type: 'string', minLength: 1, maxLength: 240 }),
+    probe_return_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    science_transmission_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
   }),
-  required: Object.freeze(['expected_revision', 'simulation_id', 'title', 'rationale']),
-  additionalProperties: false as const,
-})
-
-const reviewSchema = Object.freeze({
-  type: 'object' as const,
-  properties: Object.freeze({
-    expected_revision: revision,
-    plan_id: Object.freeze({ type: 'string', const: 'shared-plan-01' }),
-  }),
-  required: Object.freeze(['expected_revision', 'plan_id']),
+  required: Object.freeze(['expected_revision', 'probe_return_simulation_id', 'science_transmission_simulation_id']),
   additionalProperties: false as const,
 })
 
@@ -122,7 +111,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
   return [
     {
       name: 'read_mission_state',
-      description: 'Read the current educational mission revision, clocks, fuel, contact window, shared plan and authority state once.',
+      description: 'Read the current educational mission revision, clocks, fuel, contact window, shared choices and authority state once.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
@@ -138,7 +127,17 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             fuelKilograms: snapshot.fuelKilograms,
             contactSecondsRemaining: snapshot.contactSecondsRemaining,
             simulationsTested: snapshot.simulations.length,
-            plan: snapshot.plan,
+            simulationAttemptsUsed: snapshot.simulationAttemptsUsed,
+            simulationAttemptsRemaining: MAX_WORLDLINE_SIMULATIONS - snapshot.simulationAttemptsUsed,
+            testedWorldlines: snapshot.simulations.map((simulation) => ({
+              id: simulation.id,
+              outcome: simulation.outcome,
+              burnAtProbeSecond: simulation.burnAtProbeSecond,
+              deltaVMetersPerSecond: simulation.deltaVMetersPerSecond,
+              packetIds: simulation.packetIds,
+              failureReasons: simulation.failureReasons,
+            })),
+            choices: snapshot.choices,
             review: snapshot.review,
             receipt: snapshot.receipt,
             temporaryBurnCapabilityActive: Boolean(snapshot.activeGrant),
@@ -157,20 +156,35 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
       },
     },
     {
-      name: 'read_signal_window',
-      description: 'Read the current downlink rate, remaining probe contact time and how the Earth and probe clocks relate in this educational simulation.',
+      name: 'inspect_maneuver_window',
+      description: 'Inspect the two safe maneuver corridors, downlink rate, contact deadline and the rule for calculating whether selected science can finish transmitting.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
-        reportActivity('Final signal window inspected')
+        reportActivity('Maneuver and signal window inspected')
         return result(
-          `The probe has ${snapshot.contactSecondsRemaining} seconds of contact at ${snapshot.downlinkMegabytesPerSecond} MB/s. A successful science signal arrives on Earth 23 years after mission start.`,
+          `Contact ends at probe second ${snapshot.contactSecondsRemaining}. The downlink sends ${snapshot.downlinkMegabytesPerSecond} MB/s. Escape requires a burn by second 42 at 3400–3800 m/s and loses the signal. Transmission requires a burn from second 44–50 at 2000–2400 m/s, with burn time plus selected-packet transmission time no greater than 71.`,
           {
             downlinkMegabytesPerSecond: snapshot.downlinkMegabytesPerSecond,
-            contactSecondsRemaining: snapshot.contactSecondsRemaining,
+            contactEndsAtProbeSecond: snapshot.contactSecondsRemaining,
+            escapeCorridor: {
+              latestBurnAtProbeSecond: 42,
+              minimumDeltaVMetersPerSecond: 3400,
+              maximumDeltaVMetersPerSecond: 3800,
+              consequence: 'The probe returns, but the antenna turns away before unique science can be sent.',
+            },
+            scienceTransmissionCorridor: {
+              earliestBurnAtProbeSecond: 44,
+              latestBurnAtProbeSecond: 50,
+              minimumDeltaVMetersPerSecond: 2000,
+              maximumDeltaVMetersPerSecond: 2400,
+              completionRule: 'burn_at_probe_second + ceil(selected_packet_megabytes / 1.2) <= 71',
+              consequence: 'The selected unique science can reach Earth, but the probe cannot return.',
+            },
             initialEarthElapsedSeconds: snapshot.earthElapsedSeconds,
             initialProbeElapsedSeconds: snapshot.probeElapsedSeconds,
+            earthArrivalYearsForSuccessfulScience: 23,
             educationalModel: true,
           },
         )
@@ -182,52 +196,64 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
       inputSchema: simulationSchema,
       annotations: write,
       execute: (args) => {
+        const before = control.getSnapshot()
         const simulation = control.simulate({
           burnAtProbeSecond: integer(args, 'burn_at_probe_second'),
           deltaVMetersPerSecond: integer(args, 'delta_v_mps'),
           packetIds: selectedPackets(args),
         }, integer(args, 'expected_revision'))
+        const after = control.getSnapshot()
+        const reused = before.revision === after.revision
+        const outcomesFound = [...new Set(after.simulations.map((candidate) => candidate.outcome))]
+        const investigationComplete = outcomesFound.includes('probe_return')
+          && outcomesFound.includes('science_transmission')
+          && outcomesFound.includes('total_loss')
+        const remainingAttempts = MAX_WORLDLINE_SIMULATIONS - after.simulationAttemptsUsed
         reportActivity(
           simulation.probeSurvives
             ? 'Escape burn tested · probe saved, discovery lost'
             : simulation.discoveryDelivered
               ? 'Transmission burn tested · signal reaches Earth, probe lost'
-              : 'Late burn tested · nothing returns',
+              : 'Control worldline tested · nothing returns',
         )
         return result(
-          `Simulation ${simulation.id}: ${simulation.explanation} Mission state moved to revision ${control.getSnapshot().revision}; no real burn occurred.`,
-          simulation,
+          `Simulation ${simulation.id}: ${simulation.explanation} ${reused ? 'This exact worldline was already recorded, so the revision did not change; the repeated call still used one investigation attempt.' : `Mission state moved to revision ${after.revision}.`} No real burn occurred.${simulation.failureReasons.length ? ` Failure reasons: ${simulation.failureReasons.join(', ')}.` : ''} ${investigationComplete ? 'The probe-return route, total-loss control and science-transmission route are all established. Present the two viable choices now and do not simulate again.' : `${remainingAttempts} simulation attempt${remainingAttempts === 1 ? '' : 's'} remain. Use the inspected maneuver window and these failure reasons before trying again.`}`,
+          {
+            ...simulation,
+            reused,
+            remainingAttempts,
+            outcomesFound,
+            investigationComplete,
+          },
         )
       },
     },
     {
-      name: 'update_shared_plan',
-      description: 'Put one viable simulated worldline and a concise rationale onto the shared page for the person to inspect. This does not request or execute a burn.',
-      inputSchema: planSchema,
+      name: 'present_worldline_choices',
+      description: 'Present one tested probe-return worldline and one tested science-transmission worldline together for the person to choose between. Requires at least one tested total-loss control and does not select, approve or execute either future.',
+      inputSchema: choicesSchema,
       annotations: write,
       execute: (args) => {
-        const plan = control.updatePlan(
-          text(args, 'simulation_id', 40),
-          text(args, 'title', 80),
-          text(args, 'rationale', 240),
+        const review = control.presentChoices(
+          text(args, 'probe_return_simulation_id', 40),
+          text(args, 'science_transmission_simulation_id', 40),
           integer(args, 'expected_revision'),
         )
-        reportActivity('One viable future placed on the shared page')
-        return result(`Shared plan updated at revision ${control.getSnapshot().revision}. ${plan.consequence}`, plan)
-      },
-    },
-    {
-      name: 'request_burn_review',
-      description: 'Place the exact current plan before the person for review. This creates no execution capability and changes no spacecraft state.',
-      inputSchema: reviewSchema,
-      annotations: write,
-      execute: (args) => {
-        const review = control.requestBurnReview(
-          text(args, 'plan_id', 40),
-          integer(args, 'expected_revision'),
+        const snapshot = control.getSnapshot()
+        const choices = snapshot.choices!
+        const probeReturn = snapshot.simulations.find((simulation) => simulation.id === choices.probeReturnSimulationId)!
+        const scienceTransmission = snapshot.simulations.find((simulation) => simulation.id === choices.scienceTransmissionSimulationId)!
+        reportActivity('Two viable futures are waiting for your choice')
+        return result(
+          'The probe-return and science-transmission futures are now displayed together. The person must choose one on the page. No burn is authorized or possible yet; stop and wait for them.',
+          {
+            revision: snapshot.revision,
+            review,
+            choices,
+            options: [probeReturn, scienceTransmission],
+            temporaryBurnCapabilityActive: false,
+          },
         )
-        reportActivity('The remaining choice is yours')
-        return result('The exact burn is now waiting for the person. No burn is possible until they approve it on the page.', review)
       },
     },
   ]
