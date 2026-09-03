@@ -24,18 +24,18 @@ type PriorityId = keyof typeof WORLDLINE_HUMAN_PRIORITIES
 
 const priorities = Object.freeze({
   discovery: {
-    label: 'Irreplaceable science',
+    label: 'The two files Earth does not have',
     statement: WORLDLINE_HUMAN_PRIORITIES.discovery,
   },
   probe: {
-    label: 'The spacecraft',
+    label: 'The probe',
     statement: WORLDLINE_HUMAN_PRIORITIES.probe,
   },
 } as const)
 
 const learnerPredictions: Readonly<Record<LearnerPredictionId, { label: string; explanation: string }>> = Object.freeze({
-  time: { label: 'Not enough time', explanation: 'The data cannot finish transmitting before contact ends.' },
-  fuel: { label: 'Not enough fuel', explanation: 'The probe cannot transmit and still make the escape burn.' },
+  time: { label: 'Not enough time', explanation: 'The files cannot finish sending before final contact ends.' },
+  fuel: { label: 'Not enough fuel', explanation: 'The probe cannot send the files and still make the escape burn.' },
   antenna: { label: 'The antenna turns away', explanation: 'The escape maneuver breaks the link with Earth.' },
   combination: { label: 'All three conflict', explanation: 'Time, thrust and antenna direction cannot all work together.' },
 })
@@ -317,14 +317,14 @@ export default function WorldlineApp() {
   const signalTested = visibleSimulations.some((simulation) => simulation.discoveryDelivered)
   const simulationAttemptsUsed = snapshot.simulationAttemptsUsed
   const missionRead = activityTrail.includes('Mission state inspected')
-  const packetsRead = activityTrail.includes('Three science packets inspected')
-  const maneuverRead = activityTrail.includes('Maneuver and signal window inspected')
+  const packetsRead = activityTrail.includes('Three files inspected')
+  const maneuverRead = activityTrail.includes('Engine, antenna and contact limits inspected')
   const uniqueScienceMegabytes = snapshot.packets.filter((packet) => !packet.replicatedOnEarth).reduce((total, packet) => total + packet.sizeMegabytes, 0)
   const transmissionSeconds = Math.ceil(uniqueScienceMegabytes / WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond)
   const activeCaption = toolsPaused
     ? 'WebMCP tools paused'
     : stage === 'waiting'
-      ? 'Awaiting investigation'
+      ? 'Waiting for the agent'
       : stage === 'investigating' && activityMessage
         ? activityMessage
       : stage === 'prediction'
@@ -334,16 +334,16 @@ export default function WorldlineApp() {
       : stage === 'decision'
         ? 'Waiting for you'
         : stage === 'authorized'
-          ? 'One-use authority active'
+          ? 'Your approved burn is ready'
           : stage === 'executing'
             ? executionBeat === 'burn'
               ? 'Burn underway'
               : executionBeat === 'lock'
                 ? scienceReachedEarth ? 'Antenna lock held' : 'Antenna turning away'
                 : executionBeat === 'packet-one'
-                  ? 'Gravity map transmitting'
+                  ? 'Gravity map is sending'
                   : executionBeat === 'packet-two'
-                    ? 'Horizon spectrum transmitting'
+                  ? 'Light spectrum transmitting'
                     : executionBeat === 'contact'
                       ? scienceReachedEarth ? 'Contact window closed' : 'Probe escaped'
                       : executionBeat === 'transit'
@@ -425,7 +425,7 @@ export default function WorldlineApp() {
           </svg>
 
           <div className="worldline-antenna-lock" aria-hidden="true"><span /><span /></div>
-          <div className="worldline-contact-horizon" aria-hidden="true"><span>CONTACT WINDOW</span></div>
+          <div className="worldline-contact-horizon" aria-hidden="true"><span>FINAL CONTACT</span></div>
           <img className="worldline-probe" src="/worldline/probe.webp" alt="The probe approaching the black hole" />
           <div className="worldline-burn-flash" aria-hidden="true" />
           <div className="worldline-earth-impact" aria-hidden="true" />
@@ -435,13 +435,13 @@ export default function WorldlineApp() {
         <section className="worldline-story" aria-live="polite">
           {stage === 'waiting' && (
             <>
-              <p className="worldline-eyebrow">71 seconds until contact is lost</p>
-              <h1 id="worldline-title">Save the probe or send its discoveries home.</h1>
-              <p className="worldline-lede">A probe beside a black hole has collected two observations that can never be repeated. It has enough fuel to escape, or enough time to transmit them to Earth, but not both. Work with your browser agent to test what can happen. You’ll learn how signal speed and spacecraft limits shape the result, then choose what comes home.</p>
+              <p className="worldline-eyebrow">Final contact ends in 71 seconds</p>
+              <h1 id="worldline-title">Save the probe or send the two files to Earth.</h1>
+              <p className="worldline-lede">The probe has completed its only close pass beside a black hole. It recorded a gravity map and a light spectrum, and Earth has no copies. This is the probe’s final 71-second connection with Earth. It may have enough fuel to escape or enough time to send the files, but can it do both? Work with your browser agent to test the options, understand the science and decide what Earth receives.</p>
               <dl className="worldline-mission-facts" aria-label="Mission stakes">
                 <div><dt>Distance</dt><dd>23 light-years</dd></div>
-                <div><dt>Contact</dt><dd>71 seconds</dd></div>
-                <div><dt>Unique science</dt><dd>{uniqueScienceMegabytes} MB</dd></div>
+                <div><dt>Final contact</dt><dd>71 seconds</dd></div>
+                <div><dt>Files with no Earth copy</dt><dd>{uniqueScienceMegabytes} MB</dd></div>
               </dl>
               <label className="worldline-priority">
                 <span>What should the agent protect?</span>
@@ -462,7 +462,7 @@ export default function WorldlineApp() {
                 <div className="worldline-agent-command" aria-label="Instruction for your browser agent">
                   <span>WebMCP is ready · Say to your browser agent</span>
                   <strong>{agentCommands.begin}</strong>
-                  <small>The tools provide the evidence, investigation rules and stopping point.</small>
+                  <small>The page gives the agent the mission facts, five chances to test burns and clear instructions to stop for your input.</small>
                 </div>
               ) : <button className="worldline-primary" disabled>WebMCP agent required</button>}
             </>
@@ -473,8 +473,8 @@ export default function WorldlineApp() {
               <p className="worldline-eyebrow">Your turn</p>
               {!snapshot.learnerCalculation ? <>
                 <p className="worldline-learning-step">1 of 2 · Work out the signal time</p>
-                <h1 id="worldline-title" ref={predictionRef} tabIndex={-1}>Can both discoveries finish transmitting?</h1>
-                <p className="worldline-lede">The agent found two unique packets: 18 MB and 12 MB. The radio sends 1.2 MB each second. Add the packet sizes, then divide by the radio speed.</p>
+                <h1 id="worldline-title" ref={predictionRef} tabIndex={-1}>Can both files finish sending?</h1>
+                <p className="worldline-lede">The agent found two files that Earth does not have: an 18 MB gravity map and a 12 MB light spectrum. The radio sends 1.2 MB each second. Add the file sizes, then divide by the radio speed.</p>
                 <div className="worldline-calculation" aria-label="Transmission-time calculation">
                   <div className="worldline-calculation__formula"><span>18 MB + 12 MB</span><b>÷</b><span>1.2 MB/s</span><b>=</b><strong>?</strong></div>
                   <div className="worldline-calculation__choices" role="group" aria-label="Choose the transmission time">
@@ -488,8 +488,8 @@ export default function WorldlineApp() {
                   <strong>{snapshot.learnerCalculation.correct ? 'Correct.' : 'Not quite.'} The transmission takes {snapshot.learnerCalculation.correctSeconds} seconds.</strong>
                   <span>18 MB + 12 MB = 30 MB. Then 30 MB ÷ 1.2 MB/s = 25 seconds.</span>
                 </div>
-                <h1 id="worldline-title" ref={predictionRef} tabIndex={-1}>Why can’t one burn save both?</h1>
-                <p className="worldline-lede">The agent found both extremes: a hard early burn can save the probe, and a gentler later burn can send the discoveries. Before it tests the middle, make your prediction.</p>
+                <h1 id="worldline-title" ref={predictionRef} tabIndex={-1}>Why can’t one burn save the probe and send both files?</h1>
+                <p className="worldline-lede">The first tests found two clear outcomes. An early, powerful burn lets the probe escape but prevents the files from being sent. A later, gentler burn sends the files but cannot save the probe. Before the agent tests a middle option, choose why you think one burn cannot do both.</p>
                 <div className="worldline-prediction-grid" role="group" aria-label="Choose your prediction">
                   {(Object.entries(learnerPredictions) as [LearnerPredictionId, { label: string; explanation: string }][]).map(([id, prediction]) => (
                     <button key={id} onClick={() => choosePrediction(id)}>
@@ -498,40 +498,40 @@ export default function WorldlineApp() {
                     </button>
                   ))}
                 </div>
-                <p className="worldline-agent-wait">Your calculation and prediction become shared page state. The agent must read them, test your idea and explain what you got right.</p>
+                <p className="worldline-agent-wait">The page saves your calculation and answer. The agent must read them, test whether your answer holds up and explain the result.</p>
               </>}
             </div>
           )}
 
           {stage === 'prediction-handoff' && snapshot.learnerPrediction && (
             <div className="worldline-agent-prompt worldline-prediction-handoff">
-              <p className="worldline-eyebrow">Prediction recorded</p>
-              <h1 id="worldline-title">Now challenge your idea.</h1>
-              <p className="worldline-lede">You chose: <strong>{learnerPredictions[snapshot.learnerPrediction.id].label}</strong>. Return to the same agent. It will read your prediction from the page, test a compromise and a counterexample, then explain what the evidence supports.</p>
+              <p className="worldline-eyebrow">Your answer is saved</p>
+              <h1 id="worldline-title">Now ask the agent to test your answer.</h1>
+              <p className="worldline-lede">You chose: <strong>{learnerPredictions[snapshot.learnerPrediction.id].label}</strong>. Return to the same agent. It will try a middle option, then run another test designed to prove your answer wrong. It will show which parts of your answer the results support.</p>
               <div className="worldline-agent-command" aria-label="Next instruction for your browser agent">
                 <span>Say to your browser agent</span>
                 <strong>{agentCommands.prediction}</strong>
-                <small>Your calculation, prediction and priority are already in the shared mission state.</small>
+                <small>The page has already saved your calculation, answer and priority.</small>
               </div>
             </div>
           )}
 
           {stage === 'investigating' && (
             <>
-              <p className="worldline-eyebrow">{toolsPaused ? 'You stopped the tools' : 'Agent activity detected'}</p>
-              <h1 id="worldline-title">{snapshot.phase === 'investigating_prediction' ? 'The agent is testing your prediction.' : 'The agent is finding the two extremes.'}</h1>
+              <p className="worldline-eyebrow">{toolsPaused ? 'You stopped the tools' : 'The agent is working'}</p>
+              <h1 id="worldline-title">{snapshot.phase === 'investigating_prediction' ? 'The agent is testing your answer.' : 'The agent is testing both clear choices.'}</h1>
               <p className="worldline-lede">{snapshot.phase === 'investigating_prediction'
-                ? `You predicted: ${snapshot.learnerPrediction?.statement} It must now test a compromise and a counterexample before explaining what the evidence supports.`
-                : 'It is testing one way to save the probe and one way to send the discoveries. Then it must stop so you can calculate the signal time and predict what prevents both.'}</p>
+                ? `You answered: ${snapshot.learnerPrediction?.statement} The agent must try a middle option and an option designed to prove your answer wrong before explaining what happens.`
+                : 'It is testing one burn that lets the probe escape and one that sends the two files. Then it must stop for your calculation and answer.'}</p>
               {snapshot.simulations.length > visibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has completed {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. Replaying the investigation at a pace you can follow.</p> : null}
               <div className="worldline-evidence" aria-label="Evidence learned">
-                <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `${uniqueScienceMegabytes} MB worth saving` : 'Packet value pending'}</b><small>{packetsRead ? 'The 72 MB archive already exists on Earth.' : 'Waiting for the packet manifest.'}</small></span>
-                <span className={packetsRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead && maneuverRead ? `${transmissionSeconds} seconds to transmit` : 'Transmission time pending'}</b><small>{packetsRead && maneuverRead ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'Waiting for packet size and downlink rate.'}</small></span>
-                <span className={missionRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{missionRead && maneuverRead ? 'One physical conflict' : 'Maneuver conflict pending'}</b><small>{missionRead && maneuverRead ? 'Escape thrust breaks antenna lock.' : 'Waiting for the mission and maneuver evidence.'}</small></span>
+                <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `${uniqueScienceMegabytes} MB with no copy on Earth` : 'Checking which files matter'}</b><small>{packetsRead ? 'Earth already has a complete copy of the 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
+                <span className={packetsRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead && maneuverRead ? `${transmissionSeconds} seconds to send both files` : 'Working out the sending time'}</b><small>{packetsRead && maneuverRead ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'Waiting for the file sizes and radio speed.'}</small></span>
+                <span className={missionRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{missionRead && maneuverRead ? 'Why one burn cannot do both' : 'Checking the engine and antenna'}</b><small>{missionRead && maneuverRead ? 'The powerful escape burn points the antenna away from Earth.' : 'Waiting for the engine and antenna limits.'}</small></span>
               </div>
               <div className="worldline-investigation" aria-label="Agent investigation">
                 <header>
-                  <strong>{activeStory ? `Possible future ${visibleSimulationCount}` : activityMessage ?? 'Reading the mission evidence…'}</strong>
+                  <strong>{activeStory ? `Test ${visibleSimulationCount}` : activityMessage ?? 'Reading the mission facts…'}</strong>
                   <span>{visibleSimulationCount} of 5 tests shown</span>
                 </header>
                 {activeStory && activeSimulation ? (
@@ -543,7 +543,7 @@ export default function WorldlineApp() {
                     {activeStory.calculation ? <p className="worldline-investigation__calculation"><b>The numbers</b> {activeStory.calculation}</p> : null}
                     <p className="worldline-investigation__lesson"><b>What this teaches us</b> {activeStory.lesson}</p>
                   </article>
-                ) : <p className="worldline-investigation__empty">The agent is measuring the data, signal window and escape corridor before spending its first simulation.</p>}
+                ) : <p className="worldline-investigation__empty">The agent is checking the file sizes, sending time and engine limits before it tries the first burn.</p>}
                 {visibleSimulations.length > 1 ? (
                   <ol className="worldline-investigation__history" aria-label="Earlier tests">
                     {visibleSimulations.slice(0, -1).map((simulation, index) => {
@@ -566,37 +566,37 @@ export default function WorldlineApp() {
             <div className="worldline-decision">
               <div className="worldline-decision-intro">
                 <p className="worldline-eyebrow">Your decision</p>
-                <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>What comes home?</h1>
-                <p className="worldline-lede">Across a three-part investigation and {simulationAttemptsUsed} tests, the agent proved there is no route that saves both. It found two credible futures and one unavoidable loss. Only you can choose which loss to accept.</p>
+                <h1 id="worldline-title" ref={decisionRef} tabIndex={-1}>What do you save?</h1>
+                <p className="worldline-lede">Across three steps and {simulationAttemptsUsed} tests, the agent proved no burn can both save the probe and send the two files. It found two possible outcomes. Each saves one thing and sacrifices the other. Only you can decide which result matters more.</p>
               </div>
               {snapshot.learnerPrediction ? (
                 <aside className={`worldline-learning-result worldline-learning-result--${snapshot.choices.predictionAssessment}`}>
-                  <p>Your prediction · {snapshot.choices.predictionAssessment.replace('_', ' ')}</p>
+                  <p>Your answer · {snapshot.choices.predictionAssessment.replace('_', ' ')}</p>
                   <strong>{learnerPredictions[snapshot.learnerPrediction.id].label}</strong>
                   <span>{snapshot.choices.teachingExplanation}</span>
                 </aside>
               ) : null}
               <section className="worldline-constraint-proof" aria-labelledby="worldline-constraint-title">
                 <header>
-                  <p>The decisive calculation</p>
-                  <h2 id="worldline-constraint-title">The safe regions never overlap.</h2>
+                  <p>Why one burn cannot do both</p>
+                  <h2 id="worldline-constraint-title">The requirements happen at different times.</h2>
                 </header>
                 <div>
                   <article>
-                    <span>Return the probe</span>
-                    <strong>t ≤ {WORLDLINE_CONSTRAINTS.escapeLatestProbeSecond}s</strong>
-                    <strong>Δv ≥ {WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond.toLocaleString()} m/s</strong>
-                    <small>Burn early and hard enough to escape.</small>
+                    <span>Help the probe escape</span>
+                    <strong>Burn by second {WORLDLINE_CONSTRAINTS.escapeLatestProbeSecond}</strong>
+                    <strong>Speed change: at least {WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond.toLocaleString()} m/s</strong>
+                    <small>The probe must fire early and powerfully to escape.</small>
                   </article>
                   <div className="worldline-constraint-proof__conflict" aria-label="No overlap">
                     <b>No overlap</b>
                     <span>One burn cannot satisfy both.</span>
                   </div>
                   <article>
-                    <span>Send the discoveries</span>
-                    <strong>{WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[0]}s ≤ t ≤ {WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[1]}s</strong>
-                    <strong>{WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[0].toLocaleString()}–{WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[1].toLocaleString()} m/s</strong>
-                    <small>Burn later and gently enough to keep Earth lock.</small>
+                    <span>Send both files</span>
+                    <strong>Burn from second {WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[0]} to {WORLDLINE_CONSTRAINTS.transmissionBurnProbeSeconds[1]}</strong>
+                    <strong>Speed change: {WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[0].toLocaleString()} to {WORLDLINE_CONSTRAINTS.lockPreservingDeltaVMetersPerSecond[1].toLocaleString()} m/s</strong>
+                    <small>A later, gentler burn keeps the antenna pointed at Earth.</small>
                   </article>
                 </div>
                 <p><b>Transmission check:</b> {uniqueScienceMegabytes} MB ÷ {WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond} MB/s = {transmissionSeconds} seconds.</p>
@@ -604,26 +604,26 @@ export default function WorldlineApp() {
               {recommendedSimulation && snapshot.choices ? (
                 <aside className="worldline-recommendation">
                   <p>Agent recommendation</p>
-                  <strong>{recommendedSimulation.discoveryDelivered ? 'Send both discoveries' : 'Save the probe'}</strong>
+                  <strong>{recommendedSimulation.discoveryDelivered ? 'Send both files' : 'Save the probe'}</strong>
                   <span><b>Why:</b> {recommendationStory(snapshot.choices, recommendedSimulation)}</span>
                   <small>Priority: {snapshot.choices.priority}</small>
-                  <details><summary>Agent’s exact rationale</summary><span>{snapshot.choices.rationale}</span></details>
+                  <details><summary>Agent’s full reason</summary><span>{snapshot.choices.rationale}</span></details>
                 </aside>
               ) : null}
               <div className="worldline-choice-grid">
                 <article>
                   <p>Save the spacecraft</p>
                   <h2>Save the probe</h2>
-                  <span>The probe escapes the gravity well. Both unique discoveries are lost.</span>
+                  <span>The probe gets away from the black hole. Its final contact ends before Earth receives either file.</span>
                   <dl><div><dt>Burn</dt><dd>{probeReturnChoice.burnAtProbeSecond}s · {probeReturnChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Signal</dt><dd>None</dd></div></dl>
-                  <button className="worldline-secondary" onClick={() => approve(probeReturnChoice.id)}>Save the probe, lose both discoveries</button>
+                  <button className="worldline-secondary" onClick={() => approve(probeReturnChoice.id)}>Save the probe, send no files</button>
                 </article>
                 <article>
-                  <p>Save the discovery</p>
-                  <h2>Send the science</h2>
-                  <span>Thirty megabytes reach Earth 23 years later. The probe does not return.</span>
+                  <p>Send the files</p>
+                  <h2>Send both files</h2>
+                  <span>Earth receives both files after 23 years. The probe cannot escape.</span>
                   <dl><div><dt>Burn</dt><dd>{scienceTransmissionChoice.burnAtProbeSecond}s · {scienceTransmissionChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Arrival</dt><dd>+23 years</dd></div></dl>
-                  <button className="worldline-primary" onClick={() => approve(scienceTransmissionChoice.id)}>Send both discoveries, lose the probe <ArrowRight aria-hidden="true" /></button>
+                  <button className="worldline-primary" onClick={() => approve(scienceTransmissionChoice.id)}>Send both files, lose the probe <ArrowRight aria-hidden="true" /></button>
                 </article>
               </div>
             </div>
@@ -631,26 +631,26 @@ export default function WorldlineApp() {
 
           {stage === 'authorized' && (
             <>
-              <p className="worldline-eyebrow">Your choice created one exact action</p>
-              <h1 id="worldline-title">{selectedSimulation?.discoveryDelivered ? `${selectedPacketMegabytes} MB can leave. The probe cannot.` : 'The probe can escape. Its discoveries cannot.'}</h1>
+              <p className="worldline-eyebrow">Your approved burn is ready</p>
+              <h1 id="worldline-title">{selectedSimulation?.discoveryDelivered ? 'Both files can reach Earth. The probe cannot escape.' : 'The probe can escape. Earth will not receive the files.'}</h1>
               <p className="worldline-lede">{selectedSimulation?.discoveryDelivered
-                ? `${selectedPacketMegabytes} MB ÷ ${WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond} MB/s = ${selectedSimulation.transmissionSeconds} seconds. Starting the burn at t+${selectedSimulation.burnAtProbeSecond}s finishes transmission at t+${selectedTransmissionFinish}s, ${selectedContactMargin === 0 ? 'exactly when contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before contact ends`}. The ${selectedSimulation.deltaVMetersPerSecond.toLocaleString()} m/s burn keeps the antenna on Earth, but cannot also meet the ${WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond.toLocaleString()} m/s escape requirement.`
-                : `At t+${selectedSimulation?.burnAtProbeSecond}s, the ${selectedSimulation?.deltaVMetersPerSecond.toLocaleString()} m/s burn meets the escape requirement. That maneuver turns the antenna away from Earth before either unique observation can be transmitted.`}</p>
+                ? `${selectedPacketMegabytes} MB ÷ ${WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond} MB/s = ${selectedSimulation.transmissionSeconds} seconds. Starting the burn at t+${selectedSimulation.burnAtProbeSecond}s finishes sending at t+${selectedTransmissionFinish}s, ${selectedContactMargin === 0 ? 'exactly when final contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before final contact ends`}. The ${selectedSimulation.deltaVMetersPerSecond.toLocaleString()} m/s burn keeps the antenna pointed at Earth, but is not powerful enough to meet the ${WORLDLINE_CONSTRAINTS.minimumEscapeDeltaVMetersPerSecond.toLocaleString()} m/s escape requirement.`
+                : `At t+${selectedSimulation?.burnAtProbeSecond}s, the burn changes the probe’s speed by ${selectedSimulation?.deltaVMetersPerSecond.toLocaleString()} m/s, enough to escape. It turns the antenna away before either file can be sent to Earth.`}</p>
               <dl className="worldline-mission-facts" aria-label="Calculated outcome">
                 {selectedSimulation?.discoveryDelivered ? <>
-                  <div><dt>Data to send</dt><dd>{selectedPacketMegabytes} MB</dd></div>
-                  <div><dt>Transmission</dt><dd>{selectedSimulation.transmissionSeconds}s</dd></div>
-                  <div><dt>Time spare</dt><dd>{selectedContactMargin}s</dd></div>
+                  <div><dt>Files to send</dt><dd>{selectedPacketMegabytes} MB</dd></div>
+                  <div><dt>Time to send</dt><dd>{selectedSimulation.transmissionSeconds}s</dd></div>
+                  <div><dt>Time before final contact</dt><dd>{selectedContactMargin}s</dd></div>
                 </> : <>
                   <div><dt>Burn begins</dt><dd>t+{selectedSimulation?.burnAtProbeSecond}s</dd></div>
-                  <div><dt>Burn strength</dt><dd>{selectedSimulation?.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div>
-                  <div><dt>Science sent</dt><dd>0 MB</dd></div>
+                  <div><dt>Speed change</dt><dd>{selectedSimulation?.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div>
+                  <div><dt>Files sent</dt><dd>0 MB</dd></div>
                 </>}
               </dl>
               <div className="worldline-agent-command" aria-label="Final instruction for your browser agent">
                 <span>Return to the same agent and say</span>
                 <strong>{agentCommands.execute}</strong>
-                <small>The agent must use the one-use burn and verify the final receipt. The page cannot do this step.</small>
+                <small>The agent must run the approved burn and check the result. The page cannot perform this step.</small>
               </div>
             </>
           )}
@@ -666,7 +666,7 @@ export default function WorldlineApp() {
                     : executionBeat === 'packet-one'
                       ? <>Gravity map<br />sent.</>
                       : executionBeat === 'packet-two'
-                        ? <>Horizon spectrum<br />sent.</>
+                        ? <>Light spectrum<br />sent.</>
                         : executionBeat === 'contact'
                           ? scienceReachedEarth ? <>Contact<br />closed.</> : <>The probe<br />escaped.</>
                           : executionBeat === 'transit'
@@ -681,14 +681,14 @@ export default function WorldlineApp() {
                     : executionBeat === 'lock'
                       ? 'The high-energy burn carries the probe away from the black hole but breaks its link with Earth.'
                       : executionBeat === 'packet-one'
-                        ? 'The first 18 MB, the gravity map, leaves the probe.'
+                        ? 'The probe sends the first file: the 18 MB gravity map.'
                       : executionBeat === 'packet-two'
-                        ? `The final 12 MB, the horizon spectrum, finishes leaving ${selectedContactMargin === 0 ? 'as contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before contact ends`}.`
+                        ? `The final 12 MB, the light spectrum, finishes sending ${selectedContactMargin === 0 ? 'as final contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before final contact ends`}.`
                           : executionBeat === 'contact'
-                            ? scienceReachedEarth ? 'All 30 MB are clear. The probe falls silent behind them.' : 'The spacecraft survives. Neither unique observation was transmitted.'
+                            ? scienceReachedEarth ? 'Both files have left the probe. Final contact ends.' : 'The probe escapes. Earth receives neither file.'
                             : executionBeat === 'transit'
                               ? 'The signal travels at light speed. Because the probe is 23 light-years away, Earth must wait 23 years.'
-                              : scienceReachedEarth ? 'Earth receives and verifies both irreplaceable observations.' : 'The return corridor is clear.'}
+                              : scienceReachedEarth ? 'Earth receives and checks the gravity map and light spectrum.' : 'The probe is safely away from the black hole.'}
               </p>
               <ol className="worldline-execution-progress" aria-label="Execution progress">
                 <li className={executionBeat !== 'burn' ? 'is-complete' : 'is-current'}>Burn committed</li>
@@ -703,20 +703,20 @@ export default function WorldlineApp() {
             <>
               <p className="worldline-eyebrow worldline-eyebrow--received"><Check weight="bold" /> {scienceReachedEarth ? 'Signal received' : 'Escape verified'}</p>
               <h1 id="worldline-title">
-                {scienceReachedEarth ? <>Both discoveries<br />reached Earth.</> : <>The probe escaped.<br />The discoveries did not.</>}
+                {scienceReachedEarth ? <>Both files<br />reached Earth.</> : <>The probe escaped.<br />Earth received no files.</>}
               </h1>
               <p className="worldline-lede">{scienceReachedEarth
-                ? 'The gravity map and horizon spectrum arrived 23 years after transmission. The probe never returned. Your choice preserved the only copies of observations humanity could not repeat.'
-                : 'The escape burn turned the antenna away before either discovery left. The spacecraft survives; the only copies are gone.'}</p>
+                ? 'Earth received the gravity map and light spectrum 23 years after they were sent. The probe did not escape. You chose to save the two files that had no backup on Earth.'
+                : 'The powerful burn turned the antenna away before either file was sent. The probe escaped the black hole, but Earth will never receive the gravity map or light spectrum from its close pass.'}</p>
               <dl className="worldline-receipt" aria-label="Verified outcome">
-                {scienceReachedEarth ? <><div><dt>Science verified</dt><dd>30 MB</dd></div><div><dt>Signal left</dt><dd>t+{snapshot.receipt.probeElapsedSeconds}s</dd></div><div><dt>Distance crossed</dt><dd>23 light-years</dd></div><div><dt>Probe</dt><dd>Did not return</dd></div></> : <><div><dt>Escape burn</dt><dd>Verified</dd></div><div><dt>Signal sent</dt><dd>0 MB</dd></div><div><dt>Probe</dt><dd>Escaped</dd></div><div><dt>Discoveries</dt><dd>Lost</dd></div></>}
+                {scienceReachedEarth ? <><div><dt>Files received</dt><dd>30 MB</dd></div><div><dt>Files sent</dt><dd>t+{snapshot.receipt.probeElapsedSeconds}s</dd></div><div><dt>Distance crossed</dt><dd>23 light-years</dd></div><div><dt>Probe</dt><dd>Did not escape</dd></div></> : <><div><dt>Escape burn</dt><dd>Checked</dd></div><div><dt>Files sent</dt><dd>0 MB</dd></div><div><dt>Probe</dt><dd>Escaped</dd></div><div><dt>Files received</dt><dd>None</dd></div></>}
               </dl>
               <section className="worldline-learning-recap" aria-labelledby="worldline-learning-recap-title">
                 <p>What you proved</p>
-                <h2 id="worldline-learning-recap-title">Three ideas made this future predictable.</h2>
+                <h2 id="worldline-learning-recap-title">Three simple calculations explain the result.</h2>
                 <div>
-                  <article><strong>1 · Data rate</strong><span>18 MB + 12 MB = 30 MB. At 1.2 MB/s, transmission needs 25 seconds.</span></article>
-                  <article><strong>2 · No overlap</strong><span>Escape needs an early, hard burn. Earth lock needs a later, gentler burn. One maneuver cannot satisfy both.</span></article>
+                  <article><strong>1 · Sending time</strong><span>18 MB + 12 MB = 30 MB. At 1.2 MB/s, sending needs 25 seconds.</span></article>
+                  <article><strong>2 · Burn timing</strong><span>Escape needs a powerful burn by second 42. Sending needs a gentler burn from second 44 to 50. One burn cannot meet both requirements.</span></article>
                   <article><strong>3 · Light travel</strong><span>A light-year measures distance. From 23 light-years away, even a light-speed signal takes 23 years to reach Earth.</span></article>
                 </div>
               </section>
@@ -732,13 +732,13 @@ export default function WorldlineApp() {
       <section className="worldline-below">
         <div>
           <p className="worldline-below__label">An interactive science lesson</p>
-          <p>Each route the agent tests is a possible future called a worldline. See why a signal from 23 light-years away takes 23 years to arrive, work out how long the probe needs to send its discoveries, and discover why one burn cannot save everything.</p>
+          <p>Each route the agent tests is a possible future called a worldline. See why a signal from 23 light-years away takes 23 years to arrive, work out how long the probe needs to send two files, and learn why one burn cannot save everything.</p>
         </div>
         <details>
           <summary>Mission data and exact tools</summary>
           <div className="worldline-details-grid">
             <div>
-              <h2>Data still on the probe</h2>
+              <h2>Files on the probe at the start</h2>
               {snapshot.packets.map((packet) => (
                 <p key={packet.id}><strong>{packet.name}</strong> · {packet.sizeMegabytes} MB<br /><span>{packet.observation}</span></p>
               ))}

@@ -73,10 +73,12 @@ one-use action is consumed.
 
 The candidate first moved from a prescribed journey to an open investigation
 contract. Its latest learning design splits that investigation into three
-exchanges. The agent establishes the two extreme futures and stops. The learner
+exchanges. The agent establishes one burn that lets the probe escape and one
+that sends the two files, then stops. The learner
 calculates the signal time and predicts why one burn cannot save both. The agent
 then reads those shared answers,
-tests a compromise and counterexample, teaches the result and stops again. Only
+tests a middle option and an option designed to prove the learner wrong,
+explains the result and stops again. Only
 after the learner chooses a future can the agent execute and verify the exact
 one-use burn.
 

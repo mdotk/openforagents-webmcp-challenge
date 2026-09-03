@@ -18,7 +18,7 @@ function selectedMegabytes(simulation: WorldlineSimulation, packets: readonly Sc
 }
 
 function packetDescription(simulation: WorldlineSimulation, packets: readonly SciencePacket[]) {
-  if (!simulation.packetIds.length) return 'no transmission payload'
+  if (!simulation.packetIds.length) return 'no files'
   const names = simulation.packetIds.map((id) => packets.find((packet) => packet.id === id)?.name ?? id)
   return names.join(' and ')
 }
@@ -38,39 +38,39 @@ export function storyForSimulation(
     return {
       question: hasPayload
         ? 'Does carrying less data change the escape trade-off?'
-        : 'Can a hard early burn save the probe?',
-      plan: `At second ${simulation.burnAtProbeSecond}, fire a ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s escape burn${hasPayload ? ` while trying to send ${selectedPackets}` : ' without trying to transmit data'}.`,
-      outcomeSummary: 'The probe returns. The discoveries do not.',
-      result: 'The probe escapes, but the hard burn turns its antenna away before any discovery is sent.',
+        : 'Can an early, powerful burn help the probe escape?',
+      plan: `At second ${simulation.burnAtProbeSecond}, change the probe’s speed by ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s${hasPayload ? ` while trying to send ${selectedPackets}` : ' without sending any files'}.`,
+      outcomeSummary: 'The probe escapes. Earth receives no files.',
+      result: 'The probe escapes, but the burn turns its antenna away before either file is sent to Earth.',
       lesson: hasPayload
-        ? 'Reducing the payload does not solve the antenna conflict.'
-        : 'Saving the spacecraft and saving the discovery are now proven to conflict.',
+        ? 'Sending fewer files does not stop the escape burn from turning the antenna away from Earth.'
+        : 'The burn that saves the probe prevents it from sending the files.',
       calculation: null,
     }
   }
 
   if (simulation.outcome === 'science_transmission') {
     return {
-      question: 'Can a gentler later burn send both discoveries?',
+      question: 'Can a later, gentler burn send both files?',
       plan: `At second ${simulation.burnAtProbeSecond}, fire a gentler ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s burn while sending ${selectedPackets}.`,
-      outcomeSummary: 'Both discoveries are sent. The probe is lost.',
-      result: `${megabytes} MB finishes transmitting at t+${simulation.transmissionCompletesAtProbeSecond}s. The probe no longer has enough thrust to escape.`,
-      lesson: 'The discoveries fit inside the signal window, but only by spending the fuel that could return the probe.',
-      calculation: `${megabytes} MB ÷ 1.2 MB/s = ${simulation.transmissionSeconds}s · ${remaining} second${remaining === 1 ? '' : 's'} before contact closes`,
+      outcomeSummary: 'Both files are sent. The probe cannot escape.',
+      result: `${megabytes} MB finishes sending at t+${simulation.transmissionCompletesAtProbeSecond}s. The gentler burn is not powerful enough for the probe to escape.`,
+      lesson: 'The files reach Earth only if the probe gives up the powerful burn it needs to escape.',
+      calculation: `${megabytes} MB ÷ 1.2 MB/s = ${simulation.transmissionSeconds}s · finished ${remaining} second${remaining === 1 ? '' : 's'} before final contact`,
     }
   }
 
   return {
     question: simulation.expectedOutcome === 'total_loss'
       ? 'Does the simulator reject an unsafe burn?'
-      : 'Can one compromise save both?',
+      : 'Can one middle option save both?',
     plan: `At second ${simulation.burnAtProbeSecond}, try a ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s burn${simulation.packetIds.length ? ` while sending ${selectedPackets}` : ' without transmitting data'}.`,
-    outcomeSummary: 'Nothing is saved.',
-    result: 'No. This burn has neither enough thrust to escape nor a stable antenna lock to finish transmitting.',
-    lesson: 'The apparent compromise is worse than either viable path: everything is lost.',
+    outcomeSummary: 'The probe is lost. Earth receives no complete files.',
+    result: 'No. This burn is too weak for escape and does not keep the antenna pointed at Earth long enough to finish sending a file.',
+    lesson: 'Trying to split the difference loses the probe and the files.',
     calculation: megabytes
-      ? `${megabytes} MB selected · neither safe corridor reached`
-      : 'No complete discovery leaves the probe',
+      ? `${megabytes} MB selected · no complete file sent`
+      : 'No file selected to send',
   }
 }
 
@@ -79,16 +79,16 @@ export function recommendationStory(
   recommendation: WorldlineSimulation,
 ) {
   if (recommendation.discoveryDelivered) {
-    const framing = choices.priority.toLowerCase().includes('observations')
-      ? 'You asked the agent to protect irreplaceable evidence.'
-      : 'The strongest evidence favors the irreplaceable observations.'
-    return `${framing} This route sends both unique observations before contact closes. The alternative returns the probe but strands their only copies.`
+    const framing = choices.priority.toLowerCase().includes('gravity map')
+      ? 'You asked the agent to send the two files that Earth does not have.'
+      : 'The mission priority favors sending the two files that Earth does not have.'
+    return `${framing} This option sends the gravity map and light spectrum before final contact. The other option lets the probe escape, but Earth never receives those files.`
   }
 
-  const framing = choices.priority.toLowerCase().includes('spacecraft')
-    ? 'You asked the agent to protect the spacecraft.'
-    : 'The strongest evidence favors preserving the spacecraft.'
-  return `${framing} This is the only tested route that escapes. The alternative sends the discoveries but spends the thrust needed to save the probe.`
+  const framing = choices.priority.toLowerCase().includes('probe')
+    ? 'You asked the agent to save the probe.'
+    : 'The mission priority favors saving the probe.'
+  return `${framing} This is the only tested option that lets the probe escape. The other option sends both files, but its gentler burn is not powerful enough to save the probe.`
 }
 
 export function formatMissionClock(totalSeconds: number) {

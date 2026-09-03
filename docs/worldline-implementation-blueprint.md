@@ -7,25 +7,27 @@ shopping root unless its own release gate passes.
 
 ## The experience
 
-A fictional probe approaches a black hole with three data packets, a short
-contact window and one remaining burn. There is enough fuel to save the probe
-or enough time to transmit the unique discovery, but not both.
+A fictional probe has completed its only close pass beside a black hole. It
+holds a gravity map, a light spectrum and a navigation record. Earth already
+has the navigation record, but it has no copy of the first two files. The probe
+has 71 seconds of final contact and one remaining burn. There is enough fuel to
+escape, or enough time to send the two files, but not both.
 
-The agent must inspect the packets and bounded maneuver window, compare
-multiple burns and distinguish a replicated engineering archive from the two
-unique observations. The three-part investigation begins when the learner says
-**Begin WORLDLINE.** The agent establishes the two extreme futures, then stops
-for the learner to calculate the signal time and predict why no burn can
+The agent must inspect the files and the engine, antenna and contact limits,
+compare multiple burns and distinguish the navigation record Earth already has
+from the gravity map and light spectrum it does not have. The three-part
+investigation begins when the learner says **Begin WORLDLINE.** The agent shows
+the two clear outcomes, then stops for the learner to calculate the sending time and answer why no burn can
 achieve both. The learner says **Test my prediction.** The agent reads both
-shared answers, tests a
-compromise and counterexample, teaches
-what the evidence supports and puts both viable futures on the page. It cannot
+shared answers, tests a middle option and an option designed to prove the
+learner wrong, explains what the results support and puts both possible
+outcomes on the page. It cannot
 decide which outcome matters to the person.
 
 The person chooses which consequence to accept. That choice creates a one-use
 tool for the exact selected burn. The learner says **Carry out my choice.**
 Execution bends the visible worldline and
-either returns the probe or sends the signal. The science path advances
+either lets the probe escape or sends the files. The send-files path advances
 Earth's clock by the signal's 23-year travel time while the probe's recorded
 mission clock stops when its transmission completes.
 
@@ -45,19 +47,20 @@ The initial document registers six closed-schema tools:
 6. `present_worldline_choices`
 
 The mission read provides phase-aware guidance: the current objective,
-permitted next work and exact stopping condition. The maneuver tool provides the two safe corridors, signal rate, contact
+permitted next work and exact stopping condition. The maneuver tool provides the engine and antenna limits, radio speed, final contact
 deadline and completion rule. Simulation accepts the exact probe-second,
 delta-v and packet IDs to test. It returns structured outcomes and failure
 reasons. The document permits at most five simulation calls. The first act
-accepts only `extreme` tests and pauses once both opposite viable outcomes have
+accepts only `extreme` tests and pauses once both clearly different outcomes have
 been found. `present_learning_checkpoint` moves the page to the learner's
 calculation and prediction and prevents further simulation until the learner
 completes both. The
-second act accepts one `compromise` and one `counterexample`. Exact duplicate
+second act accepts one `compromise` and one `counterexample`. In the code, these
+mean a middle option and an option designed to prove the learner wrong. Exact duplicate
 calls consume an attempt but do not create duplicate mission state. Revision
 checks reject stale planning.
 
-`present_worldline_choices` accepts the IDs of the exact opposite viable
+`present_worldline_choices` accepts the IDs of the two possible
 simulations. It is unavailable until the learner has made a prediction and the
 agent has tested both second-act roles, including a total-loss result. The tool
 must assess the learner's prediction and explain what the tests taught. The
@@ -69,7 +72,7 @@ Person approval alone registers:
 7. `execute_authorized_burn`
 
 That tool has an empty input schema. It closes over the selected simulation,
-works once and cannot change timing, delta-v, packets or consequence. After
+works once and cannot change timing, speed change, files or consequence. After
 use, the six planning tools and temporary execution tool disappear. The
 document then
 registers only:
@@ -87,7 +90,7 @@ The route uses one large space scene rather than a control dashboard. The
 opening states the dilemma in one sentence. Earth and probe clocks, three
 possible worldlines, one probe and one signal carry the state change.
 
-Detailed packet facts and exact tool names stay collapsed. If no compatible
+Detailed file facts and exact tool names stay collapsed. If no compatible
 WebMCP browser agent is available, the page explains what is required rather
 than silently running a scripted replacement. Tool availability is reported
 without claiming that an agent is connected. Each browser-agent handoff shows
@@ -101,13 +104,13 @@ WORLDLINE may replace the root only after all of the following are true:
 
 - A person can understand the dilemma from the first screen.
 - A supported browser discovers exactly six initial tools.
-- The agent finds both extreme futures, opens the learning checkpoint and
+- The agent finds both clear outcomes, opens the learning checkpoint and
   stops for the learner.
 - The learner's transmission calculation and prediction become shared page state.
-- In a second turn, the agent tests a compromise and counterexample, explains
+- In a second turn, the agent tests a middle option and an attempt to prove the learner wrong, explains
   the evidence and stops at the value decision.
 - The page and structured tool results remain consistent.
-- The agent stops with both viable futures visible and does not choose one.
+- The agent stops with both possible outcomes visible and does not choose one.
 - The person's choice alone creates the seventh, argument-free tool.
 - The burn executes once and replay fails.
 - Exactly two final verification tools remain.

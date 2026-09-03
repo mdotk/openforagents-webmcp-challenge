@@ -6,17 +6,17 @@ Updated 4 September 2026.
 
 WORLDLINE now uses a three-part investigation with three genuine learner-agent exchanges:
 
-1. The agent reads the evidence, tests one probe-return extreme and one
-   science-transmission extreme, opens the learning checkpoint and stops.
+1. The agent reads the mission facts, tests one burn that lets the probe escape
+   and one that sends both files, opens the learning checkpoint and stops.
 2. The learner calculates the signal time and predicts why one burn cannot save
-   both. The agent reads both answers from shared page state, tests a compromise
-   and counterexample, assesses the prediction, teaches the result and stops at
+   both. The agent reads both answers from shared page state, tests a middle
+   option and an attempt to prove the learner wrong, explains the result and stops at
    the value choice.
 3. The learner chooses the future. The agent uses the resulting one-use burn
    and verifies the final receipt.
 
 The state machine prevents the agent from collapsing those exchanges. It will
-not accept compromise tests before the learner calculation and prediction,
+not accept second-stage tests before the learner calculation and answer,
 final choices before both second-act test roles, or execution before the
 learner selects one of the exact tested futures.
 
@@ -30,9 +30,9 @@ The current local candidate passes:
 - 103 tests across 17 files.
 
 The tests cover the five-attempt simulation budget, two mutually exclusive
-viable outcomes, the mandatory learning checkpoint, learner calculation with
+possible outcomes, the mandatory learning checkpoint, learner calculation with
 corrective feedback, four learner predictions,
-the post-prediction compromise and counterexample, prediction assessment,
+the post-answer middle test and attempt to prove it wrong, answer assessment,
 recommendation integrity, one-use execution, replay rejection and the
 6 → 7 → 2 WebMCP tool lifecycle.
 
@@ -51,12 +51,12 @@ my prediction.** and **Carry out my choice.**, and completed all three
 exchanges:
 
 1. Chrome exposed exactly six planning tools. The agent inspected the evidence,
-   tested the probe-return and science-transmission extremes, opened the
+   tested one escape burn and one send-files burn, opened the
    learning checkpoint and stopped.
 2. The learner correctly calculated **25 seconds**, then selected **All three
    conflict** on the page. In a second prompt, the same agent read both shared
-   answers, tested one compromise and one
-   counterexample, assessed the prediction as correct, explained the physical
+   answers, tested one middle option and one attempt to prove the answer wrong,
+   assessed the answer as correct, explained the physical
    conflict, recommended the science route for the selected priority and
    stopped.
 3. The learner chose the science route. Chrome immediately exposed seven tools,
@@ -64,10 +64,10 @@ exchanges:
    once, verified the receipt and left exactly `read_final_state` and
    `verify_transmission_receipt` registered.
 
-The final page reported that both discoveries reached Earth, that this run's
+The final page reported that the gravity map and light spectrum reached Earth, that this run's
 30 MB transmission completed at probe time t+69 seconds, two seconds before
 contact ended, that the signal crossed 23 light-years and that the probe did
-not return. This was one successful run of the exact local candidate in the
+not escape. This was one successful run of the exact local candidate in the
 observed Chrome profile; it is not a claim about every agent or browser.
 
 ## Responsive inspection

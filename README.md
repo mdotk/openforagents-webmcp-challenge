@@ -3,7 +3,8 @@
 WORLDLINE is an interactive science lesson from
 [Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
 the WebMCP Challenge. You and a browser agent explore black holes, light-years
-and possible futures by deciding what a stranded probe can bring home.
+and possible futures by deciding whether a stranded probe escapes or Earth
+receives its two files.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
@@ -29,23 +30,23 @@ then open your browser agent and say:
 
 > Begin WORLDLINE.
 
-The page gives the agent separate packet, propulsion, antenna and signal
-evidence, not the burn values or answer. The first mission read returns the
+The page gives the agent separate information about the files, engine, antenna
+and final contact, not the burn values or answer. The first mission read returns the
 current phase, permitted work and exact stopping point, so the person does not
 have to paste operating instructions. After the agent establishes the two
-extremes, the simulation pauses. The learner first calculates how long the
-signal needs, then predicts why one burn cannot save both. After the learner
+clear outcomes, the simulation pauses. The learner first calculates how long the
+files need to send, then answers why one burn cannot save both. After the learner
 says **Test my prediction**, the agent reads both answers from shared page
-state, tests a compromise and counterexample,
+state, tests a middle option and an option designed to prove the learner wrong,
 then explains what the learner got right. Five simulation calls is a hard
 limit.
 
 The agent can finish its tool calls faster than a person can follow them, so
 the page replays the real shared state as a paced investigation. Each tested
 future appears as a question, attempted maneuver, result, calculation and
-lesson. Only after both investigation acts does the page present two viable
-futures and a recommendation tied to the learner's stated priority.
-The learner chooses whether to preserve the unique discoveries or save the
+lesson. Only after both investigation acts does the page present two possible
+outcomes and a recommendation tied to the learner's stated priority.
+The learner chooses whether to send the two files Earth does not have or save the
 probe. That choice adds one exact execution tool. The learner says **Carry out
 my choice.** The agent uses the approved action once and verifies the result.
 
@@ -58,8 +59,8 @@ is unavailable, the page says so and does not replace the agent's investigation
 with a scripted demonstration.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
-After the approved science burn, the page shows the antenna holding Earth,
-each of the two packets leaving, the contact window closing, the signal
+After the approved send-files burn, the page shows the antenna holding Earth,
+each of the two files leaving, final contact ending, the signal
 crossing 23 light-years and the verified final receipt. The 23-year wait is
 the signal's travel time from a probe 23 light-years away; the experience does
 not invent an unsupported probe-time comparison. Reduced-motion preferences
@@ -72,19 +73,19 @@ investigation stops twice for the person to take part, while the tools expose
 evidence and a simulation rather than burn values or a recommended answer. The
 agent must:
 
-1. inspect separate mission, packet and maneuver evidence;
+1. inspect separate mission, file, engine and antenna information;
 2. choose which facts matter for the learner's stated priority;
-3. stop after the two extremes and ask the learner to calculate the signal time;
-4. ask the learner to predict the cause, then read both answers from shared state;
-5. test a compromise and counterexample, then assess the prediction;
-6. recommend one viable future with an evidence-based reason;
+3. stop after the two clear outcomes and ask the learner to calculate the sending time;
+4. ask the learner why one burn cannot do both, then read both answers from shared state;
+5. test a middle option and try to prove the learner wrong;
+6. recommend one possible outcome and explain why;
 7. stop at the irreversible decision that belongs to the learner.
 
-The learner performs the central calculation on the shared page. Returning the probe
+The learner performs the central calculation on the shared page. Helping the probe escape
 requires a burn by second 42 with at least 3,400 m/s of delta-v. Sending the
-discoveries requires a burn between seconds 44 and 50 at 2,000–2,400 m/s. The
-time and thrust regions never overlap. The page also shows that 30 MB at 1.2
-MB/s takes 25 seconds to transmit.
+files requires a burn between seconds 44 and 50 that changes the probe's speed
+by 2,000 to 2,400 m/s. Those requirements happen at different times. The page
+also shows that 30 MB at 1.2 MB/s takes 25 seconds to send.
 
 The learner's priority, tested ideas, recommendation and execution all
 share the same revisioned mission state. The agent may read the priority but
@@ -105,7 +106,7 @@ The document initially registers six closed-schema tools:
 
 The learner's choice adds only `execute_authorized_burn`. It accepts `{}` and
 closes over the exact selected simulation, so the agent cannot replace its
-timing, velocity, packets or consequence during execution.
+timing, speed change, files or consequence during execution.
 
 After execution, every planning and execution tool disappears. Only
 `read_final_state` and `verify_transmission_receipt` remain.
@@ -154,8 +155,8 @@ aborting the old registration lifetime and registering only the tools valid
 for the new phase.
 
 The schemas reject additional properties. Mutations require the current
-revision. The initial mission read does not reveal the packet evidence, and it
-never returns the temporary authority identity. The one-use execution tool is
+revision. The initial mission read does not reveal the file information, and it
+never returns the internal approval identity. The one-use execution tool is
 registered only after the learner selects one of the two exact simulations on
 the page.
 

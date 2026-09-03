@@ -41,7 +41,7 @@ async function prepareReview(model: FakeModelContext, control: ReturnType<typeof
     burn_at_probe_second: 40,
     delta_v_mps: 3500,
     packet_ids: [],
-    hypothesis: 'An early high-energy burn may return the probe.',
+    hypothesis: 'An early, powerful burn may let the probe escape.',
     expected_outcome: 'probe_return',
     test_role: 'extreme',
   })
@@ -112,7 +112,7 @@ describe('registerWorldlineTools', () => {
       guidance: {
         command: 'Begin WORLDLINE.',
         permittedNextActions: expect.arrayContaining([
-          expect.stringMatching(/inspect the science packets/i),
+          expect.stringMatching(/inspect the three files/i),
           expect.stringMatching(/present_learning_checkpoint/i),
         ]),
       },
@@ -120,7 +120,7 @@ describe('registerWorldlineTools', () => {
 
     await model.invoke('simulate_worldline', {
       expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
-      hypothesis: 'An early high-energy burn may return the probe.', expected_outcome: 'probe_return', test_role: 'extreme',
+      hypothesis: 'An early, powerful burn may let the probe escape.', expected_outcome: 'probe_return', test_role: 'extreme',
     })
     await model.invoke('simulate_worldline', {
       expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
@@ -143,7 +143,7 @@ describe('registerWorldlineTools', () => {
       learnerPrediction: { id: 'combination' },
       guidance: {
         command: 'Test my prediction.',
-        recommendationRule: expect.stringMatching(/recommend the science-transmission future/i),
+        recommendationRule: expect.stringMatching(/recommend sending the gravity map and light spectrum/i),
         permittedNextActions: expect.arrayContaining([
           expect.stringMatching(/test_role compromise/i),
           expect.stringMatching(/test_role counterexample/i),
@@ -207,14 +207,14 @@ describe('registerWorldlineTools', () => {
       burn_at_probe_second: 40,
       delta_v_mps: 3500,
       packet_ids: [],
-      hypothesis: 'An early high-energy burn may return the probe.',
+      hypothesis: 'An early, powerful burn may let the probe escape.',
       expected_outcome: 'probe_return',
       test_role: 'extreme',
     })
 
     expect(activity).toEqual([
-      'Three science packets inspected',
-      'Test complete · the probe can return, but its discoveries cannot',
+      'Three files inspected',
+      'Test complete · the probe can escape, but Earth receives no files',
     ])
     await registration.dispose()
   })
@@ -243,7 +243,7 @@ describe('registerWorldlineTools', () => {
       burn_at_probe_second: 40,
       delta_v_mps: 3500,
       packet_ids: [],
-      hypothesis: 'An early high-energy burn may return the probe.',
+      hypothesis: 'An early, powerful burn may let the probe escape.',
       expected_outcome: 'probe_return',
       test_role: 'extreme',
     })
@@ -277,7 +277,7 @@ describe('registerWorldlineTools', () => {
       expected_outcome: 'probe_return',
       test_role: 'counterexample',
     })
-    expect(final.content[0]?.text).toContain('The compromise and counterexample have tested the learner’s prediction.')
+    expect(final.content[0]?.text).toContain('The middle option and the attempt to disprove the learner’s answer are complete.')
     expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 1 })
     await registration.dispose()
   })

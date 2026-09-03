@@ -12,7 +12,7 @@ function prepareChoices(control: WorldlineControl) {
   control.simulate({ burnAtProbeSecond: 44, deltaVMetersPerSecond: 3400, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'counterexample' }, 6)
   const review = control.presentChoices(probeReturn.id, scienceTransmission.id, 7, {
     recommendedSimulationId: scienceTransmission.id,
-    rationale: 'Both unique packets fit inside the remaining contact window.',
+    rationale: 'Both files fit inside the remaining contact time.',
   }, 'correct', 'The tests show that timing, thrust and antenna direction conflict; changing only one does not save both.')
   return { probeReturn, scienceTransmission, review }
 }
@@ -58,9 +58,9 @@ describe('WORLDLINE mission control', () => {
     control.selectLearnerTransmissionEstimate(25, 3)
     control.selectLearnerPrediction('antenna', 4)
     control.simulate({ burnAtProbeSecond: 43, deltaVMetersPerSecond: 2800, packetIds: ['gravity-map'], testRole: 'compromise' }, 5)
-    expect(() => control.presentChoices(escape.id, science.id, 6, { recommendedSimulationId: science.id, rationale: 'Unique evidence wins.' }, 'partly_correct', 'The antenna matters, alongside timing and thrust.')).toThrow('counterexample')
+    expect(() => control.presentChoices(escape.id, science.id, 6, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, alongside timing and thrust.')).toThrow('designed to prove their answer wrong')
     control.simulate({ burnAtProbeSecond: 44, deltaVMetersPerSecond: 3400, packetIds: ['gravity-map', 'horizon-spectrum'], testRole: 'counterexample' }, 6)
-    control.presentChoices(escape.id, science.id, 7, { recommendedSimulationId: science.id, rationale: 'Unique evidence wins.' }, 'partly_correct', 'The antenna matters, but the timing and thrust corridors also fail to overlap.')
+    control.presentChoices(escape.id, science.id, 7, { recommendedSimulationId: science.id, rationale: 'Earth needs the two files.' }, 'partly_correct', 'The antenna matters, but the timing and thrust requirements also fail to overlap.')
     expect(control.getSnapshot().choices).toMatchObject({ predictionAssessment: 'partly_correct', teachingExplanation: expect.stringContaining('timing and thrust') })
   })
 
@@ -82,7 +82,7 @@ describe('WORLDLINE mission control', () => {
 
   it('records whether evidence confirmed or revised a hypothesis', () => {
     const control = createWorldlineControl()
-    const confirmed = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], hypothesis: 'An early high-energy burn may return the probe.', expectedOutcome: 'probe_return', testRole: 'extreme' }, 0)
+    const confirmed = control.simulate({ burnAtProbeSecond: 40, deltaVMetersPerSecond: 3500, packetIds: [], hypothesis: 'An early, powerful burn may let the probe escape.', expectedOutcome: 'probe_return', testRole: 'extreme' }, 0)
     const revised = control.simulate({ burnAtProbeSecond: 55, deltaVMetersPerSecond: 2600, packetIds: [], hypothesis: 'A late burn may send the science.', expectedOutcome: 'science_transmission', testRole: 'extreme' }, 1)
     expect(confirmed.expectationMatched).toBe(true)
     expect(revised).toMatchObject({ expectationMatched: false, outcome: 'total_loss' })
@@ -110,7 +110,7 @@ describe('WORLDLINE mission control', () => {
     const receipt = control.executeAuthorizedBurn(grant.id)
     expect(receipt).toMatchObject({ simulationId: scienceTransmission.id, verified: true, earthArrivalYears: 23, probeElapsedSeconds: 71 })
     expect(control.getSnapshot()).toMatchObject({ phase: 'executed', activeGrant: null, contactSecondsRemaining: 0, review: { status: 'consumed' } })
-    expect(() => control.executeAuthorizedBurn(grant.id)).toThrow('one-use burn authority is not active')
+    expect(() => control.executeAuthorizedBurn(grant.id)).toThrow('There is no approved burn ready to run')
   })
 
   it('executes the probe-return future without inventing a transmission', () => {

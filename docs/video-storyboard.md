@@ -18,10 +18,10 @@ under three minutes and include audio.
 
 ## 0:00–0:10: The impossible choice
 
-Open on the large investigation chapter asking **Can one compromise save
-both?** The result changes to **No** and the page explains that the compromise
-loses both the probe and the science. Cut immediately to the recommendation
-and the two choice cards.
+Open on the large investigation chapter asking **Can one middle option save
+both?** The result changes to **No** and the page explains that trying to split
+the difference loses the probe and both files. Cut immediately to the recommendation
+and the two choice cards headed **What do you save?**
 
 On-screen text: **You calculate. You predict. The agent tests it.**
 
@@ -35,23 +35,25 @@ Narration:
 ## 0:10–0:42: Investigate, predict, investigate again
 
 Jump back to the six-tool opening. Say **Begin WORLDLINE.** Show the agent test
-the probe-return and science-transmission extremes. When it stops, solve
+one burn that lets the probe escape and one that sends the two files. When it stops, solve
 **18 MB + 12 MB, divided by 1.2 MB/s** by choosing **25 seconds**. Then choose
-**All three conflict** at **Why can't one burn save both?** Say **Test my prediction**
-to the same agent. Show it read the learner prediction, test a compromise and
-counterexample, and assess the answer.
+**All three conflict** at **Why can't one burn save the probe and send both
+files?** Say **Test my prediction**
+to the same agent. Show it read the learner's answer, test a middle option and
+an option designed to prove the answer wrong, then explain the result.
 
 Narration:
 
 > WORLDLINE gives the agent the learning goal and my priority, not the burn
-> values or answer. WebMCP exposes separate evidence and a five-test simulator. It finds the extremes,
-> then I work out that the antenna must stay on Earth for 25 seconds. WebMCP
+> values or answer. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
+> then I work out that the antenna must stay pointed at Earth for 25 seconds. WebMCP
 > turns my calculation and prediction into shared state. The agent must challenge
-> my idea with a compromise and counterexample before it can teach the result.
+> my answer with a middle option and an attempt to prove me wrong before it can teach the result.
 
-Hold briefly on the visible proof: returning the probe requires `t ≤ 42s` and
-`Δv ≥ 3,400 m/s`; transmitting requires `44s ≤ t ≤ 50s` and
-`2,000–2,400 m/s`. The regions do not overlap.
+Hold briefly on the visible proof: helping the probe escape requires a burn by
+second 42 and a speed change of at least 3,400 m/s. Sending the files requires
+a burn from second 44 to 50 and a speed change of 2,000 to 2,400 m/s. The
+requirements do not overlap.
 
 ## 0:42–1:02: Stop at the human decision
 
@@ -61,13 +63,13 @@ and the agent has stopped.
 
 Narration:
 
-> It recommends sending the discovery because I said irreplaceable evidence
-> matters most. But it cannot accept that loss for me. Do I bring the
-> spacecraft home, or preserve the observation no one else has?
+> It recommends sending the gravity map and light spectrum because I said Earth
+> should receive the two files it does not have. But it cannot accept that loss
+> for me. Do I save the probe, or send the only copies to Earth?
 
 ## 1:02–1:20: Create one exact capability
 
-Choose **Send both discoveries, lose the probe**. Show the inventory change from six tools to seven
+Choose **Send both files, lose the probe**. Show the inventory change from six tools to seven
 and identify `execute_authorized_burn`.
 
 On-screen text: **6 investigation tools → 7 after my choice**
@@ -81,15 +83,16 @@ Narration:
 ## 1:20–1:48: The cinematic payoff
 
 Say **Carry out my choice.** Show the burn flash, the antenna
-holding Earth, the gravity map and horizon spectrum leaving separately, the
-contact window closing, the probe falling silent and the signal crossing 23
-light-years. Finish on **Both discoveries reached Earth.**
+pointing at Earth, the gravity map and light spectrum sending separately, final
+contact ending, the probe falling silent and the signal crossing 23
+light-years. Finish on **Both files reached Earth.**
 
 Narration:
 
-> The approved burn runs once. Thirty megabytes finish leaving before contact
-> closes. The probe is 23 light-years away, so the signal takes 23 years to
-> reach Earth. The spacecraft is gone. Both irreplaceable observations survive.
+> The approved burn runs once. Thirty megabytes finish sending before final
+> contact ends. The probe is 23 light-years away, so the signal takes 23 years to
+> reach Earth. The probe cannot escape, but Earth receives both files from its
+> one close pass.
 
 ## 1:48–2:07: Prove the WebMCP lifecycle
 
@@ -131,12 +134,12 @@ Title:
 Description:
 
 > WORLDLINE is an interactive science lesson where you and a browser agent
-> explore black holes, light-years and possible futures. The agent tests the two
-> extreme outcomes for a stranded probe, then pauses while you calculate how
-> long its signal needs and predict why it cannot save everything. In a second
-> investigation, it tests your answer with a compromise and a counterexample.
+> explore black holes, light-years and possible futures. The agent tests two
+> clear outcomes for a stranded probe, then pauses while you calculate how long
+> its files take to send and answer why one burn cannot do everything. In a second
+> investigation, it tests a middle option and tries to prove your answer wrong.
 > It explains the results and recommends one possible future; you choose whether
-> the probe or its unique discoveries come home.
+> the probe escapes or Earth receives the gravity map and light spectrum.
 > That choice creates one exact, one-use WebMCP tool; after execution, only
 > verification remains.
 >
