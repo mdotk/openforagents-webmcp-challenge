@@ -1,11 +1,13 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WebMcpTool } from './types'
 import WorldlineApp from './WorldlineApp'
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
+  Reflect.deleteProperty(window, 'matchMedia')
   delete (document as Document & { modelContext?: unknown }).modelContext
 })
 
@@ -129,7 +131,16 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByLabelText('Final instruction for your browser agent')).toHaveTextContent('Carry out my choice.')
     expect(screen.queryByRole('button', { name: /execute burn/i })).not.toBeInTheDocument()
     expect(screen.getByText(/agent—not this page—must use the one-use burn/i)).toBeVisible()
-    await model.tools.get('execute_authorized_burn')!.execute({})
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: false }),
+    })
+    vi.useFakeTimers()
+    await act(async () => { await model.tools.get('execute_authorized_burn')!.execute({}) })
+    await act(async () => { vi.advanceTimersByTime(4_500) })
+    expect(screen.getByText(/finishes leaving as contact ends/i)).toBeVisible()
+    await act(async () => { vi.advanceTimersByTime(7_500) })
+    vi.useRealTimers()
     await waitFor(() => expect(model.tools).toHaveLength(2))
     expect(screen.getByText('WebMCP ready · 2 tools')).toBeVisible()
     expect(model.tools.has('verify_transmission_receipt')).toBe(true)

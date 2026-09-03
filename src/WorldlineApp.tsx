@@ -311,7 +311,7 @@ export default function WorldlineApp() {
   const selectedTransmissionFinish = selectedSimulation?.transmissionCompletesAtProbeSecond
   const selectedContactMargin = selectedTransmissionFinish === null || selectedTransmissionFinish === undefined
     ? null
-    : snapshot.contactSecondsRemaining - selectedTransmissionFinish
+    : WORLDLINE_CONSTRAINTS.contactEndsAtProbeSecond - selectedTransmissionFinish
   const escapeTested = visibleSimulations.some((simulation) => simulation.probeSurvives)
   const lossTested = visibleSimulations.some((simulation) => !simulation.viable)
   const signalTested = visibleSimulations.some((simulation) => simulation.discoveryDelivered)
@@ -356,9 +356,6 @@ export default function WorldlineApp() {
   return (
     <main className={`worldline worldline--${stage} worldline--beat-${executionBeat}${snapshot.receipt ? ` worldline--outcome-${scienceReachedEarth ? 'signal' : 'escape'}` : ''}`}>
       <section className="worldline-scene" aria-labelledby="worldline-title">
-        <img className="worldline-space" src="/worldline/space-background.webp" alt="" />
-        <div className="worldline-vignette" />
-
         <header className="worldline-header">
           <a className="worldline-mark" href="/" aria-label="Restart WORLDLINE">
             <Planet aria-hidden="true" />
@@ -378,45 +375,62 @@ export default function WorldlineApp() {
           </div>
         </header>
 
-        <div className="worldline-clocks" aria-label="Mission clocks">
-          <div>
-            <span>EARTH</span>
-            {snapshot.receipt?.earthArrivalYears ? (
-              <strong className="worldline-year-clock" aria-label={`${snapshot.receipt.earthArrivalYears} years`}>
-                <span className="worldline-year-clock__window" aria-hidden="true">
-                  <span className="worldline-year-clock__track">
-                    {yearTicks.map((year) => <span key={year}>+{String(year).padStart(2, '0')} YEARS</span>)}
+        <div className="worldline-cinematic">
+          <img className="worldline-space" src="/worldline/space-background.webp" alt="" />
+          <div className="worldline-vignette" />
+          <div className="worldline-star-drift" aria-hidden="true" />
+
+          <div className="worldline-clocks" aria-label="Mission clocks">
+            <div>
+              <span>EARTH</span>
+              {snapshot.receipt?.earthArrivalYears ? (
+                <strong className="worldline-year-clock" aria-label={`${snapshot.receipt.earthArrivalYears} years`}>
+                  <span className="worldline-year-clock__window" aria-hidden="true">
+                    <span className="worldline-year-clock__track">
+                      {yearTicks.map((year) => <span key={year}>+{String(year).padStart(2, '0')} YEARS</span>)}
+                    </span>
                   </span>
-                </span>
-              </strong>
-            ) : <strong>00:00:00</strong>}
+                </strong>
+              ) : <strong>00:00:00</strong>}
+            </div>
+            <div>
+              <span>PROBE</span>
+              <strong>{snapshot.receipt ? formatMissionClock(snapshot.receipt.probeElapsedSeconds) : '00:00:00'}</strong>
+            </div>
           </div>
-          <div>
-            <span>PROBE</span>
-            <strong>{snapshot.receipt ? formatMissionClock(snapshot.receipt.probeElapsedSeconds) : '00:00:00'}</strong>
-          </div>
+
+          <svg className="worldline-paths" viewBox="0 0 1000 560" aria-hidden="true">
+            <defs>
+              <linearGradient id="worldline-signal-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#8c76ff" stopOpacity=".35" />
+                <stop offset=".55" stopColor="#c7bcff" />
+                <stop offset="1" stopColor="#8bf2c9" />
+              </linearGradient>
+            </defs>
+            <path data-testid="worldline-path-escape" pathLength="1" className={`worldline-path worldline-path--escape${escapeTested ? ' is-tested' : ''}`} d="M 390 300 C 410 205, 535 125, 735 150" />
+            <path data-testid="worldline-path-lost" pathLength="1" className={`worldline-path worldline-path--lost${lossTested ? ' is-tested' : ''}`} d="M 390 300 C 320 300, 245 320, 145 334" />
+            <path className="worldline-path worldline-path--signal-glow" d="M 390 300 C 555 250, 740 220, 925 175" />
+            <path data-testid="worldline-path-signal" pathLength="1" className={`worldline-path worldline-path--signal${signalTested ? ' is-tested' : ''}`} d="M 390 300 C 555 250, 740 220, 925 175" />
+            <circle className="worldline-signal" cx="925" cy="175" r="6" />
+            {snapshot.receipt && scienceReachedEarth && executionBeat === 'packet-one' ? (
+              <circle r="8" className="worldline-transmission-packet">
+                <animateMotion dur="1.55s" fill="freeze" path="M 390 300 C 555 250, 740 220, 925 175" />
+              </circle>
+            ) : null}
+            {snapshot.receipt && scienceReachedEarth && executionBeat === 'packet-two' ? (
+              <circle r="8" className="worldline-transmission-packet worldline-transmission-packet--second">
+                <animateMotion dur="1.65s" fill="freeze" path="M 390 300 C 555 250, 740 220, 925 175" />
+              </circle>
+            ) : null}
+          </svg>
+
+          <div className="worldline-antenna-lock" aria-hidden="true"><span /><span /></div>
+          <div className="worldline-contact-horizon" aria-hidden="true"><span>CONTACT WINDOW</span></div>
+          <img className="worldline-probe" src="/worldline/probe.webp" alt="The probe approaching the black hole" />
+          <div className="worldline-burn-flash" aria-hidden="true" />
+          <div className="worldline-earth-impact" aria-hidden="true" />
+          <div className="worldline-cinematic-status" aria-live="polite"><span>{activeCaption}</span></div>
         </div>
-
-        <svg className="worldline-paths" viewBox="0 0 1000 560" aria-hidden="true">
-          <path data-testid="worldline-path-escape" pathLength="1" className={`worldline-path worldline-path--escape${escapeTested ? ' is-tested' : ''}`} d="M 532 300 C 500 210, 590 125, 765 150" />
-          <path data-testid="worldline-path-lost" pathLength="1" className={`worldline-path worldline-path--lost${lossTested ? ' is-tested' : ''}`} d="M 532 300 C 445 300, 355 320, 238 334" />
-          <path data-testid="worldline-path-signal" pathLength="1" className={`worldline-path worldline-path--signal${signalTested ? ' is-tested' : ''}`} d="M 532 300 C 650 250, 770 220, 925 175" />
-          <circle className="worldline-signal" cx="915" cy="175" r="6" />
-          {snapshot.receipt && scienceReachedEarth && ['packet-one', 'packet-two', 'contact', 'transit', 'arrival'].includes(executionBeat) ? (
-            <g className="worldline-transmission-packets">
-              <circle r="7" className="worldline-transmission-packet">
-                <animateMotion dur="2.2s" fill="freeze" path="M 532 300 C 650 250, 770 220, 925 175" />
-              </circle>
-              <circle r="5" className="worldline-transmission-packet worldline-transmission-packet--second">
-                <animateMotion begin=".18s" dur="2.2s" fill="freeze" path="M 532 300 C 650 250, 770 220, 925 175" />
-              </circle>
-            </g>
-          ) : null}
-        </svg>
-
-        <img className="worldline-probe" src="/worldline/probe.webp" alt="The probe approaching the black hole" />
-        <div className="worldline-burn-flash" aria-hidden="true" />
-        <div className="worldline-earth-impact" aria-hidden="true" />
 
         <section className="worldline-story" aria-live="polite">
           {stage === 'waiting' && (
@@ -713,7 +727,6 @@ export default function WorldlineApp() {
           )}
         </section>
 
-        <div className="worldline-status" aria-live="polite">{activeCaption}</div>
       </section>
 
       <section className="worldline-below">

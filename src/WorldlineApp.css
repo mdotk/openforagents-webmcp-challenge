@@ -17,6 +17,16 @@
   background: #020409;
 }
 
+.worldline-cinematic {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #020409;
+  transition: right 1s cubic-bezier(.2, .72, .08, 1), filter 1s ease;
+}
+
 .worldline-space,
 .worldline-vignette {
   position: absolute;
@@ -29,6 +39,8 @@
   z-index: -4;
   object-fit: cover;
   object-position: center;
+  transform: scale(1.015);
+  transition: transform 2.2s cubic-bezier(.2, .72, .08, 1), filter 1.4s ease;
 }
 
 .worldline-vignette {
@@ -38,7 +50,21 @@
     linear-gradient(0deg, rgba(1, 3, 8, .74) 0%, transparent 42%, rgba(1, 3, 8, .42) 100%);
 }
 
+.worldline-star-drift {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(103deg, transparent 0 6.5rem, rgba(218, 211, 255, .52) 6.54rem 6.58rem, transparent 6.63rem 10rem);
+  mask-image: linear-gradient(90deg, transparent 8%, #000 30%, #000 90%, transparent);
+  transform: translateX(-18%) skewX(-16deg);
+}
+
 .worldline-header {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -83,6 +109,7 @@
 
 .worldline-clocks {
   position: absolute;
+  z-index: 4;
   top: 6.2rem;
   left: clamp(1.25rem, 4vw, 4.5rem);
   display: flex;
@@ -143,6 +170,15 @@
 .worldline-path--lost { stroke: #ef6b7e; }
 .worldline-path--signal { stroke: #a997ff; }
 
+.worldline-path--signal-glow {
+  stroke: url(#worldline-signal-gradient);
+  stroke-width: 14;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  filter: blur(8px);
+}
+
 .worldline-path.is-tested {
   stroke-dashoffset: 0;
   opacity: .55;
@@ -150,7 +186,7 @@
 
 .worldline--decision .worldline-path--signal,
 .worldline--authorized .worldline-path--signal,
-.worldline--outcome-signal .worldline-path--signal {
+.worldline--received.worldline--outcome-signal .worldline-path--signal {
   opacity: 1;
   stroke-dashoffset: 0;
   stroke-width: 4;
@@ -161,6 +197,15 @@
 .worldline--decision .worldline-path--lost,
 .worldline--authorized .worldline-path--escape,
 .worldline--authorized .worldline-path--lost { opacity: .15; }
+
+.worldline--executing .worldline-path--escape,
+.worldline--executing .worldline-path--lost { opacity: .1; }
+
+.worldline--executing.worldline--beat-burn .worldline-path--signal { opacity: 0; }
+.worldline--executing.worldline--beat-lock .worldline-path--signal {
+  opacity: .16;
+  stroke-dashoffset: 0;
+}
 
 .worldline-signal {
   fill: #d5cbff;
@@ -182,9 +227,20 @@
   stroke-dasharray: .045 .035;
 }
 
+.worldline--executing.worldline--beat-packet-one .worldline-path--signal-glow,
+.worldline--executing.worldline--beat-packet-two .worldline-path--signal-glow,
+.worldline--executing.worldline--beat-contact .worldline-path--signal-glow,
+.worldline--executing.worldline--beat-transit .worldline-path--signal-glow,
+.worldline--executing.worldline--beat-arrival .worldline-path--signal-glow,
+.worldline--received.worldline--outcome-signal .worldline-path--signal-glow {
+  opacity: .48;
+}
+
 .worldline-transmission-packet {
   fill: #f3efff;
-  filter: drop-shadow(0 0 8px #c6baff) drop-shadow(0 0 18px #a28eff);
+  stroke: rgba(255, 255, 255, .9);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 8px #c6baff) drop-shadow(0 0 24px #a28eff);
 }
 
 .worldline-transmission-packet--second { fill: #9ef3d3; }
@@ -193,12 +249,13 @@
   position: absolute;
   z-index: 0;
   top: 41%;
-  left: 49%;
+  left: 39%;
   width: clamp(10rem, 20vw, 19rem);
   height: auto;
   transform: translate(-50%, -50%);
   filter: drop-shadow(0 1rem 2rem rgba(0,0,0,.75));
-  transition: transform 1.3s cubic-bezier(.2,.7,.1,1), opacity 1s ease;
+  transition: transform 1.4s cubic-bezier(.16,.78,.1,1), opacity 1s ease, filter .7s ease;
+  will-change: transform, opacity;
 }
 
 .worldline--authorized .worldline-probe { transform: translate(-50%, -50%) rotate(-4deg) scale(.96); }
@@ -206,7 +263,7 @@
 .worldline--outcome-escape .worldline-probe { transform: translate(25%, -95%) rotate(-34deg) scale(.82); }
 
 .worldline--executing.worldline--beat-burn .worldline-probe {
-  transform: translate(-50%, -50%) rotate(-8deg) scale(1.04);
+  animation: worldline-probe-burn 1.15s cubic-bezier(.16,.78,.1,1) both;
   opacity: 1;
   filter: drop-shadow(0 0 1.5rem rgba(229, 210, 255, .9)) drop-shadow(0 1rem 2rem rgba(0,0,0,.75));
 }
@@ -229,7 +286,7 @@
   position: absolute;
   z-index: 1;
   top: 47%;
-  left: 43%;
+  left: 32.5%;
   width: clamp(5rem, 10vw, 10rem);
   aspect-ratio: 1;
   border-radius: 50%;
@@ -239,6 +296,102 @@
   background: radial-gradient(circle, #fff 0 5%, #c7b9ff 9%, rgba(132, 103, 255, .52) 25%, transparent 68%);
 }
 
+.worldline-antenna-lock {
+  position: absolute;
+  z-index: 2;
+  top: 41%;
+  left: 39%;
+  width: clamp(12rem, 23vw, 22rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(155, 243, 207, .7);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.6);
+}
+
+.worldline-antenna-lock::before,
+.worldline-antenna-lock::after,
+.worldline-antenna-lock span {
+  position: absolute;
+  content: '';
+}
+
+.worldline-antenna-lock::before {
+  inset: 16%;
+  border: 1px dashed rgba(200, 255, 233, .72);
+  border-radius: 50%;
+}
+
+.worldline-antenna-lock::after {
+  top: 50%;
+  right: -12%;
+  left: -12%;
+  border-top: 1px solid rgba(155, 243, 207, .45);
+}
+
+.worldline-antenna-lock span:first-child {
+  top: -12%;
+  bottom: -12%;
+  left: 50%;
+  border-left: 1px solid rgba(155, 243, 207, .45);
+}
+
+.worldline-antenna-lock span:last-child {
+  top: 50%;
+  left: 50%;
+  width: .55rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #dffbef;
+  box-shadow: 0 0 1rem #8bf2c9;
+  transform: translate(-50%, -50%);
+}
+
+.worldline--executing.worldline--beat-lock .worldline-antenna-lock {
+  animation: worldline-lock-acquired 1.2s cubic-bezier(.2,.72,.08,1) both;
+}
+
+.worldline--executing.worldline--beat-packet-one .worldline-antenna-lock,
+.worldline--executing.worldline--beat-packet-two .worldline-antenna-lock {
+  opacity: .32;
+  transform: translate(-56%, -44%) rotate(-10deg) scale(.82);
+}
+
+.worldline-contact-horizon {
+  position: absolute;
+  z-index: 1;
+  top: 20%;
+  right: 6.8%;
+  bottom: 20%;
+  width: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(transparent, rgba(155, 243, 207, .75) 15% 85%, transparent);
+  box-shadow: 0 0 1rem rgba(139, 242, 201, .55);
+}
+
+.worldline-contact-horizon span {
+  position: absolute;
+  top: -.1rem;
+  right: .8rem;
+  width: max-content;
+  color: rgba(196, 250, 228, .92);
+  font-size: .58rem;
+  font-weight: 760;
+  letter-spacing: .16em;
+}
+
+.worldline--executing.worldline--beat-lock .worldline-contact-horizon,
+.worldline--executing.worldline--beat-packet-one .worldline-contact-horizon,
+.worldline--executing.worldline--beat-packet-two .worldline-contact-horizon {
+  opacity: .62;
+}
+
+.worldline--executing.worldline--beat-contact .worldline-contact-horizon {
+  animation: worldline-contact-close 1.2s ease-in both;
+}
+
 .worldline--executing.worldline--beat-burn .worldline-burn-flash {
   animation: worldline-burn .8s cubic-bezier(.15,.75,.2,1) both;
 }
@@ -246,8 +399,8 @@
 .worldline-earth-impact {
   position: absolute;
   z-index: 1;
-  top: 24%;
-  right: 4.7%;
+  top: 32%;
+  right: 4.3%;
   width: clamp(2.5rem, 5vw, 5rem);
   aspect-ratio: 1;
   border: 1px solid rgba(213, 203, 255, .8);
@@ -265,10 +418,56 @@
 
 .worldline-story {
   position: absolute;
+  z-index: 3;
   right: clamp(1.25rem, 6vw, 7rem);
   top: 50%;
   width: min(36rem, 42vw);
   transform: translateY(-42%);
+}
+
+.worldline--executing .worldline-cinematic,
+.worldline--received .worldline-cinematic {
+  right: clamp(24rem, 38vw, 40rem);
+  border-right: 1px solid rgba(202, 194, 255, .18);
+  box-shadow: 1.5rem 0 5rem rgba(0, 0, 0, .5);
+}
+
+.worldline--executing .worldline-story,
+.worldline--received .worldline-story {
+  top: 50%;
+  right: clamp(1.5rem, 3.2vw, 3.5rem);
+  width: min(33rem, calc(38vw - 4rem));
+  transform: translateY(-43%);
+}
+
+.worldline--executing .worldline-story h1,
+.worldline--received .worldline-story h1 {
+  font-size: clamp(3rem, 4.6vw, 5.3rem);
+}
+
+.worldline--executing .worldline-vignette,
+.worldline--received .worldline-vignette {
+  background:
+    linear-gradient(90deg, rgba(1,3,8,.05), rgba(1,3,8,.12) 68%, rgba(1,3,8,.6)),
+    linear-gradient(0deg, rgba(1,3,8,.72), transparent 35%, rgba(1,3,8,.42));
+}
+
+.worldline--executing.worldline--beat-burn .worldline-space {
+  transform: scale(1.07);
+  filter: saturate(1.18) brightness(1.06);
+}
+
+.worldline--executing.worldline--beat-transit .worldline-space {
+  transform: scale(1.18) translateX(-2%);
+  filter: saturate(1.28) contrast(1.06);
+}
+
+.worldline--executing.worldline--beat-transit .worldline-star-drift {
+  animation: worldline-stars-transit 1.5s cubic-bezier(.2,.72,.08,1) both;
+}
+
+.worldline--executing.worldline--beat-arrival .worldline-cinematic {
+  animation: worldline-arrival-wash 1.5s ease-out both;
 }
 
 .worldline--waiting .worldline-scene { min-height: 74rem; }
@@ -910,14 +1109,29 @@
 .worldline-learning-recap strong { color: #d8cfff; font-size: .78rem; }
 .worldline-learning-recap span { color: #e4e0e8; font-size: .82rem; line-height: 1.5; }
 
-.worldline-status {
+.worldline-cinematic-status {
   position: absolute;
+  z-index: 4;
   left: clamp(1.25rem, 4vw, 4.5rem);
   bottom: 1.6rem;
-  color: rgba(255,255,255,.8);
-  font-size: .72rem;
-  font-weight: 700;
+  max-width: calc(100% - 3rem);
+}
+
+.worldline-cinematic-status span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: .55rem .72rem;
+  border: 1px solid rgba(255,255,255,.19);
+  border-radius: 999px;
+  color: rgba(255,255,255,.92);
+  background: rgba(3,5,11,.72);
+  box-shadow: 0 .5rem 1.8rem rgba(0,0,0,.34);
+  backdrop-filter: blur(12px);
+  font-size: .66rem;
+  font-weight: 760;
   letter-spacing: .12em;
+  line-height: 1.25;
   text-transform: uppercase;
 }
 
@@ -955,6 +1169,37 @@
   100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
 }
 
+@keyframes worldline-probe-burn {
+  0% { transform: translate(-50%, -50%) rotate(-4deg) scale(.96); }
+  18% { transform: translate(-54%, -48%) rotate(-9deg) scale(1.07); }
+  45% { transform: translate(-47%, -52%) rotate(-6deg) scale(1.02); }
+  100% { transform: translate(-58%, -44%) rotate(-13deg) scale(.92); }
+}
+
+@keyframes worldline-lock-acquired {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-18deg) scale(.48); }
+  42% { opacity: .9; }
+  72% { opacity: .64; transform: translate(-57%, -43%) rotate(-8deg) scale(.92); }
+  100% { opacity: .5; transform: translate(-56%, -44%) rotate(-10deg) scale(.82); }
+}
+
+@keyframes worldline-contact-close {
+  0% { opacity: .62; transform: scaleY(1); }
+  55% { opacity: 1; transform: scaleY(.2); }
+  100% { opacity: 0; transform: scaleY(0); }
+}
+
+@keyframes worldline-stars-transit {
+  0% { opacity: 0; transform: translateX(-18%) skewX(-16deg) scaleX(.45); }
+  35% { opacity: .55; }
+  100% { opacity: 0; transform: translateX(24%) skewX(-16deg) scaleX(1.35); }
+}
+
+@keyframes worldline-arrival-wash {
+  0%, 100% { filter: brightness(1); }
+  30% { filter: brightness(1.5) saturate(1.25); }
+}
+
 @keyframes worldline-signal-flow {
   to { stroke-dashoffset: -.08; }
 }
@@ -967,35 +1212,73 @@
 }
 
 @media (max-width: 850px) {
-  .worldline-scene { min-height: 900px; }
-  .worldline-clocks { top: 5.5rem; }
+  .worldline-scene,
+  .worldline--waiting .worldline-scene,
+  .worldline--prediction .worldline-scene,
+  .worldline--prediction-handoff .worldline-scene,
+  .worldline--authorized .worldline-scene,
+  .worldline--investigating .worldline-scene,
+  .worldline--decision .worldline-scene,
+  .worldline--executing .worldline-scene,
+  .worldline--received .worldline-scene {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .worldline-cinematic,
+  .worldline--executing .worldline-cinematic,
+  .worldline--received .worldline-cinematic {
+    position: relative;
+    inset: auto;
+    right: auto;
+    width: 100%;
+    height: clamp(25rem, 63vw, 34rem);
+    border-right: 0;
+    border-bottom: 1px solid rgba(202,194,255,.18);
+    box-shadow: 0 1.5rem 5rem rgba(0,0,0,.42);
+  }
+
+  .worldline-clocks { top: 1.35rem; }
   .worldline-story {
-    top: auto;
-    right: 1.2rem;
-    bottom: 4.5rem;
-    left: 1.2rem;
-    width: auto;
+    position: relative;
+    inset: auto;
+    width: 100%;
     transform: none;
-    padding: 1.2rem;
-    border: 1px solid rgba(255,255,255,.14);
-    border-radius: .65rem;
-    background: rgba(3,5,10,.74);
-    backdrop-filter: blur(16px);
+    padding: 2.4rem 1.2rem 3.5rem;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(180deg, #070912, #04060b);
+    backdrop-filter: none;
   }
   .worldline-story h1 { font-size: clamp(2.7rem, 12vw, 4.5rem); }
-  .worldline--investigating .worldline-story { width: auto; transform: none; }
-  .worldline--decision .worldline-story { width: auto; }
-  .worldline--decision .worldline-scene { min-height: 92rem; }
-  .worldline--decision .worldline-story { top: 8rem; bottom: auto; transform: none; }
+  .worldline--investigating .worldline-story,
+  .worldline--decision .worldline-story,
   .worldline--prediction .worldline-story,
-  .worldline--prediction-handoff .worldline-story { width: auto; }
+  .worldline--prediction-handoff .worldline-story,
+  .worldline--authorized .worldline-story,
+  .worldline--executing .worldline-story,
+  .worldline--received .worldline-story {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    padding: 2.4rem 1.2rem 3.5rem;
+    transform: none;
+  }
   .worldline-evidence { grid-template-columns: 1fr; }
   .worldline-execution-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .worldline-receipt { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .worldline-probe { top: 34%; left: 55%; width: min(44vw, 15rem); }
-  .worldline-paths { top: 4rem; height: 58%; transform: scale(1.35); transform-origin: center; }
+  .worldline-probe { top: 54%; left: 39%; width: min(34vw, 13rem); }
+  .worldline-antenna-lock { top: 54%; left: 39%; width: min(40vw, 16rem); }
+  .worldline-burn-flash { top: 60%; left: 31%; }
+  .worldline-paths { inset: 0; width: 100%; height: 100%; transform: scale(1.08); transform-origin: center; }
   .worldline-below { grid-template-columns: 1fr; gap: 1.5rem; }
-  .worldline-status { right: 1.2rem; bottom: 1.3rem; left: auto; }
+  .worldline-cinematic-status { right: 1.2rem; bottom: 1.3rem; left: auto; }
+
+  .worldline--executing .worldline-story h1,
+  .worldline--received .worldline-story h1 {
+    font-size: clamp(3rem, 11vw, 4.8rem);
+  }
+
 }
 
 @media (max-width: 540px) {
@@ -1003,24 +1286,38 @@
   .worldline-mark { font-size: .7rem; }
   .worldline-tools span:last-child { font-size: .68rem; }
   .worldline-space { object-position: 42% center; }
-  .worldline-clocks { top: 4.6rem; left: 1rem; right: 1rem; justify-content: space-between; }
+  .worldline-clocks { top: 1rem; left: 1rem; right: 1rem; justify-content: space-between; }
   .worldline-clocks strong { font-size: .82rem; }
-  .worldline-scene { min-height: 840px; }
-  .worldline--waiting .worldline-scene { min-height: 82rem; }
-  .worldline--prediction .worldline-scene { min-height: 66rem; }
+  .worldline-scene,
+  .worldline--waiting .worldline-scene,
+  .worldline--prediction .worldline-scene,
   .worldline--prediction-handoff .worldline-scene,
-  .worldline--authorized .worldline-scene { min-height: 74rem; }
-  .worldline--investigating .worldline-scene { min-height: 102rem; }
-  .worldline-probe { top: 13rem; left: 69%; width: min(32vw, 8rem); }
-  .worldline-paths { top: 3.5rem; height: 43%; }
-  .worldline-story { top: 8.5rem; right: .75rem; bottom: auto; left: .75rem; padding: 1rem; }
+  .worldline--authorized .worldline-scene,
+  .worldline--investigating .worldline-scene,
+  .worldline--decision .worldline-scene,
+  .worldline--executing .worldline-scene,
+  .worldline--received .worldline-scene { min-height: 0; }
+  .worldline-cinematic,
+  .worldline--executing .worldline-cinematic,
+  .worldline--received .worldline-cinematic { height: 24rem; }
+  .worldline-probe,
+  .worldline--executing .worldline-probe,
+  .worldline--received .worldline-probe { top: 54%; left: 39%; width: min(38vw, 10rem); }
+  .worldline-antenna-lock,
+  .worldline--executing .worldline-antenna-lock,
+  .worldline--received .worldline-antenna-lock { top: 54%; left: 39%; width: min(48vw, 13rem); }
+  .worldline-paths,
+  .worldline--executing .worldline-paths,
+  .worldline--received .worldline-paths { inset: 0; height: 100%; transform: scale(1.12); }
+  .worldline-story,
+  .worldline--investigating .worldline-story,
+  .worldline--decision .worldline-story,
+  .worldline--executing .worldline-story,
+  .worldline--received .worldline-story { inset: auto; padding: 2rem 1rem 3rem; }
   .worldline-lede { font-size: .96rem; line-height: 1.5; }
   .worldline-actions { display: grid; }
   .worldline-primary, .worldline-secondary { width: 100%; }
   .worldline-choice-facts { grid-template-columns: 1fr; }
-  .worldline--decision .worldline-scene { min-height: 112rem; }
-  .worldline--decision .worldline-story { top: 10.5rem; bottom: auto; }
-  .worldline--investigating .worldline-story { top: 10.5rem; bottom: auto; }
   .worldline-choice-grid { grid-template-columns: 1fr; }
   .worldline-constraint-proof > div { grid-template-columns: 1fr; }
   .worldline-constraint-proof__conflict { width: auto; border: 1px solid rgba(255,173,117,.38); border-right: 0; border-left: 0; }
@@ -1041,9 +1338,8 @@
   .worldline-investigation__history { max-height: 12rem; }
   .worldline-execution-progress,
   .worldline-receipt { grid-template-columns: 1fr; }
-  .worldline--executing .worldline-scene,
-  .worldline--received .worldline-scene { min-height: 68rem; }
-  .worldline-status { right: 1rem; bottom: 1rem; left: auto; }
+  .worldline-cinematic-status { right: 1rem; bottom: 1rem; left: 1rem; max-width: none; }
+  .worldline-cinematic-status span { max-width: 100%; font-size: .58rem; letter-spacing: .1em; }
   .worldline-below { padding: 2rem 1rem 3rem; }
 }
 
