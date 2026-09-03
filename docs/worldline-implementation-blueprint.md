@@ -82,5 +82,12 @@ WORLDLINE may replace the root only after all of the following are true:
 - Lint, TypeScript, automated tests and production build pass.
 - The deployed route works without console errors.
 
-Promotion is a separate decision. Devpost terms, video publication and final
-submission remain outside this implementation authority.
+## Promotion outcome
+
+The gate passed on 3 September 2026. WORLDLINE became the public root, while
+the qualified Adaptive Shopping Canvas remained available at
+`?experience=shopping`. The promotion changed neither experience's WebMCP
+contract.
+
+Devpost terms, video publication and final submission remain outside this
+implementation authority.

@@ -64,6 +64,13 @@ root route. Launch Window A-01 remains available at
 `?experience=launch-window`; the fitting-room and Rack Rescue prototypes remain
 on their existing routes.
 
+On 3 September 2026, the entrant qualified WORLDLINE as a separate
+reasoning-first WebMCP experience and promoted it to the root route. The
+Adaptive Shopping Canvas remains available at `?experience=shopping`.
+WORLDLINE's observed browser lifecycle changes from six investigative tools to
+seven after person approval, then to two read-only verification tools after the
+one-use action is consumed.
+
 Matt Gibbs has joined the challenge on Devpost. No entry video has been
 published to YouTube and no final challenge submission has been made. This
 chronology does not claim a challenge result.
