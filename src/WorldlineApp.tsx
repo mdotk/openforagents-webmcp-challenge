@@ -416,11 +416,11 @@ export default function WorldlineApp() {
             <>
               <p className="worldline-eyebrow">71 seconds until the radio link closes</p>
               <h1 id="worldline-title">Can one engine burn save the probe and send both files?</h1>
-              <p className="worldline-lede">The probe has just flown close enough to a black hole to measure how it bends space and changes light. Those measurements are stored in two files, and Earth has no copies. The probe’s last radio connection with Earth ends in 71 seconds. It has fuel for one engine burn, a short firing that changes its speed. Work with your browser agent to find out whether that burn can both let the probe escape and send the files. If it cannot, you decide what to save.</p>
+              <p className="worldline-lede">The probe has just flown close enough to a black hole to measure how it bends space and changes light. Its computer has processed and compressed the raw measurements into two files ready to send. Earth has no copies. The probe’s last radio connection with Earth ends in 71 seconds. It has fuel for one engine burn, a short firing that changes its speed. Work with your browser agent to find out whether that burn can both let the probe escape and send the files. If it cannot, you decide what to save.</p>
               <dl className="worldline-mission-facts" aria-label="Mission stakes">
                 <div><dt>Distance</dt><dd>23 light-years</dd></div>
                 <div><dt>Radio link closes</dt><dd>In 71 seconds</dd></div>
-                <div><dt>Files Earth does not have</dt><dd>2 files · {uniqueScienceMegabytes} MB</dd></div>
+                <div><dt>Compressed files ready to send</dt><dd>2 files · {uniqueScienceMegabytes} MB</dd></div>
               </dl>
               {!agentReady ? (
                 <div className="worldline-mode">
@@ -446,7 +446,7 @@ export default function WorldlineApp() {
               {!snapshot.learnerCalculation ? <>
                 <p className="worldline-learning-step">1 of 2 · Work out the sending time</p>
                 <h1 id="worldline-title" ref={predictionRef} tabIndex={-1}>How long do both files take to send?</h1>
-                <p className="worldline-lede">The agent found two files that Earth does not have: an 18 MB gravity map and a 12 MB light spectrum. The radio sends 1.2 MB each second. Add the file sizes, then divide by the radio speed.</p>
+                <p className="worldline-lede">The probe has already processed its raw measurements into two compressed files that Earth does not have: an 18 MB gravity map and a 12 MB light spectrum. The radio sends 1.2 MB each second. Add the file sizes, then divide by the radio speed.</p>
                 <div className="worldline-calculation" aria-label="Transmission-time calculation">
                   <div className="worldline-calculation__formula"><span>18 MB + 12 MB</span><b>÷</b><span>1.2 MB/s</span><b>=</b><strong>?</strong></div>
                   <div className="worldline-calculation__choices" role="group" aria-label="Choose the transmission time">
@@ -497,7 +497,7 @@ export default function WorldlineApp() {
                 : 'It is testing one burn that lets the probe escape and one that sends the two files. Then it must stop for your calculation and prediction.'}</p>
               {snapshot.simulations.length > visibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has completed {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. Replaying the investigation at a pace you can follow.</p> : null}
               <div className="worldline-evidence" aria-label="Evidence learned">
-                <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `Two files only on the probe · ${uniqueScienceMegabytes} MB` : 'Checking which files matter'}</b><small>{packetsRead ? 'Earth already has a complete copy of the 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
+                <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `Two compressed files only on the probe · ${uniqueScienceMegabytes} MB` : 'Checking which files matter'}</b><small>{packetsRead ? 'The files were made from raw measurements. Earth already has a complete copy of the separate 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
                 <span className={packetsRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead && maneuverRead ? showSendingCalculation ? `${transmissionSeconds} seconds to send both files` : 'You will calculate the sending time' : 'Finding the numbers you will need'}</b><small>{packetsRead && maneuverRead ? showSendingCalculation ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'The agent found the file sizes and radio speed without revealing the answer.' : 'Waiting for the file sizes and radio speed.'}</small></span>
                 <span className={missionRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{missionRead && maneuverRead ? 'Comparing the two sets of requirements' : 'Checking the engine and antenna'}</b><small>{missionRead && maneuverRead ? 'Escape needs an earlier, more powerful burn than sending the files.' : 'Waiting for the engine and antenna limits.'}</small></span>
               </div>
@@ -655,9 +655,9 @@ export default function WorldlineApp() {
                     : executionBeat === 'lock'
                       ? 'The high-energy burn carries the probe away from the black hole but breaks its link with Earth.'
                       : executionBeat === 'packet-one'
-                        ? 'The probe sends the first file: the 18 MB gravity map.'
+                        ? 'The probe sends the first compressed file: the 18 MB gravity map.'
                       : executionBeat === 'packet-two'
-                        ? `The final 12 MB, the light spectrum, finishes sending ${selectedContactMargin === 0 ? 'as the radio link closes' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before the radio link closes`}.`
+                        ? `The second compressed file, the 12 MB light spectrum, finishes sending ${selectedContactMargin === 0 ? 'as the radio link closes' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before the radio link closes`}.`
                           : executionBeat === 'contact'
                             ? scienceReachedEarth ? 'Both files have left the probe. The radio link closes.' : 'The probe escapes. Earth receives neither file.'
                             : executionBeat === 'transit'

@@ -36,6 +36,18 @@ describe('WORLDLINE copy contract', () => {
     expect(app).not.toContain('somehow do both')
   })
 
+  it('explains that 30 MB is processed and compressed science, not all raw measurements', () => {
+    expect(app).toContain('Its computer has processed and compressed the raw measurements into two files ready to send.')
+    expect(app).toContain('an 18 MB gravity map and a 12 MB light spectrum')
+    expect(domain).toContain('An 18 MB compressed file made from the probe’s raw measurements')
+    expect(domain).toContain('A 12 MB compressed file made from the probe’s raw measurements')
+    expect(tools).toContain('processed its raw measurements into an 18 MB compressed gravity-map file and a 12 MB compressed light-spectrum file')
+    expect(readme).toContain('30 MB of compressed data takes 25 seconds')
+    expect(submission).toContain('30 MB of compressed data at 1.2 MB/s takes 25 seconds')
+    expect(app).not.toContain('Those measurements are stored in two files')
+    expect(readme).not.toContain('30 MB of data takes 25 seconds')
+  })
+
   it('starts with one instruction and waits until after the tests to recommend an outcome', () => {
     expect(app).toContain('<span>Tell your browser agent</span>')
     expect(app).toContain("begin: 'Begin WORLDLINE.'")

@@ -78,7 +78,7 @@ exchanges:
    `verify_transmission_receipt` registered.
 
 The final page reported that the gravity map and light spectrum reached Earth, that this run's
-30 MB transmission completed at probe time t+69 seconds, two seconds before
+30 MB of compressed files completed transmission at probe time t+69 seconds, two seconds before
 the radio link closed, that the signal crossed 23 light-years and that the probe did
 not escape. This was one successful run of the exact local candidate in the
 observed Chrome profile; it is not a claim about every agent or browser.

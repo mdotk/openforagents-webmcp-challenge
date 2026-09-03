@@ -37,7 +37,8 @@ Narration:
 Jump back to the six-tool opening. The page has one instruction: say **Begin
 WORLDLINE.** Show the agent test
 one burn that lets the probe escape and one that sends the two files. When it stops, solve
-**18 MB + 12 MB, divided by 1.2 MB/s** by choosing **25 seconds**. Then choose
+the two compressed files, **18 MB + 12 MB, divided by 1.2 MB/s**, by choosing
+**25 seconds**. Then choose
 **The requirements may conflict** at **What might stop one burn from doing
 both?** Say **Test my prediction**
 to the same agent. Show it read your prediction, test a middle option and
@@ -91,7 +92,8 @@ light-years. Finish on **Both files reached Earth.**
 
 Narration:
 
-> The approved burn runs once. Thirty megabytes finish sending before the
+> The approved burn runs once. The two compressed files, thirty megabytes in
+> total, finish sending before the
 > radio link closes. The probe is 23 light-years away, so the signal takes 23 years to
 > reach Earth. The probe cannot escape, but Earth receives both files it
 > recorded near the black hole.

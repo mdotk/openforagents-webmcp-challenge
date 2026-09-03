@@ -34,7 +34,7 @@ const packets: readonly SciencePacket[] = Object.freeze([
     sizeMegabytes: 18,
     scientificValue: 10,
     replicatedOnEarth: false,
-    observation: 'Measurements showing how strongly the black hole bends nearby space. Earth has no copy.',
+    observation: 'An 18 MB compressed file made from the probe’s raw measurements of how strongly the black hole bends nearby space. Earth has no copy.',
   },
   {
     id: 'horizon-spectrum',
@@ -42,7 +42,7 @@ const packets: readonly SciencePacket[] = Object.freeze([
     sizeMegabytes: 12,
     scientificValue: 9,
     replicatedOnEarth: false,
-    observation: 'Measurements showing which colours of light the probe recorded near the black hole. Earth has no copy.',
+    observation: 'A 12 MB compressed file made from the probe’s raw measurements of which colours of light it recorded near the black hole. Earth has no copy.',
   },
   {
     id: 'navigation-archive',
@@ -50,7 +50,7 @@ const packets: readonly SciencePacket[] = Object.freeze([
     sizeMegabytes: 72,
     scientificValue: 2,
     replicatedOnEarth: true,
-    observation: 'A routine record of the probe’s route. Earth already has a complete copy.',
+    observation: 'A routine 72 MB record of the probe’s route. Earth already has a complete copy.',
   },
 ])
 

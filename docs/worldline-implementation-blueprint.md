@@ -8,7 +8,9 @@ shopping root unless its own release gate passes.
 ## The experience
 
 A fictional probe has flown close enough to a black hole to measure how it
-bends space and changes light. It holds a gravity map, a light spectrum and a navigation record. Earth already
+bends space and changes light. Its computer has processed and compressed the
+raw measurements into an 18 MB gravity-map file and a 12 MB light-spectrum file,
+both ready to send. It also holds a navigation record. Earth already
 has the navigation record, but it has no copy of the first two files. The probe
 has one final radio link that closes in 71 seconds and one remaining burn. An early, powerful burn
 can let the probe escape. A later, gentler burn can keep the antenna pointed at

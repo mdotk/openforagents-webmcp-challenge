@@ -10,7 +10,7 @@ WORLDLINE
 
 WORLDLINE is an interactive science lesson where you and a browser agent
 explore black holes, light-years and paths through space and time by testing whether a
-stranded probe can both escape and send its two files to Earth. If it cannot,
+stranded probe can both escape and send two compressed science files to Earth. If it cannot,
 you choose what to save.
 
 ## Description
@@ -18,8 +18,9 @@ you choose what to save.
 Space is difficult to understand because its distances, timescales and physical
 limits are far outside ordinary experience. WORLDLINE turns those ideas into an
 interactive mission. A probe has flown close enough to a black hole to measure
-how it bends space and changes light. Those measurements are stored in two files,
-and Earth has no copies.
+how it bends space and changes light. Its computer has processed and compressed
+the raw measurements into an 18 MB gravity-map file and a 12 MB light-spectrum
+file, both ready to send. Earth has no copies.
 The lesson asks whether one burn can both let the probe escape and send those
 two files. A browser agent investigates the different paths the probe could take
 through space and time. These paths are called worldlines. It explains the science behind each outcome
@@ -38,7 +39,7 @@ file, engine, antenna and radio-link information, then tests the two clear optio
 an early escape burn and a later transmission burn. It cannot continue to the
 recommendation. The page stops without revealing the sending-time answer and
 asks you to add the two file sizes and divide by the radio speed. After you
-choose a result, it explains that 30 MB at 1.2 MB/s takes 25 seconds. You then predict what might prevent one burn from
+choose a result, it explains that 30 MB of compressed data at 1.2 MB/s takes 25 seconds. You then predict what might prevent one burn from
 both saving the probe and sending the files.
 
 That calculation and prediction become shared page state. You say **Test my
@@ -56,7 +57,7 @@ Helping the probe escape requires a burn by second 42 that changes its speed by
 at least 3,400 m/s. Sending the files requires a burn between seconds 44 and 50
 that changes its speed by 2,000 to 2,400 m/s. The two requirements happen at
 different times and need different changes in speed. You also see that
-30 MB at 1.2 MB/s takes 25 seconds to send.
+30 MB of compressed data at 1.2 MB/s takes 25 seconds to send.
 
 You make the value judgment. Choosing one future adds a single
 argument-free WebMCP tool that closes over the exact tested burn. In a third
@@ -112,7 +113,7 @@ agent structured access to that prediction so it can choose tests that challenge
 it. Every tested route appears on the scene as it is found, with its
 result and explanation. The person’s sending-time calculation appears at the
 checkpoint between the two rounds of investigation. The person can compare consequences
-rather than decode raw measurements, then see the chosen burn, antenna state,
+rather than decode raw telemetry, then see the chosen burn, antenna state,
 files, radio link and signal journey play out from the same shared state.
 
 People without a compatible browser agent see a clear WebMCP requirement and

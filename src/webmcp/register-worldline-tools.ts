@@ -272,12 +272,12 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
     },
     {
       name: 'inspect_science_packets',
-      description: 'Read the three files on the probe, their sizes, what each file contains and whether Earth already has a copy.',
+      description: 'Read the three files on the probe, their sizes, what each file contains, how the two science files were prepared and whether Earth already has a copy.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         reportActivity('Agent checked the three files')
-        return result('The probe holds a gravity map, a light spectrum and a navigation record. Earth has no copy of the first two files, but it already has the navigation record. Use their sizes with the radio speed and the time when the radio link closes.', control.getSnapshot().packets)
+        return result('The probe’s computer processed its raw measurements into an 18 MB compressed gravity-map file and a 12 MB compressed light-spectrum file, both ready to send. Earth has no copy of either file. The probe also holds a 72 MB navigation record that Earth already has. Use the two compressed file sizes with the radio speed and the time when the radio link closes.', control.getSnapshot().packets)
       },
     },
     {

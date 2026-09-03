@@ -4,7 +4,7 @@ WORLDLINE is an interactive science lesson from
 [Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
 the WebMCP Challenge. You and a browser agent explore black holes, light-years
 and worldlines, the paths objects take through space and time. You test whether a stranded probe can both escape and
-send its two files to Earth. If it cannot, you choose what to save.
+send two compressed science files to Earth. If it cannot, you choose what to save.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
@@ -18,7 +18,7 @@ WORLDLINE turns difficult space ideas into one mission you can take part in:
 
 - a light-year measures distance, not time;
 - a signal from 23 light-years away takes 23 years to reach Earth;
-- 30 MB of data takes 25 seconds to send at 1.2 MB per second;
+- 30 MB of compressed data takes 25 seconds to send at 1.2 MB per second;
 - the timing and strength of a burn create different possible futures;
 - some physical requirements cannot be met at the same time; and
 - science can show the consequences, but a person must decide what matters.
@@ -30,7 +30,9 @@ agent and say:
 
 > Begin WORLDLINE.
 
-The page gives the agent separate information about the files, engine, antenna
+The probe's computer has already processed its raw measurements into an 18 MB
+compressed gravity-map file and a 12 MB compressed light-spectrum file. The
+page gives the agent separate information about those files, the engine, antenna
 and closing radio link, not the tested burn values or a preselected conclusion. The first mission read returns the
 current phase, permitted work and exact stopping point, so the person does not
 have to paste operating instructions. After the agent establishes the two
