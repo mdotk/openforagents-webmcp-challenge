@@ -59,7 +59,7 @@ async function completeSecondAct(model: ReturnType<typeof installModelContext>) 
 describe('WORLDLINE experience', () => {
   it('opens with a clear dilemma and blocks unsupported browsers', async () => {
     render(<WorldlineApp />)
-    expect(screen.getByRole('heading', { name: /save the probe—or send its discoveries home/i })).toBeVisible()
+    expect(screen.getByRole('heading', { name: /save the probe or send its discoveries home/i })).toBeVisible()
     expect(screen.getByText(/you’ll learn how signal speed and spacecraft limits shape the result/i)).toBeVisible()
     expect(screen.getByRole('button', { name: 'WebMCP agent required' })).toBeDisabled()
     expect(await screen.findByText('WebMCP required')).toBeVisible()
@@ -131,11 +131,11 @@ describe('WORLDLINE experience', () => {
     await user.click(screen.getByRole('button', { name: /all three conflict/i }))
     await completeSecondAct(model)
     await screen.findByRole('heading', { name: 'What comes home?' })
-    await user.click(screen.getByRole('button', { name: /send both discoveries — lose the probe/i }))
+    await user.click(screen.getByRole('button', { name: /send both discoveries, lose the probe/i }))
     await waitFor(() => expect(model.tools).toHaveLength(7))
     expect(screen.getByLabelText('Final instruction for your browser agent')).toHaveTextContent('Carry out my choice.')
     expect(screen.queryByRole('button', { name: /execute burn/i })).not.toBeInTheDocument()
-    expect(screen.getByText(/agent—not this page—must use the one-use burn/i)).toBeVisible()
+    expect(screen.getByText(/the agent must use the one-use burn/i)).toBeVisible()
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: () => ({ matches: false }),

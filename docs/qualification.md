@@ -48,7 +48,7 @@ The required native checks are:
 The public entry should claim only the native browser behavior that has been
 observed in the named browser build.
 
-## Chrome observation — 26 August 2026
+## Chrome observation: 26 August 2026
 
 The deployed experience was checked in Chrome 151.0.7922.174 at
 <https://openforagents-webmcp-challenge.vercel.app/>.

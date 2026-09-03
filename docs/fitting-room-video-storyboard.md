@@ -7,7 +7,7 @@ minutes and show the deployed page, the real compatible browser agent and the
 native tool inventory. Do not reconstruct model output or animate a fake tool
 list.
 
-## 0:00–0:12 — The result first
+## 0:00–0:12: The result first
 
 Open on the final all-black look beside the four-item fitting room. Flash back
 through the burgundy first look and the sold-out organza revision, then show the
@@ -23,7 +23,7 @@ Narration:
 > chose, recovered when stock changed and stopped before the one action that
 > needed my approval.
 
-## 0:12–0:32 — The brief
+## 0:12–0:32: The brief
 
 Restart the experience. Show the saved request and six constraint chips without
 reading every word aloud.
@@ -35,7 +35,7 @@ Narration:
 > around boots I already own. A chat can suggest an outfit. This agent works in
 > the retailer's current catalogue and the same fitting room I can see.
 
-## 0:32–0:58 — Let the agent shop
+## 0:32–0:58: Let the agent shop
 
 Give the external agent one instruction: build the strongest complete look from
 the saved brief, explain the choices and stop before any hold. Keep the agent's
@@ -46,10 +46,10 @@ Narration:
 
 > WebMCP gives the agent seven typed tools. It reads the brief, searches
 > retailer-authored facts, compares products and assembles a complete look.
-> Price, size, movement and Friday quantity still come from the retailer—not the
+> Price, size, movement and Friday quantity still come from the retailer, not the
 > model.
 
-## 0:58–1:18 — Human taste changes the plan
+## 0:58–1:18: Human taste changes the plan
 
 Show the first burgundy look. Pin the tailored vest on the page and ask for an
 all-black revision. Show the dress-form image and shared item list change.
@@ -59,7 +59,7 @@ Narration:
 > I like the vest, so I pin it. The agent cannot remove a human-pinned item. I
 > ask for all black, and it revises the rest of the outfit around my decision.
 
-## 1:18–1:43 — Live stock forces reasoning
+## 1:18–1:43: Live stock forces reasoning
 
 Apply the labelled inventory update. Hold long enough to show that the organza
 sleeves have zero Friday quantity, the validation state fails and the review
@@ -73,7 +73,7 @@ Narration:
 > preserves my vest, chooses the available shrug and stays inside every hard
 > limit.
 
-## 1:43–2:08 — Stop at the human boundary
+## 1:43–2:08: Stop at the human boundary
 
 Ask the agent to validate and request review. Show the exact four items, $242
 subtotal, Friday 4 pm pickup, 15-minute duration, $0 charge and “no hold yet”.
@@ -84,7 +84,7 @@ Narration:
 > scope before anything is held. Requesting review creates no reservation and
 > charges nothing.
 
-## 2:08–2:28 — Seven, eight, seven
+## 2:08–2:28: Seven, eight, seven
 
 Keep the native inventory visible. Approve the exact hold on the page, show
 `reserve_approved_look` appear as the eighth tool, then ask the agent to use it.
@@ -96,7 +96,7 @@ Narration:
 > fictional hold is created and the tool disappears. Seven tools, eight only
 > while authority exists, then seven again.
 
-## 2:28–2:40 — Close on the reason WebMCP matters
+## 2:28–2:40: Close on the reason WebMCP matters
 
 End on the final shared mirror and source URL.
 

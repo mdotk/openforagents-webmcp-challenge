@@ -59,7 +59,7 @@ describe('Adaptive Shopping Canvas', () => {
   it('opens with one human problem and an immediately runnable guided journey', async () => {
     render(<ShoppingApp />)
 
-    expect(document.title).toBe('Morrow — Adaptive Shopping Canvas')
+    expect(document.title).toBe('Morrow: Adaptive Shopping Canvas')
     const heading = screen.getByRole('heading', { name: 'Find a wedding look around these boots.' })
     const ownedBoots = screen.getByAltText('Your owned cobalt-blue ankle boots')
     expect(heading).toBeVisible()

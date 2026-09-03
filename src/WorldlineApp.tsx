@@ -97,7 +97,7 @@ export default function WorldlineApp() {
 
   useEffect(() => {
     const previous = document.title
-    document.title = 'WORLDLINE — One probe. One signal.'
+    document.title = 'WORLDLINE: One probe. One signal.'
     return () => { document.title = previous }
   }, [])
 
@@ -436,8 +436,8 @@ export default function WorldlineApp() {
           {stage === 'waiting' && (
             <>
               <p className="worldline-eyebrow">71 seconds until contact is lost</p>
-              <h1 id="worldline-title">Save the probe—or send its discoveries home.</h1>
-              <p className="worldline-lede">A probe beside a black hole has collected two observations that can never be repeated. It has enough fuel to escape, or enough time to transmit them to Earth—but not both. Work with your browser agent to test what can happen. You’ll learn how signal speed and spacecraft limits shape the result, then choose what comes home.</p>
+              <h1 id="worldline-title">Save the probe or send its discoveries home.</h1>
+              <p className="worldline-lede">A probe beside a black hole has collected two observations that can never be repeated. It has enough fuel to escape, or enough time to transmit them to Earth, but not both. Work with your browser agent to test what can happen. You’ll learn how signal speed and spacecraft limits shape the result, then choose what comes home.</p>
               <dl className="worldline-mission-facts" aria-label="Mission stakes">
                 <div><dt>Distance</dt><dd>23 light-years</dd></div>
                 <div><dt>Contact</dt><dd>71 seconds</dd></div>
@@ -616,14 +616,14 @@ export default function WorldlineApp() {
                   <h2>Save the probe</h2>
                   <span>The probe escapes the gravity well. Both unique discoveries are lost.</span>
                   <dl><div><dt>Burn</dt><dd>{probeReturnChoice.burnAtProbeSecond}s · {probeReturnChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Signal</dt><dd>None</dd></div></dl>
-                  <button className="worldline-secondary" onClick={() => approve(probeReturnChoice.id)}>Save the probe — lose both discoveries</button>
+                  <button className="worldline-secondary" onClick={() => approve(probeReturnChoice.id)}>Save the probe, lose both discoveries</button>
                 </article>
                 <article>
                   <p>Save the discovery</p>
                   <h2>Send the science</h2>
                   <span>Thirty megabytes reach Earth 23 years later. The probe does not return.</span>
                   <dl><div><dt>Burn</dt><dd>{scienceTransmissionChoice.burnAtProbeSecond}s · {scienceTransmissionChoice.deltaVMetersPerSecond.toLocaleString()} m/s</dd></div><div><dt>Arrival</dt><dd>+23 years</dd></div></dl>
-                  <button className="worldline-primary" onClick={() => approve(scienceTransmissionChoice.id)}>Send both discoveries — lose the probe <ArrowRight aria-hidden="true" /></button>
+                  <button className="worldline-primary" onClick={() => approve(scienceTransmissionChoice.id)}>Send both discoveries, lose the probe <ArrowRight aria-hidden="true" /></button>
                 </article>
               </div>
             </div>
@@ -650,7 +650,7 @@ export default function WorldlineApp() {
               <div className="worldline-agent-command" aria-label="Final instruction for your browser agent">
                 <span>Return to the same agent and say</span>
                 <strong>{agentCommands.execute}</strong>
-                <small>The agent—not this page—must use the one-use burn and verify the final receipt.</small>
+                <small>The agent must use the one-use burn and verify the final receipt. The page cannot do this step.</small>
               </div>
             </>
           )}
@@ -679,11 +679,11 @@ export default function WorldlineApp() {
                   : executionBeat === 'lock' && scienceReachedEarth
                     ? 'The gentler burn preserves the narrow antenna lock. The probe no longer has enough thrust to escape.'
                     : executionBeat === 'lock'
-                      ? 'The high-energy burn carries the probe away from the black hole—and breaks its link with Earth.'
+                      ? 'The high-energy burn carries the probe away from the black hole but breaks its link with Earth.'
                       : executionBeat === 'packet-one'
-                        ? 'The first 18 MB—the gravity map—leaves the probe.'
+                        ? 'The first 18 MB, the gravity map, leaves the probe.'
                       : executionBeat === 'packet-two'
-                        ? `The final 12 MB—the horizon spectrum—finishes leaving ${selectedContactMargin === 0 ? 'as contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before contact ends`}.`
+                        ? `The final 12 MB, the horizon spectrum, finishes leaving ${selectedContactMargin === 0 ? 'as contact ends' : `${selectedContactMargin} second${selectedContactMargin === 1 ? '' : 's'} before contact ends`}.`
                           : executionBeat === 'contact'
                             ? scienceReachedEarth ? 'All 30 MB are clear. The probe falls silent behind them.' : 'The spacecraft survives. Neither unique observation was transmitted.'
                             : executionBeat === 'transit'
@@ -732,7 +732,7 @@ export default function WorldlineApp() {
       <section className="worldline-below">
         <div>
           <p className="worldline-below__label">An interactive science lesson</p>
-          <p>Each route the agent tests is a possible future—a worldline. See why a signal from 23 light-years away takes 23 years to arrive, work out how long the probe needs to send its discoveries, and discover why one burn cannot save everything.</p>
+          <p>Each route the agent tests is a possible future called a worldline. See why a signal from 23 light-years away takes 23 years to arrive, work out how long the probe needs to send its discoveries, and discover why one burn cannot save everything.</p>
         </div>
         <details>
           <summary>Mission data and exact tools</summary>
@@ -753,7 +753,7 @@ export default function WorldlineApp() {
         {!agentReady && !registrationPending && (
           <p className="worldline-fallback">This experience requires a compatible WebMCP browser agent. Open it in ChatGPT’s in-app browser or Chrome with WebMCP enabled.</p>
         )}
-        <p className="worldline-note">A made-up mission built to teach the ideas—not a real spacecraft or an exact black-hole model.</p>
+        <p className="worldline-note">A made-up mission built to teach the ideas. It is not a real spacecraft or an exact black-hole model.</p>
         <p className="worldline-credit">An <a href="https://www.openforagents.com/">Open for Agents</a> experiment in what people and browser agents can decide together.</p>
       </section>
     </main>

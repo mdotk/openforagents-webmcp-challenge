@@ -16,7 +16,7 @@ under three minutes and include audio.
 - Do not call the simulation scientifically exact or imply that it controls a
   real mission.
 
-## 0:00–0:10 — The impossible choice
+## 0:00–0:10: The impossible choice
 
 Open on the large investigation chapter asking **Can one compromise save
 both?** The result changes to **No** and the page explains that the compromise
@@ -28,11 +28,11 @@ On-screen text: **You calculate. You predict. The agent tests it.**
 Narration:
 
 > WORLDLINE is an interactive science lesson about a probe beside a black hole.
-> Each path it could take is a possible future—a worldline. Instead of watching
+> Each path it could take is a possible future called a worldline. Instead of watching
 > a fixed animation, I work with a browser agent to investigate which futures
 > are physically possible.
 
-## 0:10–0:42 — Investigate, predict, investigate again
+## 0:10–0:42: Investigate, predict, investigate again
 
 Jump back to the six-tool opening. Say **Begin WORLDLINE.** Show the agent test
 the probe-return and science-transmission extremes. When it stops, solve
@@ -43,7 +43,7 @@ counterexample, and assess the answer.
 
 Narration:
 
-> WORLDLINE gives the agent the learning goal and my priority—not the burn
+> WORLDLINE gives the agent the learning goal and my priority, not the burn
 > values or answer. WebMCP exposes separate evidence and a five-test simulator. It finds the extremes,
 > then I work out that the antenna must stay on Earth for 25 seconds. WebMCP
 > turns my calculation and prediction into shared state. The agent must challenge
@@ -53,7 +53,7 @@ Hold briefly on the visible proof: returning the probe requires `t ≤ 42s` and
 `Δv ≥ 3,400 m/s`; transmitting requires `44s ≤ t ≤ 50s` and
 `2,000–2,400 m/s`. The regions do not overlap.
 
-## 0:42–1:02 — Stop at the human decision
+## 0:42–1:02: Stop at the human decision
 
 Hold the recommendation and both choice cards on screen. Show that the
 recommendation answers the priority selected at the start, six tools remain
@@ -65,9 +65,9 @@ Narration:
 > matters most. But it cannot accept that loss for me. Do I bring the
 > spacecraft home, or preserve the observation no one else has?
 
-## 1:02–1:20 — Create one exact capability
+## 1:02–1:20: Create one exact capability
 
-Choose **Send both discoveries — lose the probe**. Show the inventory change from six tools to seven
+Choose **Send both discoveries, lose the probe**. Show the inventory change from six tools to seven
 and identify `execute_authorized_burn`.
 
 On-screen text: **6 investigation tools → 7 after my choice**
@@ -78,7 +78,7 @@ Narration:
 > to the exact route the agent already tested, so the burn cannot be changed at
 > execution time.
 
-## 1:20–1:48 — The cinematic payoff
+## 1:20–1:48: The cinematic payoff
 
 Say **Carry out my choice.** Show the burn flash, the antenna
 holding Earth, the gravity map and horizon spectrum leaving separately, the
@@ -91,7 +91,7 @@ Narration:
 > closes. The probe is 23 light-years away, so the signal takes 23 years to
 > reach Earth. The spacecraft is gone. Both irreplaceable observations survive.
 
-## 1:48–2:07 — Prove the WebMCP lifecycle
+## 1:48–2:07: Prove the WebMCP lifecycle
 
 Show that only `read_final_state` and `verify_transmission_receipt` remain, then
 invoke or display the verified receipt.
@@ -104,7 +104,7 @@ Narration:
 > verification tools remain. The page, the agent and the final receipt all use
 > the same revisioned mission state.
 
-## 2:07–2:20 — Close
+## 2:07–2:20: Close
 
 Return to the opening and briefly show the clear WebMCP-ready state. Finish on
 a simple two-second closing frame:
@@ -118,7 +118,7 @@ openforagents.com
 Narration:
 
 > WORLDLINE turns black holes, light-years and spacecraft constraints into a
-> science story you can investigate—not merely watch. It is an Open for Agents
+> science story you can investigate instead of merely watching. It is an Open for Agents
 > experiment in making browser agents useful without taking the human decision
 > away.
 
@@ -126,7 +126,7 @@ Narration:
 
 Title:
 
-> WORLDLINE — Explore a black hole rescue with an AI agent
+> WORLDLINE: Explore a black hole rescue with an AI agent
 
 Description:
 

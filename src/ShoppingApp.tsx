@@ -157,7 +157,7 @@ function ShoppingApp() {
 
   useEffect(() => {
     const previousTitle = document.title
-    document.title = 'Morrow — Adaptive Shopping Canvas'
+    document.title = 'Morrow: Adaptive Shopping Canvas'
     return () => {
       document.title = previousTitle
     }
@@ -423,7 +423,7 @@ function ShoppingApp() {
       {
         status: 'attention',
         title: 'Rechecked four promises and found one late item.',
-        detail: 'The silver blazer now arrives Monday—after the wedding',
+        detail: 'The silver blazer now arrives Monday, after the wedding',
       },
     )
   }
@@ -740,7 +740,7 @@ function ShoppingApp() {
         <details className="shopping-canvas__technical">
           <summary>See how WebMCP powers the agent version</summary>
           <div>
-            <p>Seven permanent tools expose exact retailer facts and the shared revisioned canvas. The optional activity history reports observable tool actions and results—not private model reasoning.</p>
+            <p>Seven permanent tools expose exact retailer facts and the shared revisioned canvas. The optional activity history reports observable tool actions and results, not private model reasoning.</p>
             <p>Human approval adds one temporary <code>{APPLY_APPROVED_CART_TOOL_NAME}</code> tool. It closes over the exact reviewed patch, works once, then disappears. There is no checkout, payment or order tool.</p>
             <p>Catalogue fixture: 12 styles, 30 canonical variants and two delivery destinations. The imagery is a fictional product styling preview, not a virtual try-on.</p>
           </div>

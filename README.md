@@ -1,4 +1,4 @@
-# WORLDLINE — One probe. One signal.
+# WORLDLINE: One probe. One signal.
 
 WORLDLINE is an interactive science lesson from
 [Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
@@ -30,7 +30,7 @@ then open your browser agent and say:
 > Begin WORLDLINE.
 
 The page gives the agent separate packet, propulsion, antenna and signal
-evidence—not the burn values or answer. The first mission read returns the
+evidence, not the burn values or answer. The first mission read returns the
 current phase, permitted work and exact stopping point, so the person does not
 have to paste operating instructions. After the agent establishes the two
 extremes, the simulation pauses. The learner first calculates how long the

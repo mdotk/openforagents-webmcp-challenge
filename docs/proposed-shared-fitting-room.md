@@ -196,7 +196,7 @@ revision-controlled collaboration and exact one-use reservation lifecycle.
 
 ## Ninety-second demonstration
 
-### 0:00–0:08 — One request with several constraints
+### 0:00–0:08: One request with several constraints
 
 Show a polished fictional storefront, the saved visible brief, an empty fitting
 room and a visible profile summary:
@@ -211,7 +211,7 @@ page shows the confirmed rules:
 - Style: couture vampire, fashion rather than novelty costume.
 - Authority: show the complete look before creating any hold.
 
-### 0:08–0:22 — The agent investigates and assembles
+### 0:08–0:22: The agent investigates and assembles
 
 The agent searches retailer-authored properties and inspects the matching
 products. The ordinary product grid narrows from the complete fictional
@@ -219,15 +219,15 @@ catalogue to the eligible pieces.
 
 The agent assembles a visible first look:
 
-- Nocturne Tailored Vest — $108.
-- Blood Moon Bias Skirt — $78.
-- Raven Crystal Cuff — $24.
-- The person's black boots — $0.
+- Nocturne Tailored Vest: $108.
+- Blood Moon Bias Skirt: $78.
+- Raven Crystal Cuff: $24.
+- The person's black boots: $0.
 
 The page shows the subtotal and whether every hard rule passes. No reservation
 exists.
 
-### 0:22–0:35 — Human taste changes the plan
+### 0:22–0:35: Human taste changes the plan
 
 The person keeps the vest and says:
 
@@ -238,7 +238,7 @@ The pinned vest and new preference become part of the visible fitting-room
 revision. The agent replaces the skirt and adds sleeves while retaining the
 hard requirements. The revised look totals $248.
 
-### 0:35–0:48 — A transparent inventory change forces replanning
+### 0:35–0:48: A transparent inventory change forces replanning
 
 The application applies a deterministic, clearly labelled **Demo inventory
 update**. The selected organza sleeves lose Friday availability.
@@ -250,7 +250,7 @@ silently relax it, searches for a substitute and updates the shared look.
 The replacement keeps the intended silhouette, open neckline, movement rating
 and Friday pickup. The new total is $242.
 
-### 0:48–1:03 — The exact look is reviewed
+### 0:48–1:03: The exact look is reviewed
 
 The agent validates the final revision and requests a reservation review. The
 page shows:
@@ -265,7 +265,7 @@ page shows:
 
 The person can approve, decline or change the look.
 
-### 1:03–1:17 — Approval changes what the website exposes
+### 1:03–1:17: Approval changes what the website exposes
 
 The person selects **Approve exact demo hold**.
 
@@ -277,7 +277,7 @@ The agent invokes it once. The application returns a simulated hold reference,
 Friday pickup and an expiry time. The fictional quantities decrease for this
 browser session. No payment is taken.
 
-### 1:17–1:30 — Authority is consumed
+### 1:17–1:30: Authority is consumed
 
 The temporary reservation capability is removed, returning the inventory to
 seven tools. Replay and stale-revision attempts fail. The page offers a normal

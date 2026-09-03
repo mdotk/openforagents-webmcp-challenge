@@ -37,7 +37,7 @@
 1. Initial full-view pass found two P2 presentation issues: desktop product names truncated to one unreadable line, and the mobile native-tool status touched the right edge and appeared clipped.
 2. Fixes: product names now clamp to two lines; the mobile tool-status width, gap, font size and right padding were tightened; a 320 px compact status prevents edge clipping; the shopping route now sets the correct page title; the final review now shows exact SKU and delivery evidence.
 3. Post-fix review confirmed that product names and tool status are readable,
-   all four reviewed lines show current delivery, the title is `Morrow —
+   all four reviewed lines show current delivery, the title is `Morrow:
    Adaptive Shopping Canvas`, and no P0/P1/P2 difference remains.
 
 **Primary interactions tested**

@@ -353,7 +353,7 @@ function RackRescueApp() {
                 <span className="rack-rescue__step">Your choice</span>
                 <h2>Put your mug in the rack.</h2>
                 <p>
-                  Drag the red mug onto a marked spot—or choose a spot
+                  Drag the red mug onto a marked spot, or choose a spot
                   directly. The agent must fit everything else around it.
                 </p>
                 <button
@@ -385,7 +385,7 @@ function RackRescueApp() {
             ) : agentPlacedDishCount > 0 && !snapshot.roastingTrayRevealed ? (
               <>
                 <span className="rack-rescue__step">Your turn</span>
-                <h2>Wait—one more thing.</h2>
+                <h2>Wait. One more thing.</h2>
                 <p>
                   A roasting tray was left on the bench. Can the agent make
                   room without moving your mug?
@@ -448,7 +448,7 @@ function RackRescueApp() {
                 ? 'Checking agent tools…'
                 : registration?.supported
                   ? 'Agent tools are ready'
-                  : 'Agent tools are unavailable — try the guided demo below'}
+                  : 'Agent tools are unavailable. Try the guided demo below'}
             </div>
           </section>
 

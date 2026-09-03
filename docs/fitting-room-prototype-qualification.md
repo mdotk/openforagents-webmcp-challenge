@@ -47,7 +47,7 @@ The fitting-room tests cover:
 - Temporary-tool registration, use, removal and disposal.
 - The visible manual journey and fallback when native WebMCP is unavailable.
 
-## Deployed Chrome observation — 26 August 2026
+## Deployed Chrome observation: 26 August 2026
 
 The polished experience through commit `b55129b` was checked at the deployed
 URL in the user's existing Chrome session. The root URL was checked separately

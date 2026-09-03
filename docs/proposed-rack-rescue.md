@@ -52,41 +52,41 @@ single-call solver exists.
 
 ## Seventy-five-second demonstration
 
-### 0:00-0:05 — Ask the visual question
+### 0:00-0:05: Ask the visual question
 
 Open on the messy dishes and empty rack:
 
 > Can all of this fit in one load?
 
-### 0:05-0:16 — Let the person set the rules
+### 0:05-0:16: Let the person set the rules
 
 The person drags the red mug into place and pins it. The child's cup is marked
 top-rack only. The person says:
 
 > Fit everything, keep this mug here and leave room for the roasting tray.
 
-### 0:16-0:30 — Let the agent investigate
+### 0:16-0:30: Let the agent investigate
 
 The agent reads the exact rack, dish footprints, rotations, locks and spray
 zones. It proposes a complete list of moves.
 
-### 0:30-0:40 — Show reasoning through failure
+### 0:30-0:40: Show reasoning through failure
 
 The first preview fails because one plate blocks the spray arm. The page
 returns the conflicting item and cells. The agent rotates the pan and moves two
 bowls rather than restarting from a hidden solved state.
 
-### 0:40-0:53 — Apply the valid plan
+### 0:40-0:53: Apply the valid plan
 
 The validated dishes animate into place around the pinned red mug. The visible
 result reports fourteen dishes and zero conflicts.
 
-### 0:53-1:04 — Let the human change reality
+### 0:53-1:04: Let the human change reality
 
 The person adds a forgotten oversized roasting tray. The rack revision changes
 and the earlier plan becomes stale.
 
-### 1:04-1:15 — Adapt without erasing the person
+### 1:04-1:15: Adapt without erasing the person
 
 The agent reads the new revision, keeps the mug and child's cup, moves only the
 minimum number of unlocked dishes and fits the tray. End on a before-and-after

@@ -55,7 +55,7 @@ export function storyForSimulation(
       plan: `At second ${simulation.burnAtProbeSecond}, fire a gentler ${simulation.deltaVMetersPerSecond.toLocaleString()} m/s burn while sending ${selectedPackets}.`,
       outcomeSummary: 'Both discoveries are sent. The probe is lost.',
       result: `${megabytes} MB finishes transmitting at t+${simulation.transmissionCompletesAtProbeSecond}s. The probe no longer has enough thrust to escape.`,
-      lesson: 'The discoveries fit inside the signal window—but only by spending the fuel that could return the probe.',
+      lesson: 'The discoveries fit inside the signal window, but only by spending the fuel that could return the probe.',
       calculation: `${megabytes} MB ÷ 1.2 MB/s = ${simulation.transmissionSeconds}s · ${remaining} second${remaining === 1 ? '' : 's'} before contact closes`,
     }
   }

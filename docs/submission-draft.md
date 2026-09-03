@@ -17,9 +17,9 @@ stranded probe can bring home.
 Space is difficult to understand because its distances, timescales and physical
 limits are far outside ordinary experience. WORLDLINE turns those ideas into an
 interactive mission. A probe beside a black hole can escape or transmit two
-discoveries, but it cannot do both. A browser agent investigates the possible
-futures—or worldlines—explains the science behind each outcome, and helps you
-understand the consequences before you decide what comes home.
+discoveries, but it cannot do both. A browser agent investigates the different
+possible futures, or worldlines. It explains the science behind each outcome
+and helps you understand the consequences before you decide what comes home.
 
 The probe is 23 light-years from Earth and has 71 seconds of contact remaining.
 It has enough fuel to escape, or enough time to transmit two unique science

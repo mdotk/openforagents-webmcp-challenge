@@ -15,7 +15,7 @@ describe('Rack Rescue experience', () => {
     expect(screen.getByRole('button', { name: 'Choose a marked spot' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Move your red mug' })).toBeVisible()
     expect(screen.getAllByRole('button', { name: /put the red mug in the .* rack spot/i })).toHaveLength(3)
-    expect(await screen.findByText('Agent tools are unavailable — try the guided demo below')).toBeVisible()
+    expect(await screen.findByText('Agent tools are unavailable. Try the guided demo below')).toBeVisible()
     expect(screen.queryByText('Revision 0')).not.toBeVisible()
     expect(screen.queryByText('5 modeled tools · native unavailable')).not.toBeVisible()
     expect(screen.queryByText('0 conflicts')).not.toBeInTheDocument()
@@ -24,7 +24,7 @@ describe('Rack Rescue experience', () => {
   it('shows a blocked plan, corrects it, reveals the tray and adapts without moving the mug', async () => {
     const user = userEvent.setup()
     render(<RackRescueApp />)
-    await screen.findByText('Agent tools are unavailable — try the guided demo below')
+    await screen.findByText('Agent tools are unavailable. Try the guided demo below')
 
     await user.click(screen.getByRole('button', { name: 'Put the red mug in the lower rack spot' }))
     expect(screen.getByLabelText('Pinned by you')).toBeVisible()
@@ -44,7 +44,7 @@ describe('Rack Rescue experience', () => {
     await user.click(screen.getByRole('button', { name: 'Try a safer layout' }))
     expect(screen.getByRole('heading', { name: 'This plan fits.' })).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Load this safe layout' }))
-    expect(screen.getByRole('heading', { name: 'Wait—one more thing.' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Wait. One more thing.' })).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Add the roasting tray' }))
     expect(screen.getByRole('heading', { name: 'Make room for the tray.' })).toBeVisible()
@@ -58,7 +58,7 @@ describe('Rack Rescue experience', () => {
 
   it('lets a person drag the mug from the counter onto a marked rack spot', async () => {
     render(<RackRescueApp />)
-    await screen.findByText('Agent tools are unavailable — try the guided demo below')
+    await screen.findByText('Agent tools are unavailable. Try the guided demo below')
 
     const stage = screen.getByRole('region', { name: 'Dishwasher rack and dishes' })
     vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({
@@ -92,7 +92,7 @@ describe('Rack Rescue experience', () => {
 
   it('returns a cancelled drag to the counter without swallowing keyboard selection', async () => {
     render(<RackRescueApp />)
-    await screen.findByText('Agent tools are unavailable — try the guided demo below')
+    await screen.findByText('Agent tools are unavailable. Try the guided demo below')
 
     const stage = screen.getByRole('region', { name: 'Dishwasher rack and dishes' })
     vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({

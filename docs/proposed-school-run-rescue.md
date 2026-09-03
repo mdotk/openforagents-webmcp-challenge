@@ -49,12 +49,12 @@ exact offer, and it disappears after use or invalidation.
 
 ## Seventy-five-second demonstration
 
-### 0:00-0:05 — Show the outcome first
+### 0:00-0:05: Show the outcome first
 
 Open on pastries beside the physical e-paper sign. The sign and laptop both
 show `SCHOOL-RUN RESCUE BOX`, `$10` and `4 LEFT`.
 
-### 0:05-0:17 — Show the closing context
+### 0:05-0:17: Show the closing context
 
 Rewind to the owner page. It shows eight croissants, four sandwiches, two
 gluten-free muffins and forty minutes until closing.
@@ -64,13 +64,13 @@ The owner asks:
 > Help me clear what's left. Keep the gluten-free muffins separate, and
 > nothing below $2 an item.
 
-### 0:17-0:30 — Let the agent investigate
+### 0:17-0:30: Let the agent investigate
 
 The agent reads the closing context and inspects the relevant products. It
 proposes four boxes with two sandwiches and two croissants for $10. The muffins
 remain separate.
 
-### 0:30-0:40 — Add human judgment
+### 0:30-0:40: Add human judgment
 
 The owner says:
 
@@ -79,19 +79,19 @@ The owner says:
 The agent previews the revised offer. The page shows the customer card and the
 exact black-and-white display rendering.
 
-### 0:40-0:53 — Approve one exact publication
+### 0:40-0:53: Approve one exact publication
 
 The agent requests review. The person sees the included products, quantities,
 price, expiry and maximum number of boxes. Approval makes
 `publish_approved_offer` appear. The agent uses it once and the tool
 disappears.
 
-### 0:53-1:05 — Change the physical place
+### 0:53-1:05: Change the physical place
 
 The e-paper display refreshes to the approved offer. The public reservation
 page becomes available at the same time.
 
-### 1:05-1:15 — Close the loop
+### 1:05-1:15: Close the loop
 
 A customer reserves one box through the ordinary page. The remaining count
 changes from four to three on both the customer page and the physical display.
