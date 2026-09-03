@@ -1,7 +1,7 @@
 {
   "name": "openforagents-webmcp-challenge",
   "version": "0.1.0",
-  "description": "A WebMCP mission where an agent investigates possible worldlines and a person decides what survives.",
+  "description": "An interactive WebMCP science story where an agent investigates possible worldlines and a learner decides what matters.",
   "license": "GPL-2.0-or-later",
   "type": "module",
   "scripts": {

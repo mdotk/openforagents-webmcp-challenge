@@ -46,6 +46,9 @@ const packets: readonly SciencePacket[] = Object.freeze([
   },
 ])
 
+const CONTACT_SECONDS = 71
+const DOWNLINK_MEGABYTES_PER_SECOND = 1.2
+
 interface MutableState {
   revision: number
   phase: WorldlineSnapshot['phase']
@@ -88,6 +91,7 @@ function packetSize(ids: readonly SciencePacketId[]) {
 
 function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSimulation {
   const size = packetSize(input.packetIds)
+  const transmissionSeconds = size ? Math.ceil(size / DOWNLINK_MEGABYTES_PER_SECOND) : 0
   const escape = input.burnAtProbeSecond <= 42 && input.deltaVMetersPerSecond >= 3400
   const science = input.burnAtProbeSecond >= 44
     && input.burnAtProbeSecond <= 50
@@ -96,8 +100,8 @@ function simulationFor(input: WorldlineSimulationInput, id: string): WorldlineSi
     && size > 0
     && size <= 30
     && !input.packetIds.includes('navigation-archive')
+    && input.burnAtProbeSecond + transmissionSeconds <= CONTACT_SECONDS
   const fuelUsed = Math.ceil(input.deltaVMetersPerSecond / 250)
-  const transmissionSeconds = size ? Math.ceil(size / 0.5) : 0
 
   let explanation = 'This burn misses both safe corridors: the probe is lost and no complete packet clears the signal window.'
   if (escape) explanation = 'The early high-energy burn saves the probe, but turns its antenna away before the unique science packets can leave.'
@@ -131,8 +135,8 @@ export function createWorldlineControl(): WorldlineControl {
       earthElapsedSeconds: state.receipt ? Math.round(state.receipt.earthArrivalYears * 31_557_600) : 0,
       probeElapsedSeconds: state.receipt?.probeElapsedSeconds ?? 0,
       fuelKilograms: state.receipt ? (selected?.fuelRemainingKilograms ?? 0) : 14,
-      downlinkMegabytesPerSecond: 0.5,
-      contactSecondsRemaining: state.receipt ? 0 : 71,
+      downlinkMegabytesPerSecond: DOWNLINK_MEGABYTES_PER_SECOND,
+      contactSecondsRemaining: state.receipt ? 0 : CONTACT_SECONDS,
       packets,
       simulations: [...state.simulations],
       plan: state.plan,

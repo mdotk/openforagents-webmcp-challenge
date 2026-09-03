@@ -1,126 +1,109 @@
 # WORLDLINE — One probe. One signal.
 
-WORLDLINE is a deterministic educational mission created by Enoki Limited for
-the WebMCP Challenge. A browser agent investigates possible futures for a
-probe near a black hole. It prepares the trade-off; the person decides what
+WORLDLINE is an interactive science story created by Enoki Limited for the
+WebMCP Challenge. A browser agent investigates possible futures for a probe
+near a black hole. It prepares the trade-off; the learner decides what
 matters.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
-[Try the preserved shopping experience](https://openforagents-webmcp-challenge.vercel.app/?experience=shopping) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
 
 There is no real spacecraft, mission, account or external system behind the
-demonstration. Its numbers support a browser-local interaction and do not claim
-to be a precision black-hole simulation.
+demonstration. Its deterministic numbers support the interaction and do not
+claim to be a precision black-hole simulation.
 
-## The WORLDLINE journey
+## Try it with a browser agent
 
-The probe has enough fuel to escape or enough contact time to send two unique
-science packets to Earth, but not both. The agent must inspect the packet facts,
-test multiple burns, reject a failed worldline and put one viable plan on the
-shared page. It cannot choose which outcome matters to the person.
+Open the live page in a browser with WebMCP support and give the agent this
+request:
 
-The person reviews the consequence and approves one immutable burn. Approval
-alone adds the argument-free `execute_authorized_burn` tool. It works once and
-then disappears with every planning tool, leaving only the final state and
-verified receipt.
+> Investigate the mission. Inspect the science and signal window, simulate at
+> least three distinct worldlines, put one viable plan and its exact
+> consequence on the page, request my review, and stop. Do not decide what
+> matters for me.
 
-The actual WebMCP inventory therefore changes from six tools, to seven, to two.
-Browsers without WebMCP receive the same complete guided mission instead of a
-blank or disabled page.
+The agent must inspect three packets, recognise that the large navigation
+archive is already safe on Earth and test more than one burn. The viable
+science path starts at probe second 46 and sends 30 MB at 1.2 MB/s, completing
+exactly when the 71-second contact window closes.
 
-## Preserved shopping experience
+The page then gives the learner one decision: preserve the unique discovery or
+save the probe. After the learner approves the displayed consequence, ask the
+agent to execute the authorized burn.
 
-The person starts with a visible brief:
+No WebMCP browser is required to inspect the project. **Show me the futures**
+runs the same complete deterministic journey through visible page controls.
 
-> Wedding Saturday. Make it unforgettable, not costume. Under $350. Arrive by
-> Friday. Keep my blue boots.
+## Why WebMCP belongs here
 
-The explicit `?experience=shopping` route opens as a small retailer workspace
-rather than a presentation about the technology. The shopper's note, owned
-boots, delivery destination and empty look are visible immediately.
+This is not an agent clicking a prepared sequence of buttons. The initial
+tools expose evidence and a simulation surface rather than a recommended
+answer. The agent must:
 
-- **Find me a look** runs the complete guided journey in an ordinary browser.
-- **Use my browser agent** appears when the page-level WebMCP API is available.
-  It copies one bounded request for the agent while the page continues to show
-  the shared shopping state.
+1. inspect the mission, science packets and signal window;
+2. test distinct timing, velocity and packet combinations;
+3. reject a worldline that loses both the probe and the discovery;
+4. explain one viable consequence on the shared page;
+5. stop at the decision that depends on the learner's values.
 
-The page says that WebMCP tools are available; it never claims that an agent is
-connected. Browsers without WebMCP receive the same complete guided journey
-rather than a blank or disabled experience. Technical tool details and the
-activity history are available on request, but stay out of the shopping flow by
-default.
+The page and agent share the same revisioned mission state. Person approval
+adds one exact, argument-free action. The action works once, removes itself
+after use and leaves a verifiable final receipt.
 
-The agent must then:
+## The 6 → 7 → 2 tool lifecycle
 
-1. Read the shopper's confirmed size, budget, deadline, destination and owned
-   boots.
-2. Search twelve fictional product styles and thirty exact variants.
-3. Inspect candidate products and check current destination-specific delivery.
-4. Assemble a complete look on the shared page without changing the cart.
-5. Replan when the person changes delivery from Home to the Event hotel and the
-   selected blazer no longer arrives in time.
-6. Prepare an immutable cart proposal using fresh delivery quotes.
-7. Stop while the person reviews the exact products, sizes, prices and arrival
-   dates.
+The document initially registers six closed-schema tools:
 
-Approval creates one temporary `apply_approved_cart` capability. It contains no
-editable product arguments, applies only the reviewed cart, works once and then
-disappears. Checkout, payment and order placement are not exposed through
-WebMCP.
+1. `read_mission_state`
+2. `inspect_science_packets`
+3. `read_signal_window`
+4. `simulate_worldline`
+5. `update_shared_plan`
+6. `request_burn_review`
 
-The styling canvas uses exact fictional SKU cutouts. It is not a virtual try-on
-and makes no claim about fit or appearance on a person's body.
+Person approval adds only `execute_authorized_burn`. It accepts `{}` and closes
+over the exact reviewed plan, so neither the agent nor page can replace its
+timing, velocity, packets or consequence during execution.
 
-## Shopping WebMCP implementation
+After execution, every planning and execution tool disappears. Only
+`read_final_state` and `verify_transmission_receipt` remain.
 
-[`registerShoppingTools()`](src/webmcp/register-shopping-tools.ts) resolves the
-page API from `document.modelContext` and registers seven permanent tools:
+## WebMCP implementation
 
-1. `read_shopper_context`
-2. `search_products`
-3. `inspect_products`
-4. `check_fulfilment`
-5. `read_shared_look`
-6. `update_shared_look`
-7. `request_cart_review`
-
-Each tool has a closed input schema. Read tools return exact structured facts;
-write tools accept the browser's cancellation signal and check it before
-committing a state change. The shared canvas uses revision numbers so stale
-updates and stale delivery evidence are rejected.
-
-Tool execution also emits a page-local factual activity event. This makes real
-browser-agent work inspectable without exposing private model reasoning or
-manufacturing an agent transcript. The history is collapsed by default so the
-products, delivery failure, replacements and cart remain the main experience.
-
-The permanent tools share one registration lifetime:
+[`registerWorldlineTools()`](src/webmcp/register-worldline-tools.ts) reads the
+page-level `document.modelContext` API and registers each tool with an
+`AbortSignal`:
 
 ```ts
-modelContext.registerTool(tool, { signal: permanentController.signal })
+const modelContext = documentScope?.modelContext
+await modelContext.registerTool(tool, { signal: controller.signal })
 ```
 
-Human approval registers the temporary capability with a separate lifetime:
+The planning tools, temporary execution tool and final verification tools use
+separate controllers. State changes reconcile the actual browser inventory by
+aborting the old registration lifetime and registering only the tools valid
+for the new phase.
 
-```ts
-await modelContext.registerTool(createGrantTool(grant, controller), {
-  signal: controller.signal,
-})
-```
+The schemas reject additional properties. Mutations require the current
+revision. The initial mission read does not reveal the packet evidence, and it
+never returns the temporary authority identity. The one-use execution tool is
+registered only after a person approves the exact plan on the page.
 
-Using, revoking or expiring that authority aborts its registration. The live
-tool inventory therefore changes from seven tools to eight and back to seven.
+The state machine is implemented in
+[`src/domain/worldline.ts`](src/domain/worldline.ts). The visible page, guided
+journey and native WebMCP tools all use that same state machine.
 
-## Other experiments
+## Other challenge experiments
 
-The earlier challenge prototypes remain available alongside the WORLDLINE root:
+Earlier experiments remain available for comparison, but WORLDLINE is the
+root experience:
 
+- [Adaptive Shopping Canvas](https://openforagents-webmcp-challenge.vercel.app/?experience=shopping)
 - [Launch Window A-01](https://openforagents-webmcp-challenge.vercel.app/?experience=launch-window)
 - [Shared Fitting Room](https://openforagents-webmcp-challenge.vercel.app/?experience=fitting-room)
 - [Rack Rescue](https://openforagents-webmcp-challenge.vercel.app/?experience=rack-rescue)
 
-Their source and qualification records remain in this repository.
+Their design and qualification records remain in `docs/`.
 
 ## Run locally
 
@@ -131,56 +114,46 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL. Open that URL in a browser to use the experience.
+Vite prints the local URL. Open it in a browser to use the experience.
 
-## Test and build
-
-Run the automated tests once:
-
-```sh
-npm run test:run
-```
-
-Run lint, the automated tests and the production build together:
+Run lint, all automated tests and the production build together:
 
 ```sh
 npm run check
 ```
 
-The individual lint and build commands are also available as `npm run lint`
-and `npm run build`.
-
 ## Browser support and evidence
 
-The WebMCP path requires a browser that exposes the page-level WebMCP API used
-by this project. In other browsers, visible controls provide the same fictional
-journey without claiming that tools were registered with the browser.
+The native path requires a browser that exposes the page-level WebMCP API used
+by this project. Other browsers receive the complete visible journey without
+claiming that WebMCP tools are available.
 
-Qualification in one supporting browser establishes only the behavior observed
-in that browser and version. It does not claim compatibility with every
-browser, agent or future WebMCP specification. Automated tests do not by
-themselves establish native browser compatibility.
+Qualification in one supporting browser establishes only the behaviour
+observed in that browser and version. It does not establish compatibility with
+every browser, agent or future WebMCP implementation.
 
-WORLDLINE evidence is recorded in
+WORLDLINE's observed tool lifecycle, responsive checks and limitations are
+recorded in
 [`docs/worldline-qualification-2026-09-03.md`](docs/worldline-qualification-2026-09-03.md).
-The preserved shopping evidence is recorded in
-[`docs/adaptive-shopping-canvas-qualification-2026-09-01.md`](docs/adaptive-shopping-canvas-qualification-2026-09-01.md).
+The visual source and transformations are recorded in
+[`docs/worldline-asset-provenance.md`](docs/worldline-asset-provenance.md).
 
 ## Project status and provenance
 
-This is standalone code created during the challenge period. It is not a copy,
-release or renamed edition of another Open for Agents product. The related
-[`challenge chronology`](docs/challenge-chronology.md) records its provenance
-and submission status.
+This standalone project was created during the challenge period. It is not a
+copy, release or renamed edition of another Open for Agents product. The
+[`challenge chronology`](docs/challenge-chronology.md) records its provenance.
 
 No final challenge submission or public entry video has been made.
 
 ## Licence
 
-The project source is copyright (C) 2026 Enoki Limited and is available under
-the GNU General Public License, version 2 or (at your option) any later version
-(`GPL-2.0-or-later`). See [`LICENSE`](LICENSE), [`NOTICE.md`](NOTICE.md) and
+Copyright (C) 2026 Enoki Limited.
+
+The source is available under the GNU General Public License, version 2 or, at
+your option, any later version (`GPL-2.0-or-later`). See [`LICENSE`](LICENSE),
+[`NOTICE.md`](NOTICE.md) and
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change and
-[`SECURITY.md`](SECURITY.md) for private vulnerability-reporting guidance.
+[`SECURITY.md`](SECURITY.md) for private vulnerability reports.

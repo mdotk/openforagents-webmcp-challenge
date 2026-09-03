@@ -121,7 +121,7 @@ export default function WorldlineApp() {
       const plan = control.updatePlan(
         discovery.id,
         'Send the discovery home',
-        'The two unique packets fit the final 60-second downlink. The navigation archive is already safe on Earth.',
+        'The two unique packets finish transmitting at probe second 71. The navigation archive is already safe on Earth.',
         control.getSnapshot().revision,
       )
       await pause(520)
@@ -314,8 +314,8 @@ export default function WorldlineApp() {
 
       <section className="worldline-below">
         <div>
-          <p className="worldline-below__label">What is happening?</p>
-          <p>A browser agent can inspect the mission, test possible futures and explain the trade-off. You decide what matters. Approval creates one exact action, then removes it after use.</p>
+          <p className="worldline-below__label">An interactive science story</p>
+          <p>With a compatible browser agent, a learner can investigate evidence and compare possible futures instead of watching a fixed simulation. The agent explains the trade-off; the learner decides what matters.</p>
         </div>
         <details>
           <summary>Mission data and exact tools</summary>

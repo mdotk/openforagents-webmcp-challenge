@@ -8,7 +8,7 @@ Status: **qualified and promoted to the public root.**
 
 - Lint passed.
 - TypeScript production build passed.
-- All 83 tests passed across 16 files.
+- All 84 tests passed across 16 files.
 - Dedicated domain tests cover mutually exclusive outcomes, revision checks,
   explicit person approval, one-use execution and replay rejection.
 - Dedicated WebMCP tests cover closed schemas and exact 6 → 7 → 2 inventory.
@@ -26,12 +26,13 @@ The agent-side investigation:
 
 1. Read mission revision 0 and the 71-second contact window once.
 2. Inspected all three packets.
-3. Read the 0.5 MB/s signal window.
+3. Read the 1.2 MB/s signal window.
 4. Simulated an early 3,500 m/s burn that saved the probe but lost the unique
    science.
 5. Simulated a late 2,600 m/s burn that lost both outcomes.
 6. Simulated a 2,200 m/s burn at probe second 46 that transmitted the 18 MB
-   gravity map and 12 MB horizon spectrum but could not save the probe.
+   gravity map and 12 MB horizon spectrum in 25 seconds, completing exactly at
+   the end of the 71-second contact window, but could not save the probe.
 7. Put that exact plan and rationale on the page.
 8. Requested person review and stopped.
 
@@ -67,12 +68,10 @@ compatibility with every browser, agent or future WebMCP implementation.
 
 ## Public release result
 
-WORLDLINE was promoted to the root in commit
-`ece86e397f5f218a2cc21f6b825e3911ae20261b`. Vercel production deployment
-`dpl_8ruvtwx4bGFQoiDVWKe4yCtxsbgc` reached `Ready`, and the repository's Vercel
-commit status passed for that exact revision. This repository does not define
-a GitHub Actions workflow; the available automated gate is the local
-`npm run check` contract plus the exact-commit Vercel deployment status.
+[WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) is live at the
+public root. The complete browser journey was repeated after the transmission
+arithmetic was corrected, and the visible page remained consistent with the
+tool results.
 
 Public acceptance confirmed:
 

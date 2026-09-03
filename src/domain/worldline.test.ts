@@ -16,8 +16,26 @@ describe('WORLDLINE mission control', () => {
     }, 1)
 
     expect(escape).toMatchObject({ viable: true, probeSurvives: true, discoveryDelivered: false })
-    expect(discovery).toMatchObject({ viable: true, probeSurvives: false, discoveryDelivered: true, earthArrivalYears: 23 })
+    expect(discovery).toMatchObject({
+      viable: true,
+      probeSurvives: false,
+      discoveryDelivered: true,
+      earthArrivalYears: 23,
+      transmissionSeconds: 25,
+    })
     expect(discovery.packetIds).toEqual(['gravity-map', 'horizon-spectrum'])
+    expect(discovery.burnAtProbeSecond + discovery.transmissionSeconds).toBe(71)
+  })
+
+  it('rejects a science path that cannot finish before contact ends', () => {
+    const control = createWorldlineControl()
+    const tooLate = control.simulate({
+      burnAtProbeSecond: 50,
+      deltaVMetersPerSecond: 2200,
+      packetIds: ['gravity-map', 'horizon-spectrum'],
+    }, 0)
+
+    expect(tooLate).toMatchObject({ viable: false, discoveryDelivered: false, transmissionSeconds: 25 })
   })
 
   it('requires a fresh revision, viable plan and explicit person approval', () => {
