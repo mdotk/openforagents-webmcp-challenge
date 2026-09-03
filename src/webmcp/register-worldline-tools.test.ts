@@ -32,7 +32,7 @@ class FakeModelContext implements WebMcpModelContext {
   }
 }
 
-async function prepareReview(model: FakeModelContext) {
+async function prepareReview(model: FakeModelContext, control: ReturnType<typeof createWorldlineControl>) {
   await model.invoke('read_mission_state')
   await model.invoke('inspect_science_packets')
   await model.invoke('inspect_maneuver_window')
@@ -43,60 +43,130 @@ async function prepareReview(model: FakeModelContext) {
     packet_ids: [],
     hypothesis: 'An early high-energy burn may return the probe.',
     expected_outcome: 'probe_return',
+    test_role: 'extreme',
   })
   expect(escape.structuredContent).toMatchObject({ probeSurvives: true, discoveryDelivered: false })
-  await model.invoke('simulate_worldline', {
-    expected_revision: 1,
-    burn_at_probe_second: 55,
-    delta_v_mps: 2600,
-    packet_ids: ['gravity-map', 'horizon-spectrum'],
-    hypothesis: 'A later compromise burn may preserve both the probe and its unique packets.',
-    expected_outcome: 'probe_return',
-  })
   const discovery = await model.invoke('simulate_worldline', {
-    expected_revision: 2,
+    expected_revision: 1,
     burn_at_probe_second: 46,
     delta_v_mps: 2200,
     packet_ids: ['gravity-map', 'horizon-spectrum'],
     hypothesis: 'An Earth-lock burn may deliver both unique packets.',
     expected_outcome: 'science_transmission',
+    test_role: 'extreme',
   })
   expect(discovery.structuredContent).toMatchObject({ probeSurvives: false, discoveryDelivered: true })
+  await model.invoke('present_learning_checkpoint', { expected_revision: 2 })
+  control.selectLearnerTransmissionEstimate(25, 3)
+  control.selectLearnerPrediction('combination', 4)
+  await model.invoke('simulate_worldline', {
+    expected_revision: 5,
+    burn_at_probe_second: 43,
+    delta_v_mps: 2800,
+    packet_ids: ['gravity-map', 'horizon-spectrum'],
+    hypothesis: 'A middle burn may save both.',
+    expected_outcome: 'probe_return',
+    test_role: 'compromise',
+  })
+  await model.invoke('simulate_worldline', {
+    expected_revision: 6,
+    burn_at_probe_second: 44,
+    delta_v_mps: 3400,
+    packet_ids: ['gravity-map', 'horizon-spectrum'],
+    hypothesis: 'Moving the escape burn into the signal window may preserve both.',
+    expected_outcome: 'probe_return',
+    test_role: 'counterexample',
+  })
   await model.invoke('present_worldline_choices', {
-    expected_revision: 3,
+    expected_revision: 7,
     option_a_simulation_id: 'worldline-01',
-    option_b_simulation_id: 'worldline-03',
-    recommended_simulation_id: 'worldline-03',
+    option_b_simulation_id: 'worldline-02',
+    recommended_simulation_id: 'worldline-02',
     recommendation_rationale: 'Both unique packets fit inside the remaining contact window.',
+    prediction_assessment: 'correct',
+    teaching_explanation: 'Timing, thrust and antenna lock cannot all be satisfied by one burn.',
   })
 }
 
 describe('registerWorldlineTools', () => {
-  it('registers five closed-schema tools without an execution shortcut', async () => {
+  it('registers six closed-schema tools without an execution shortcut', async () => {
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(createWorldlineControl(), { modelContext: model })
 
     expect(await registration.getRegisteredToolNames()).toEqual([...initialWorldlineToolNames].sort())
-    expect(model.tools).toHaveLength(5)
+    expect(model.tools).toHaveLength(6)
     expect([...model.tools.values()].every((tool) => tool.inputSchema.additionalProperties === false)).toBe(true)
     expect(model.tools.has(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)).toBe(false)
     expect([...model.tools.keys()].join(' ')).not.toMatch(/recommend|approve|execute/)
     await registration.dispose()
   })
 
-  it('exposes the exact 5 to 6 to 2 lifecycle and rejects replay', async () => {
+  it('carries the three short handoffs in phase-aware tool results', async () => {
     const control = createWorldlineControl()
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(control, { modelContext: model })
-    await prepareReview(model)
+
+    const opening = await model.invoke('read_mission_state')
+    expect(opening.structuredContent).toMatchObject({
+      phase: 'investigating_extremes',
+      guidance: {
+        command: 'Begin WORLDLINE.',
+        permittedNextActions: expect.arrayContaining([
+          expect.stringMatching(/inspect the science packets/i),
+          expect.stringMatching(/present_learning_checkpoint/i),
+        ]),
+      },
+    })
+
+    await model.invoke('simulate_worldline', {
+      expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
+      hypothesis: 'An early high-energy burn may return the probe.', expected_outcome: 'probe_return', test_role: 'extreme',
+    })
+    await model.invoke('simulate_worldline', {
+      expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'A later Earth-lock burn may send both discoveries.', expected_outcome: 'science_transmission', test_role: 'extreme',
+    })
+    const checkpoint = await model.invoke('present_learning_checkpoint', { expected_revision: 2 })
+    expect(checkpoint.structuredContent).toMatchObject({ resumeInstruction: 'Test my prediction.' })
+
+    const waiting = await model.invoke('read_mission_state')
+    expect(waiting.structuredContent).toMatchObject({
+      phase: 'prediction',
+      learnerCalculation: null,
+      guidance: { objective: expect.stringMatching(/first calculate the signal time/i) },
+    })
+    control.selectLearnerTransmissionEstimate(25, 3)
+    control.selectLearnerPrediction('combination', 4)
+    const prediction = await model.invoke('read_mission_state')
+    expect(prediction.structuredContent).toMatchObject({
+      phase: 'investigating_prediction',
+      learnerPrediction: { id: 'combination' },
+      guidance: {
+        command: 'Test my prediction.',
+        recommendationRule: expect.stringMatching(/recommend the science-transmission future/i),
+        permittedNextActions: expect.arrayContaining([
+          expect.stringMatching(/test_role compromise/i),
+          expect.stringMatching(/test_role counterexample/i),
+        ]),
+      },
+    })
+    await registration.dispose()
+  })
+
+  it('exposes the exact 6 to 7 to 2 lifecycle and rejects replay', async () => {
+    const control = createWorldlineControl()
+    const model = new FakeModelContext()
+    const registration = await registerWorldlineTools(control, { modelContext: model })
+    await prepareReview(model, control)
     await registration.whenIdle()
 
-    expect(model.tools).toHaveLength(5)
+    expect(model.tools).toHaveLength(6)
     expect(model.tools.has(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)).toBe(false)
-    control.approveBurnReview('burn-review-01', 'worldline-03')
+    control.approveBurnReview('burn-review-01', 'worldline-02')
     await registration.whenIdle()
-    expect(await registration.getRegisteredToolNames()).toHaveLength(6)
+    expect(await registration.getRegisteredToolNames()).toHaveLength(7)
     expect(model.tools.get(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)?.inputSchema).toEqual(emptySchemaForTest())
+    expect(model.tools.get(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)?.description).toContain('Carry out my choice')
 
     const execution = await model.invoke(EXECUTE_AUTHORIZED_BURN_TOOL_NAME)
     expect(execution.structuredContent).toMatchObject({ authorityConsumed: true, receipt: { verified: true, earthArrivalYears: 23 } })
@@ -111,8 +181,8 @@ describe('registerWorldlineTools', () => {
     const control = createWorldlineControl()
     const model = new FakeModelContext()
     const registration = await registerWorldlineTools(control, { modelContext: model })
-    await prepareReview(model)
-    control.approveBurnReview('burn-review-01', 'worldline-03')
+    await prepareReview(model, control)
+    control.approveBurnReview('burn-review-01', 'worldline-02')
     await registration.whenIdle()
     const state = await model.invoke('read_mission_state')
 
@@ -139,21 +209,25 @@ describe('registerWorldlineTools', () => {
       packet_ids: [],
       hypothesis: 'An early high-energy burn may return the probe.',
       expected_outcome: 'probe_return',
+      test_role: 'extreme',
     })
 
     expect(activity).toEqual([
       'Three science packets inspected',
-      'Hypothesis confirmed · probe returns',
+      'Test complete · the probe can return, but its discoveries cannot',
     ])
     await registration.dispose()
   })
 
   it('gives the agent the maneuver evidence and a bounded stopping signal', async () => {
     const model = new FakeModelContext()
-    const registration = await registerWorldlineTools(createWorldlineControl(), { modelContext: model })
+    const control = createWorldlineControl()
+    const registration = await registerWorldlineTools(control, { modelContext: model })
     const window = await model.invoke('inspect_maneuver_window')
     expect(window.structuredContent).toMatchObject({
       contactEndsAtProbeSecond: 71,
+      distanceFromEarthLightYears: 23,
+      signalTravelYears: 23,
       propulsionTelemetry: {
         escapeThrustEffectiveThroughProbeSecond: 42,
         minimumEscapeDeltaVMetersPerSecond: 3400,
@@ -171,25 +245,40 @@ describe('registerWorldlineTools', () => {
       packet_ids: [],
       hypothesis: 'An early high-energy burn may return the probe.',
       expected_outcome: 'probe_return',
+      test_role: 'extreme',
     })
     await model.invoke('simulate_worldline', {
       expected_revision: 1,
-      burn_at_probe_second: 55,
-      delta_v_mps: 2600,
-      packet_ids: [],
-      hypothesis: 'A late compromise may still recover the probe.',
-      expected_outcome: 'probe_return',
-    })
-    const final = await model.invoke('simulate_worldline', {
-      expected_revision: 2,
       burn_at_probe_second: 46,
       delta_v_mps: 2200,
       packet_ids: ['gravity-map', 'horizon-spectrum'],
       hypothesis: 'An Earth-lock burn may deliver both unique packets.',
       expected_outcome: 'science_transmission',
+      test_role: 'extreme',
     })
-    expect(final.content[0]?.text).toContain('Present the alternatives with one recommendation tied to the person’s priority; do not simulate again.')
-    expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 2 })
+    await model.invoke('present_learning_checkpoint', { expected_revision: 2 })
+    control.selectLearnerTransmissionEstimate(25, 3)
+    control.selectLearnerPrediction('combination', 4)
+    await model.invoke('simulate_worldline', {
+      expected_revision: 5,
+      burn_at_probe_second: 43,
+      delta_v_mps: 2800,
+      packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'A middle burn may save both.',
+      expected_outcome: 'probe_return',
+      test_role: 'compromise',
+    })
+    const final = await model.invoke('simulate_worldline', {
+      expected_revision: 6,
+      burn_at_probe_second: 44,
+      delta_v_mps: 3400,
+      packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'Moving the escape burn into the signal window may preserve both.',
+      expected_outcome: 'probe_return',
+      test_role: 'counterexample',
+    })
+    expect(final.content[0]?.text).toContain('The compromise and counterexample have tested the learner’s prediction.')
+    expect(final.structuredContent).toMatchObject({ investigationComplete: true, remainingAttempts: 1 })
     await registration.dispose()
   })
 
@@ -204,6 +293,7 @@ describe('registerWorldlineTools', () => {
       'packet_ids',
       'hypothesis',
       'expected_outcome',
+      'test_role',
     ])
     expect(model.tools.get('present_worldline_choices')?.inputSchema.required).toEqual([
       'expected_revision',
@@ -211,6 +301,8 @@ describe('registerWorldlineTools', () => {
       'option_b_simulation_id',
       'recommended_simulation_id',
       'recommendation_rationale',
+      'prediction_assessment',
+      'teaching_explanation',
     ])
     await registration.dispose()
   })

@@ -2,7 +2,7 @@
 
 This is a recording plan only. No video has been published.
 
-Target runtime: 2 minutes 15 seconds. The finished public YouTube video must be
+Target runtime: 2 minutes 20 seconds. The finished public YouTube video must be
 under three minutes and include audio.
 
 ## Recording rules
@@ -10,42 +10,52 @@ under three minutes and include audio.
 - Show the project working in the first ten seconds.
 - Record the deployed page with a real WebMCP-enabled browser agent.
 - Keep the page and agent visible together during the investigation.
-- Show one continuous 5 → 6 → 2 native tool lifecycle.
-- Do not type the long mission live; paste it or begin immediately after Send.
+- Show one continuous 6 → 7 → 2 native tool lifecycle.
+- Start each agent exchange with the short visible instruction; do not show setup or typing.
 - Cut waiting, setup, account details and unrelated browser chrome.
 - Do not call the simulation scientifically exact or imply that it controls a
   real mission.
 
 ## 0:00–0:10 — The impossible choice
 
-Open on a failed prediction changing from **Expected: probe returns** to
-**Found: nothing returns**, while the page draws that worldline. Cut
-immediately to the agent's recommendation and the two choice cards.
+Open on the large investigation chapter asking **Can one compromise save
+both?** The result changes to **No** and the page explains that the compromise
+loses both the probe and the science. Cut immediately to the recommendation
+and the two choice cards.
 
-On-screen text: **The evidence changed its mind. You choose the loss.**
+On-screen text: **You calculate. You predict. The agent tests it.**
 
 Narration:
 
 > A probe beside a black hole can save itself or send home a discovery—but not
-> both. My browser agent has ten seconds to show me why.
+> both. I calculate the signal time and make a prediction; my browser agent has
+> to test it before I choose.
 
-## 0:10–0:35 — Show the agent reasoning
+## 0:10–0:42 — Investigate, predict, investigate again
 
-Jump back to the five-tool opening. Paste the prepared mission and press Send.
-Show the native calls to the mission, packet and maneuver tools, then the three
-simulation calls. Keep the animated paths visible.
+Jump back to the six-tool opening. Say **Begin WORLDLINE.** Show the agent test
+the probe-return and science-transmission extremes. When it stops, solve
+**18 MB + 12 MB, divided by 1.2 MB/s** by choosing **25 seconds**. Then choose
+**All three conflict** at **Why can't one burn save both?** Say **Test my prediction**
+to the same agent. Show it read the learner prediction, test a compromise and
+counterexample, and assess the answer.
 
 Narration:
 
-> WORLDLINE gives the agent an objective and my priority—not a route. WebMCP
-> exposes separate evidence and a five-test simulator. Before every test the
-> agent predicts what will happen. Here its compromise fails, so the evidence
-> changes the next hypothesis and the recommendation shown on the page.
+> WORLDLINE gives the agent the learning goal and my priority—not the burn
+> values or answer. WebMCP exposes separate evidence and a five-test simulator. It finds the extremes,
+> then I work out that the antenna must stay on Earth for 25 seconds. WebMCP
+> turns my calculation and prediction into shared state. The agent must challenge
+> my idea with a compromise and counterexample before it can teach the result.
 
-## 0:35–0:55 — Stop at the human decision
+Hold briefly on the visible proof: returning the probe requires `t ≤ 42s` and
+`Δv ≥ 3,400 m/s`; transmitting requires `44s ≤ t ≤ 50s` and
+`2,000–2,400 m/s`. The regions do not overlap.
+
+## 0:42–1:02 — Stop at the human decision
 
 Hold the recommendation and both choice cards on screen. Show that the
-recommendation answers the priority selected at the start, five tools remain
+recommendation answers the priority selected at the start, six tools remain
 and the agent has stopped.
 
 Narration:
@@ -54,12 +64,12 @@ Narration:
 > matters most. But it cannot accept that loss for me. Do I bring the
 > spacecraft home, or preserve the observation no one else has?
 
-## 0:55–1:15 — Create one exact capability
+## 1:02–1:20 — Create one exact capability
 
-Choose **Send the science**. Show the inventory change from five tools to six
+Choose **Send both discoveries — lose the probe**. Show the inventory change from six tools to seven
 and identify `execute_authorized_burn`.
 
-On-screen text: **5 investigation tools → 6 after my choice**
+On-screen text: **6 investigation tools → 7 after my choice**
 
 Narration:
 
@@ -67,24 +77,25 @@ Narration:
 > to the exact route the agent already tested, so the burn cannot be changed at
 > execution time.
 
-## 1:15–1:43 — The cinematic payoff
+## 1:20–1:48 — The cinematic payoff
 
-Ask the agent to execute the authorized burn. Show the burn flash, two packet
-signals leaving, the probe fading and Earth's clock advancing to 23 years.
-Finish on **23 years later, Earth sees what it saw.**
+Say **Carry out my choice.** Show the burn flash, the antenna
+holding Earth, the gravity map and horizon spectrum leaving separately, the
+contact window closing, the probe falling silent and the signal crossing 23
+light-years. Finish on **Both discoveries reached Earth.**
 
 Narration:
 
-> The approved burn runs once. Thirty megabytes leave the probe. Nine minutes
-> pass there; 23 years pass on Earth. The spacecraft is gone. The discovery is
-> not.
+> The approved burn runs once. Thirty megabytes finish leaving before contact
+> closes. The probe is 23 light-years away, so the signal takes 23 years to
+> reach Earth. The spacecraft is gone. Both irreplaceable observations survive.
 
-## 1:43–2:02 — Prove the WebMCP lifecycle
+## 1:48–2:07 — Prove the WebMCP lifecycle
 
 Show that only `read_final_state` and `verify_transmission_receipt` remain, then
 invoke or display the verified receipt.
 
-On-screen text: **5 → 6 → 2 tools · one shared state**
+On-screen text: **6 → 7 → 2 tools · one shared state**
 
 Narration:
 
@@ -92,28 +103,30 @@ Narration:
 > verification tools remain. The page, the agent and the final receipt all use
 > the same revisioned mission state.
 
-## 2:02–2:15 — Close
+## 2:07–2:20 — Close
 
-Return to the opening and briefly show **Run guided mission**.
+Return to the opening and briefly show the clear WebMCP-ready state.
 
 Narration:
 
-> Without WebMCP, it is a guided science story. With WebMCP, the agent can
-> investigate possible futures with you. WORLDLINE is live, open source and
-> built for the WebMCP Challenge.
+> WORLDLINE uses WebMCP so the agent can investigate possible futures with you,
+> while the decision remains yours. It is live, open source and built for the
+> WebMCP Challenge.
 
 ## Prepared YouTube metadata
 
 Title:
 
-> WORLDLINE — The evidence changes an AI agent's mind. You decide.
+> WORLDLINE — An AI tests your theory. You choose what survives.
 
 Description:
 
 > WORLDLINE is an interactive WebMCP science story. A browser agent receives an
-> open objective and a learner's priority, forms competing hypotheses, predicts
-> and tests possible worldlines for a probe beside a black hole, then visibly
-> revises its plan when evidence disagrees. It recommends one viable future;
+> open objective and a learner's priority, tests the two extreme worldlines for
+> a probe beside a black hole, then pauses for the learner's calculation and
+> prediction. In a
+> second investigation it tests that idea with a compromise and counterexample.
+> It explains the physics and recommends one viable future;
 > the learner chooses whether the probe or its unique discovery comes home.
 > That choice creates one exact, one-use WebMCP tool; after execution, only
 > verification remains.

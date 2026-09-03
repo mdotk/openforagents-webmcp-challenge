@@ -67,18 +67,24 @@ on their existing routes.
 On 3 September 2026, the entrant qualified WORLDLINE as a separate
 reasoning-first WebMCP experience and promoted it to the root route. The
 Adaptive Shopping Canvas remains available at `?experience=shopping`.
-WORLDLINE's observed browser lifecycle changes from five investigative tools to
-six after person approval, then to two read-only verification tools after the
+WORLDLINE's current browser lifecycle changes from six investigation tools to
+seven after the learner's choice, then to two read-only verification tools after the
 one-use action is consumed.
 
-Later that day, the candidate moved from a bounded prescribed journey to an
-open investigation contract. The agent now receives the person's priority and
-raw evidence, must state a hypothesis before each of at most five simulations,
-and places a recommendation plus its rejected alternative on the shared page.
-Local automated and responsive acceptance passed. A fresh external-agent run
-remains pending for this replacement contract. The public deployment and
-attached-Chrome readback passed; earlier agent traces are not reused as current
-external-agent qualification.
+The candidate first moved from a prescribed journey to an open investigation
+contract. Its latest learning design splits that investigation into three
+exchanges. The agent establishes the two extreme futures and stops. The learner
+calculates the signal time and predicts why one burn cannot save both. The agent
+then reads those shared answers,
+tests a compromise and counterexample, teaches the result and stops again. Only
+after the learner chooses a future can the agent execute and verify the exact
+one-use burn.
+
+The current source passed local automated and responsive acceptance plus one
+complete native-agent run in the attached Chrome profile. That local run is not
+evidence that the same revision is deployed. A fresh run against the public URL
+remains required after deployment; earlier production traces are not reused as
+proof of the replacement contract.
 
 Matt Gibbs has joined the challenge on Devpost. No entry video has been
 published to YouTube and no final challenge submission has been made. This

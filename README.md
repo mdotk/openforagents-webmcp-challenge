@@ -14,56 +14,66 @@ claim to be a precision black-hole simulation.
 
 ## Try it with a browser agent
 
-Open the live page in a browser with WebMCP support and give the agent this
-request:
+Open the live page in a browser with WebMCP support. Choose what matters most,
+then open your browser agent and say:
 
-> Investigate this mission and recommend the best recoverable future. My
-> priority is to preserve observations that cannot be recreated. Read the
-> available evidence. You have at most five simulations. Before each test,
-> state a concise hypothesis and expected outcome, then adapt to what the test
-> reveals. Challenge your leading hypothesis with a control test. Place the
-> strongest materially different viable alternatives on the shared page with
-> one recommendation tied to my priority. Do not choose or execute a burn for
-> me.
+> Begin WORLDLINE.
 
 The page gives the agent separate packet, propulsion, antenna and signal
-evidence—not a route or answer. The agent must decide which evidence matters,
-form competing hypotheses, predict what each test will do and revise its plan
-when a result disproves that prediction. Five simulation calls is a hard
-limit. Repeating an exact worldline consumes an attempt but does not create
-duplicate mission state.
+evidence—not the burn values or answer. The first mission read returns the
+current phase, permitted work and exact stopping point, so the person does not
+have to paste operating instructions. After the agent establishes the two
+extremes, the simulation pauses. The learner first calculates how long the
+signal needs, then predicts why one burn cannot save both. After the learner
+says **Test my prediction**, the agent reads both answers from shared page
+state, tests a compromise and counterexample,
+then explains what the learner got right. Five simulation calls is a hard
+limit.
 
-The page shows every hypothesis, expected outcome and result as the agent
-works. When it has enough evidence, it presents two viable futures, explains
-the rejected control and recommends one for the learner's stated priority.
-The learner chooses whether to preserve the unique discovery or save the
-probe. That choice adds one exact execution tool. Ask the agent to use it once.
+The agent can finish its tool calls faster than a person can follow them, so
+the page replays the real shared state as a paced investigation. Each tested
+future appears as a question, attempted maneuver, result, calculation and
+lesson. Only after both investigation acts does the page present two viable
+futures and a recommendation tied to the learner's stated priority.
+The learner chooses whether to preserve the unique discoveries or save the
+probe. That choice adds one exact execution tool. The learner says **Carry out
+my choice.** The agent uses the approved action once and verifies the result.
 
 The opening screen says whether WebMCP is available and does not claim that an
-agent has started. **Copy mission for my agent** explains that pressing Send
-starts an investigation, that each hypothesis will appear on the page and that
-no burn can happen before the learner chooses. During an agent run, the page
-shows the attempt budget, confirmed and revised hypotheses, and a control that
-unregisters its WebMCP tools. **Run guided mission** uses the same state machine
-through visible page controls when no agent is available.
+agent has started. It presents one short instruction rather than a copied
+prompt. During an agent run, the page shows the attempt budget, confirmed and
+revised hypotheses, and a control that unregisters its WebMCP tools. If WebMCP
+is unavailable, the page says so and does not replace the agent's investigation
+with a scripted demonstration.
 
 Each tested worldline is drawn only after the corresponding simulation runs.
-After the approved burn, the page shows the burn, the two science packets
-leaving the probe, the 23-year Earth clock and the verified final receipt.
-Reduced-motion preferences skip directly to the completed outcome.
+After the approved science burn, the page shows the antenna holding Earth,
+each of the two packets leaving, the contact window closing, the signal
+crossing 23 light-years and the verified final receipt. The 23-year wait is
+the signal's travel time from a probe 23 light-years away; the experience does
+not invent an unsupported probe-time comparison. Reduced-motion preferences
+skip directly to the complete, causally equivalent outcome.
 
 ## Why WebMCP belongs here
 
-This is not an agent clicking a prepared sequence of buttons. The initial
-tools expose evidence and a simulation surface rather than a recommended
-answer. The agent must:
+This is not an agent clicking a prepared sequence of buttons. The three-part
+investigation sets two deliberate stopping points, while the tools expose evidence
+and a simulation surface rather than burn values or a recommended answer. The
+agent must:
 
 1. inspect separate mission, packet and maneuver evidence;
 2. choose which facts matter for the learner's stated priority;
-3. state a hypothesis and expected outcome before each bounded simulation;
-4. revise its search after a failed prediction and challenge its leading idea;
-5. recommend one viable future with an evidence-based reason;
-6. stop at the irreversible decision that belongs to the learner.
+3. stop after the two extremes and ask the learner to calculate the signal time;
+4. ask the learner to predict the cause, then read both answers from shared state;
+5. test a compromise and counterexample, then assess the prediction;
+6. recommend one viable future with an evidence-based reason;
+7. stop at the irreversible decision that belongs to the learner.
+
+The learner performs the central calculation on the shared page. Returning the probe
+requires a burn by second 42 with at least 3,400 m/s of delta-v. Sending the
+discoveries requires a burn between seconds 44 and 50 at 2,000–2,400 m/s. The
+time and thrust regions never overlap. The page also shows that 30 MB at 1.2
+MB/s takes 25 seconds to transmit.
 
 The learner's priority, tested hypotheses, recommendation and execution all
 share the same revisioned mission state. The agent may read the priority but
@@ -71,15 +81,16 @@ cannot rewrite it. Person approval adds one exact, argument-free action. The
 action works once, removes itself after use and leaves a verifiable final
 receipt.
 
-## The 5 → 6 → 2 tool lifecycle
+## The 6 → 7 → 2 tool lifecycle
 
-The document initially registers five closed-schema tools:
+The document initially registers six closed-schema tools:
 
 1. `read_mission_state`
 2. `inspect_science_packets`
 3. `inspect_maneuver_window`
 4. `simulate_worldline`
-5. `present_worldline_choices`
+5. `present_learning_checkpoint`
+6. `present_worldline_choices`
 
 The learner's choice adds only `execute_authorized_burn`. It accepts `{}` and
 closes over the exact selected simulation, so the agent cannot replace its
@@ -91,16 +102,43 @@ After execution, every planning and execution tool disappears. Only
 ## WebMCP implementation
 
 [`registerWorldlineTools()`](src/webmcp/register-worldline-tools.ts) reads the
-page-level `document.modelContext` API and registers each tool with an
-`AbortSignal`:
+page-level `document.modelContext` API. The production implementation builds
+each tool from the same revisioned mission control. In direct form, one of the
+initial registrations looks like this:
 
 ```ts
-const modelContext = documentScope?.modelContext
-await modelContext.registerTool(tool, { signal: controller.signal })
+const control = createWorldlineControl()
+const controller = new AbortController()
+
+await document.modelContext.registerTool({
+  name: 'read_mission_state',
+  description: 'Start or resume WORLDLINE and read the current mission phase.',
+  inputSchema: {
+    type: 'object',
+    properties: {},
+    required: [],
+    additionalProperties: false,
+  },
+  execute: async () => {
+    const snapshot = control.getSnapshot()
+    return {
+      content: [{
+        type: 'text',
+        text: `Mission revision ${snapshot.revision}; phase ${snapshot.phase}.`,
+      }],
+      structuredContent: {
+        revision: snapshot.revision,
+        phase: snapshot.phase,
+        humanPriority: snapshot.humanPriority,
+      },
+    }
+  },
+}, { signal: controller.signal })
 ```
 
-The planning tools, temporary execution tool and final verification tools use
-separate controllers. State changes reconcile the actual browser inventory by
+The shipped code adds phase-aware guidance and the remaining safe fields before
+returning this result. The planning tools, temporary execution tool and final
+verification tools use separate controllers. State changes reconcile the actual browser inventory by
 aborting the old registration lifetime and registering only the tools valid
 for the new phase.
 
@@ -111,8 +149,8 @@ registered only after the learner selects one of the two exact simulations on
 the page.
 
 The state machine is implemented in
-[`src/domain/worldline.ts`](src/domain/worldline.ts). The visible page, guided
-journey and native WebMCP tools all use that same state machine.
+[`src/domain/worldline.ts`](src/domain/worldline.ts). The visible page and
+native WebMCP tools use that same state machine.
 
 ## Other challenge experiments
 
@@ -145,9 +183,9 @@ npm run check
 
 ## Browser support and evidence
 
-The native path requires a browser that exposes the page-level WebMCP API used
-by this project. Other browsers receive the complete visible journey without
-claiming that WebMCP tools are available.
+The experience requires a browser that exposes the page-level WebMCP API used
+by this project. Other browsers receive a clear compatibility message and do
+not pretend to run the investigation.
 
 Qualification in one supporting browser establishes only the behaviour
 observed in that browser and version. It does not establish compatibility with

@@ -5,15 +5,17 @@ import type {
   WebMcpTool,
   WebMcpToolResult,
   WorldlineControl,
+  WorldlineSnapshot,
   WorldlineToolsRegistration,
 } from '../types'
-import { MAX_WORLDLINE_SIMULATIONS } from '../domain/worldline'
+import { MAX_WORLDLINE_SIMULATIONS, WORLDLINE_HUMAN_PRIORITIES } from '../domain/worldline'
 
 export const initialWorldlineToolNames = Object.freeze([
   'read_mission_state',
   'inspect_science_packets',
   'inspect_maneuver_window',
   'simulate_worldline',
+  'present_learning_checkpoint',
   'present_worldline_choices',
 ] as const)
 
@@ -63,8 +65,12 @@ const simulationSchema = Object.freeze({
       type: 'string',
       enum: Object.freeze(['probe_return', 'science_transmission', 'total_loss']),
     }),
+    test_role: Object.freeze({
+      type: 'string',
+      enum: Object.freeze(['extreme', 'compromise', 'counterexample']),
+    }),
   }),
-  required: Object.freeze(['expected_revision', 'burn_at_probe_second', 'delta_v_mps', 'packet_ids', 'hypothesis', 'expected_outcome']),
+  required: Object.freeze(['expected_revision', 'burn_at_probe_second', 'delta_v_mps', 'packet_ids', 'hypothesis', 'expected_outcome', 'test_role']),
   additionalProperties: false as const,
 })
 
@@ -74,10 +80,17 @@ const choicesSchema = Object.freeze({
     expected_revision: revision,
     option_a_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
     option_b_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
-    recommended_simulation_id: Object.freeze({ type: 'string', minLength: 1, maxLength: 40 }),
+    recommended_simulation_id: Object.freeze({
+      type: 'string',
+      minLength: 1,
+      maxLength: 40,
+      description: 'Must select the viable future that follows the learner priority returned by read_mission_state.',
+    }),
     recommendation_rationale: Object.freeze({ type: 'string', minLength: 1, maxLength: 240 }),
+    prediction_assessment: Object.freeze({ type: 'string', enum: Object.freeze(['correct', 'partly_correct', 'not_supported']) }),
+    teaching_explanation: Object.freeze({ type: 'string', minLength: 1, maxLength: 320 }),
   }),
-  required: Object.freeze(['expected_revision', 'option_a_simulation_id', 'option_b_simulation_id', 'recommended_simulation_id', 'recommendation_rationale']),
+  required: Object.freeze(['expected_revision', 'option_a_simulation_id', 'option_b_simulation_id', 'recommended_simulation_id', 'recommendation_rationale', 'prediction_assessment', 'teaching_explanation']),
   additionalProperties: false as const,
 })
 
@@ -112,20 +125,90 @@ function selectedPackets(args: Record<string, unknown>): readonly SciencePacketI
 
 type ActivityReporter = (message: string) => void
 
+function guidanceFor(snapshot: WorldlineSnapshot) {
+  if (snapshot.phase === 'investigating_extremes') {
+    return {
+      command: 'Begin WORLDLINE.',
+      objective: 'Establish one credible future that returns the probe and one that sends both unique discoveries.',
+      permittedNextActions: [
+        'Inspect the science packets and maneuver window.',
+        'Test exactly two materially different extremes with test_role extreme.',
+        'Call present_learning_checkpoint after both outcomes are established.',
+      ],
+      stopWhen: 'The learning checkpoint opens. Stop and wait for the learner to calculate the signal time and make a prediction on the page.',
+    }
+  }
+  if (snapshot.phase === 'prediction') {
+    const learnerStep = snapshot.learnerCalculation
+      ? 'The learner has calculated the signal time and must now predict why one burn cannot save both outcomes.'
+      : 'The learner must first calculate the signal time, then predict why one burn cannot save both outcomes.'
+    return {
+      command: null,
+      objective: learnerStep,
+      permittedNextActions: [],
+      stopWhen: 'The learner has not completed both steps yet. Do not run another simulation.',
+    }
+  }
+  if (snapshot.phase === 'investigating_prediction') {
+    const requiredRecommendation = snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.discovery
+      ? 'Recommend the science-transmission future because the learner chose to protect irreplaceable science.'
+      : snapshot.humanPriority === WORLDLINE_HUMAN_PRIORITIES.probe
+        ? 'Recommend the probe-return future because the learner chose to protect the spacecraft.'
+        : `Follow this recorded learner priority exactly: ${snapshot.humanPriority}`
+    return {
+      command: 'Test my prediction.',
+      objective: 'Challenge the learner prediction and teach what the evidence supports.',
+      permittedNextActions: [
+        'Use learnerCalculation to acknowledge the learner’s transmission-time answer and its correction, if needed.',
+        'Test one plausible compromise with test_role compromise.',
+        'Test one counterexample with test_role counterexample.',
+        `Call present_worldline_choices with a prediction assessment and teaching explanation. ${requiredRecommendation}`,
+      ],
+      recommendationRule: requiredRecommendation,
+      stopWhen: 'The two viable futures appear. Stop and wait for the learner to choose which loss to accept.',
+    }
+  }
+  if (snapshot.phase === 'review') {
+    return {
+      command: null,
+      objective: 'Wait for the learner to choose one of the two tested futures on the page.',
+      permittedNextActions: [],
+      stopWhen: 'No burn is authorized yet. Do not choose for the learner.',
+    }
+  }
+  if (snapshot.phase === 'authorized') {
+    return {
+      command: 'Carry out my choice.',
+      objective: 'Execute the exact person-approved burn, then verify the final receipt.',
+      permittedNextActions: ['Call execute_authorized_burn with no arguments.'],
+      stopWhen: 'The final receipt is verified and the outcome has been reported.',
+    }
+  }
+  return {
+    command: null,
+    objective: 'Report the completed mission from the final read-only tools.',
+    permittedNextActions: [],
+    stopWhen: 'The verified final outcome has been reported.',
+  }
+}
+
 function createPlanningTools(control: WorldlineControl, reportActivity: ActivityReporter): readonly WebMcpTool[] {
   const readOnly = { readOnlyHint: true, untrustedContentHint: false } as const
   const write = { readOnlyHint: false, untrustedContentHint: false } as const
   return [
     {
       name: 'read_mission_state',
-      description: 'Read the current educational mission revision, clocks, fuel, contact window, shared choices and authority state once.',
+      description: 'Start or resume WORLDLINE. Call this first when the person says “Begin WORLDLINE” or “Test my prediction.” It returns the current phase, shared learner state, permitted next work and exact stopping point.',
       inputSchema: emptySchema,
       annotations: readOnly,
       execute: () => {
         const snapshot = control.getSnapshot()
-        reportActivity('Mission state inspected')
+        const guidance = guidanceFor(snapshot)
+        reportActivity(snapshot.phase === 'investigating_prediction' && snapshot.learnerPrediction
+          ? 'Learner prediction inspected'
+          : 'Mission state inspected')
         return result(
-          `Mission revision ${snapshot.revision}; phase ${snapshot.phase}; ${snapshot.contactSecondsRemaining} probe-seconds of contact remain; temporary burn capability ${snapshot.activeGrant ? 'active' : 'not active'}. Use this result and do not repeat the read in the same turn.`,
+          `Mission revision ${snapshot.revision}; phase ${snapshot.phase}; ${snapshot.contactSecondsRemaining} probe-seconds of contact remain. Objective: ${guidance.objective} ${guidance.stopWhen} Use this result and do not repeat the read in the same turn.`,
           {
             revision: snapshot.revision,
             phase: snapshot.phase,
@@ -136,7 +219,11 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             simulationsTested: snapshot.simulations.length,
             simulationAttemptsUsed: snapshot.simulationAttemptsUsed,
             simulationAttemptsRemaining: MAX_WORLDLINE_SIMULATIONS - snapshot.simulationAttemptsUsed,
+            distanceFromEarthLightYears: snapshot.distanceFromEarthLightYears,
             humanPriority: snapshot.humanPriority,
+            learningCheckpoint: snapshot.learningCheckpoint,
+            learnerCalculation: snapshot.learnerCalculation,
+            learnerPrediction: snapshot.learnerPrediction,
             testedWorldlines: snapshot.simulations.map((simulation) => ({
               id: simulation.id,
               hypothesis: simulation.hypothesis,
@@ -152,6 +239,7 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             review: snapshot.review,
             receipt: snapshot.receipt,
             temporaryBurnCapabilityActive: Boolean(snapshot.activeGrant),
+            guidance,
           },
         )
       },
@@ -190,9 +278,11 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
               lockPreservingDeltaVMetersPerSecond: [2000, 2400],
             },
             packetCompletionRule: 'burn_at_probe_second + ceil(selected_packet_megabytes / downlink_megabytes_per_second) <= contact_ends_at_probe_second',
+            distanceFromEarthLightYears: snapshot.distanceFromEarthLightYears,
+            signalTravelYears: snapshot.distanceFromEarthLightYears,
             initialEarthElapsedSeconds: snapshot.earthElapsedSeconds,
             initialProbeElapsedSeconds: snapshot.probeElapsedSeconds,
-            earthArrivalYearsForSuccessfulScience: 23,
+            earthArrivalYearsForSuccessfulScience: snapshot.distanceFromEarthLightYears,
             educationalModel: true,
           },
         )
@@ -213,30 +303,62 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
           packetIds: selectedPackets(args),
           hypothesis,
           expectedOutcome,
+          testRole: text(args, 'test_role', 40) as 'extreme' | 'compromise' | 'counterexample',
         }, integer(args, 'expected_revision'))
         const after = control.getSnapshot()
         const reused = before.revision === after.revision
         const outcomesFound = [...new Set(after.simulations.map((candidate) => candidate.outcome))]
-        const investigationComplete = outcomesFound.includes('probe_return')
-          && outcomesFound.includes('science_transmission')
-          && outcomesFound.includes('total_loss')
+        const extremesEstablished = outcomesFound.includes('probe_return') && outcomesFound.includes('science_transmission')
+        const predictionTests = after.learnerPrediction
+          ? after.simulations.slice(after.learnerPrediction.selectedAfterSimulationCount)
+          : []
+        const predictionRoles = new Set(predictionTests.map((candidate) => candidate.testRole))
+        const investigationComplete = after.phase === 'investigating_prediction'
+          && predictionRoles.has('compromise')
+          && predictionRoles.has('counterexample')
+          && predictionTests.some((candidate) => candidate.outcome === 'total_loss')
         const remainingAttempts = MAX_WORLDLINE_SIMULATIONS - after.simulationAttemptsUsed
-        reportActivity(`${simulation.expectationMatched ? 'Hypothesis confirmed' : 'Hypothesis revised'} · ${simulation.probeSurvives ? 'probe returns' : simulation.discoveryDelivered ? 'discovery reaches Earth' : 'nothing returns'}`)
+        reportActivity(simulation.probeSurvives
+          ? 'Test complete · the probe can return, but its discoveries cannot'
+          : simulation.discoveryDelivered
+            ? 'Test complete · both discoveries can be sent, but the probe cannot return'
+            : 'Test complete · this path saves neither the probe nor its discoveries')
         return result(
-          `Simulation ${simulation.id} ${simulation.expectationMatched ? 'confirmed' : 'did not confirm'} the hypothesis: ${simulation.explanation} ${reused ? 'This exact worldline was already recorded, so the revision did not change; the repeated call still used one investigation attempt.' : `Mission state moved to revision ${after.revision}.`} No real burn occurred.${simulation.failureReasons.length ? ` Failure reasons: ${simulation.failureReasons.join(', ')}.` : ''} ${investigationComplete ? 'Two materially different viable futures and a failed control are now established. Present the alternatives with one recommendation tied to the person’s priority; do not simulate again.' : `${remainingAttempts} simulation attempt${remainingAttempts === 1 ? '' : 's'} remain. Adapt the next hypothesis to this evidence.`}`,
+          `Simulation ${simulation.id} ${simulation.expectationMatched ? 'confirmed' : 'did not confirm'} the hypothesis: ${simulation.explanation} ${reused ? 'This exact worldline was already recorded, so the revision did not change; the repeated call still used one investigation attempt.' : `Mission state moved to revision ${after.revision}.`} No real burn occurred.${simulation.failureReasons.length ? ` Failure reasons: ${simulation.failureReasons.join(', ')}.` : ''} ${after.phase === 'investigating_extremes' && extremesEstablished ? 'The two extreme futures are established. Call present_learning_checkpoint now, then stop so the learner can calculate the signal time and make a prediction.' : investigationComplete ? 'The compromise and counterexample have tested the learner’s prediction. Present the two viable choices, assess the prediction and teach the result; do not simulate again.' : `${remainingAttempts} simulation attempt${remainingAttempts === 1 ? '' : 's'} remain. Adapt the next hypothesis to this evidence.`}`,
           {
             ...simulation,
             reused,
             remainingAttempts,
             outcomesFound,
             investigationComplete,
+            extremesEstablished,
           },
         )
       },
     },
     {
+      name: 'present_learning_checkpoint',
+      description: 'After testing the two opposite viable extremes, ask the learner to calculate the signal time and predict why one burn cannot achieve both. This pauses simulation until the learner completes both steps on the page.',
+      inputSchema: Object.freeze({
+        type: 'object' as const,
+        properties: Object.freeze({ expected_revision: revision }),
+        required: Object.freeze(['expected_revision']),
+        additionalProperties: false as const,
+      }),
+      annotations: write,
+      execute: (args) => {
+        const checkpoint = control.presentLearningCheckpoint(integer(args, 'expected_revision'))
+        const snapshot = control.getSnapshot()
+        reportActivity('The agent found the two extremes · your calculation is next')
+        return result(
+          'The two opposite viable futures are displayed. The learner must now calculate how long both discoveries take to transmit, then predict why no single burn can save both the probe and the discoveries. Stop and wait until both answers are recorded on the page.',
+          { revision: snapshot.revision, checkpoint, simulationPaused: true, resumeInstruction: 'Test my prediction.' },
+        )
+      },
+    },
+    {
       name: 'present_worldline_choices',
-      description: 'Present two materially different viable tested futures, identify the one you recommend for the person’s stated priority and explain why the alternative is weaker for that priority. This does not choose or execute either future.',
+      description: 'After testing the learner prediction with a compromise and counterexample, assess the prediction, explain the physics and present the two viable futures. The recommendation must follow the learner priority returned by read_mission_state. This does not choose or execute either future.',
       inputSchema: choicesSchema,
       annotations: write,
       execute: (args) => {
@@ -248,6 +370,8 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
             recommendedSimulationId: text(args, 'recommended_simulation_id', 40),
             rationale: text(args, 'recommendation_rationale', 240),
           },
+          text(args, 'prediction_assessment', 40) as 'correct' | 'partly_correct' | 'not_supported',
+          text(args, 'teaching_explanation', 320),
         )
         const snapshot = control.getSnapshot()
         const choices = snapshot.choices!
@@ -256,13 +380,14 @@ function createPlanningTools(control: WorldlineControl, reportActivity: Activity
         const recommended = snapshot.simulations.find((simulation) => simulation.id === choices.recommendedSimulationId)!
         reportActivity(`Recommendation ready · ${recommended.discoveryDelivered ? 'send the discovery' : 'bring the probe home'}`)
         return result(
-          'Two viable futures and your recommendation are now displayed together. The person must choose on the page. No burn is authorized or possible yet; stop and wait for them.',
+          'The learner’s prediction has been assessed and the two viable futures are displayed. The person must now choose which loss to accept. No burn is authorized or possible yet; stop and wait for them.',
           {
             revision: snapshot.revision,
             review,
             choices,
             options: [probeReturn, scienceTransmission],
             temporaryBurnCapabilityActive: false,
+            resumeInstructionAfterChoice: 'Carry out my choice.',
           },
         )
       },
@@ -274,7 +399,7 @@ function createExecutionTool(control: WorldlineControl, grant: BurnGrant, report
   let consumed = false
   return {
     name: EXECUTE_AUTHORIZED_BURN_TOOL_NAME,
-    description: 'Execute the one exact person-approved burn once. It accepts no arguments, cannot alter the plan and removes itself after use.',
+    description: 'When the person says “Carry out my choice,” execute the one exact person-approved burn once. It accepts no arguments, cannot alter the plan and removes itself after use. Then verify the final receipt.',
     inputSchema: emptySchema,
     annotations: { readOnlyHint: false, untrustedContentHint: false },
     execute: () => {

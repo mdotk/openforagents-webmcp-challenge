@@ -1,4 +1,26 @@
-export type WorldlinePhase = 'investigating' | 'review' | 'authorized' | 'executed'
+export type WorldlinePhase = 'investigating_extremes' | 'prediction' | 'investigating_prediction' | 'review' | 'authorized' | 'executed'
+
+export type LearnerPredictionId = 'time' | 'fuel' | 'antenna' | 'combination'
+export type LearnerTransmissionEstimateSeconds = 12 | 25 | 36
+export type WorldlineTestRole = 'extreme' | 'compromise' | 'counterexample'
+export type PredictionAssessment = 'correct' | 'partly_correct' | 'not_supported'
+
+export interface LearnerPrediction {
+  readonly id: LearnerPredictionId
+  readonly statement: string
+  readonly selectedAfterSimulationCount: number
+}
+
+export interface LearnerCalculation {
+  readonly selectedSeconds: LearnerTransmissionEstimateSeconds
+  readonly correctSeconds: number
+  readonly correct: boolean
+}
+
+export interface LearningCheckpoint {
+  readonly id: string
+  readonly status: 'waiting' | 'answered'
+}
 
 export type SciencePacketId = 'gravity-map' | 'horizon-spectrum' | 'navigation-archive'
 
@@ -17,6 +39,7 @@ export interface WorldlineSimulationInput {
   readonly packetIds: readonly SciencePacketId[]
   readonly hypothesis?: string
   readonly expectedOutcome?: WorldlineOutcome
+  readonly testRole?: WorldlineTestRole
 }
 
 export type WorldlineOutcome = 'probe_return' | 'science_transmission' | 'total_loss'
@@ -60,6 +83,8 @@ export interface WorldlineChoices {
   readonly recommendedSimulationId: string
   readonly priority: string
   readonly rationale: string
+  readonly predictionAssessment: PredictionAssessment
+  readonly teachingExplanation: string
 }
 
 export interface BurnReview {
@@ -90,6 +115,7 @@ export interface TransmissionReceipt {
 export interface WorldlineSnapshot {
   readonly revision: number
   readonly phase: WorldlinePhase
+  readonly distanceFromEarthLightYears: number
   readonly earthElapsedSeconds: number
   readonly probeElapsedSeconds: number
   readonly fuelKilograms: number
@@ -99,6 +125,9 @@ export interface WorldlineSnapshot {
   readonly simulations: readonly WorldlineSimulation[]
   readonly simulationAttemptsUsed: number
   readonly humanPriority: string
+  readonly learningCheckpoint: LearningCheckpoint | null
+  readonly learnerCalculation: LearnerCalculation | null
+  readonly learnerPrediction: LearnerPrediction | null
   readonly choices: WorldlineChoices | null
   readonly review: BurnReview | null
   readonly activeGrant: BurnGrant | null
@@ -112,7 +141,10 @@ export interface WorldlineControl {
   subscribe(subscriber: WorldlineSubscriber): () => void
   setHumanPriority(priority: string, expectedRevision: number): void
   simulate(input: WorldlineSimulationInput, expectedRevision: number): WorldlineSimulation
-  presentChoices(optionASimulationId: string, optionBSimulationId: string, expectedRevision: number, recommendation?: WorldlineRecommendationInput): BurnReview
+  presentLearningCheckpoint(expectedRevision: number): LearningCheckpoint
+  selectLearnerTransmissionEstimate(seconds: LearnerTransmissionEstimateSeconds, expectedRevision: number): LearnerCalculation
+  selectLearnerPrediction(predictionId: LearnerPredictionId, expectedRevision: number): LearnerPrediction
+  presentChoices(optionASimulationId: string, optionBSimulationId: string, expectedRevision: number, recommendation: WorldlineRecommendationInput, predictionAssessment: PredictionAssessment, teachingExplanation: string): BurnReview
   approveBurnReview(reviewId: string, simulationId: string): BurnGrant
   executeAuthorizedBurn(grantId: string): TransmissionReceipt
   reset(): void
