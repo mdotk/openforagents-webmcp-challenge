@@ -76,8 +76,9 @@ open investigation contract. The agent now receives the person's priority and
 raw evidence, must state a hypothesis before each of at most five simulations,
 and places a recommendation plus its rejected alternative on the shared page.
 Local automated and responsive acceptance passed. A fresh external-agent run
-and public deployment readback remain pending for this replacement contract;
-earlier agent traces are not reused as current qualification.
+remains pending for this replacement contract. The public deployment and
+attached-Chrome readback passed; earlier agent traces are not reused as current
+external-agent qualification.
 
 Matt Gibbs has joined the challenge on Devpost. No entry video has been
 published to YouTube and no final challenge submission has been made. This

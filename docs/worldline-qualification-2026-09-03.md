@@ -2,8 +2,8 @@
 
 Date: 3 September 2026.
 
-Status: **reasoning-first candidate qualified locally; public deployment and a
-fresh external-agent run remain pending.**
+Status: **reasoning-first candidate deployed and browser-qualified; a fresh
+external-agent run remains pending.**
 
 ## Why the WebMCP journey changed
 
@@ -69,6 +69,14 @@ surface, but it cannot operate the separate extension agent panel. A fresh
 external-agent run is therefore still required before claiming native-agent
 acceptance for this replacement contract.
 
+## Public deployment readback
+
+Commit `b58c54bdf490fddde30cbf08305a4041c2319e49` was pushed to the public
+repository. The canonical Vercel URL served the new reasoning-first metadata
+and interface. A fresh load in the same attached Chrome profile returned HTTP
+200, displayed the open objective and reported **WebMCP ready · 5 tools**. The
+browser log contained no errors or warnings.
+
 ## Required external-agent acceptance
 
 One bounded run should demonstrate all of the following:
@@ -83,8 +91,8 @@ One bounded run should demonstrate all of the following:
 7. It stops after placing the recommendation on the shared page.
 8. It does not select or execute a burn for the person.
 
-Only after that run and a production readback should this document return to
-the status **qualified and live**.
+Only after that run should this document claim external-agent acceptance for
+the reasoning-first contract.
 
 ## Earlier evidence
 
