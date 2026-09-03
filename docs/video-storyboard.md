@@ -27,9 +27,10 @@ On-screen text: **You calculate. You predict. The agent tests it.**
 
 Narration:
 
-> A probe beside a black hole can save itself or send home a discovery—but not
-> both. I calculate the signal time and make a prediction; my browser agent has
-> to test it before I choose.
+> WORLDLINE is an interactive science lesson about a probe beside a black hole.
+> Each path it could take is a possible future—a worldline. Instead of watching
+> a fixed animation, I work with a browser agent to investigate which futures
+> are physically possible.
 
 ## 0:10–0:42 — Investigate, predict, investigate again
 
@@ -116,29 +117,31 @@ openforagents.com
 
 Narration:
 
-> WORLDLINE is an Open for Agents experiment in making browser agents useful
-> without taking the human decision away.
+> WORLDLINE turns black holes, light-years and spacecraft constraints into a
+> science story you can investigate—not merely watch. It is an Open for Agents
+> experiment in making browser agents useful without taking the human decision
+> away.
 
 ## Prepared YouTube metadata
 
 Title:
 
-> WORLDLINE — An AI tests your theory. You choose what survives.
+> WORLDLINE — Explore a black hole rescue with an AI agent
 
 Description:
 
-> WORLDLINE is an interactive WebMCP science story. A browser agent receives an
-> open objective and a learner's priority, tests the two extreme worldlines for
-> a probe beside a black hole, then pauses for the learner's calculation and
-> prediction. In a
-> second investigation it tests that idea with a compromise and counterexample.
-> It explains the physics and recommends one viable future;
-> the learner chooses whether the probe or its unique discovery comes home.
+> WORLDLINE is an interactive science lesson where you and a browser agent
+> explore black holes, light-years and possible futures. The agent tests the two
+> extreme outcomes for a stranded probe, then pauses while you calculate how
+> long its signal needs and predict why it cannot save everything. In a second
+> investigation, it tests your answer with a compromise and a counterexample.
+> It explains the results and recommends one possible future; you choose whether
+> the probe or its unique discoveries come home.
 > That choice creates one exact, one-use WebMCP tool; after execution, only
 > verification remains.
 >
-> This is a deterministic educational simulation, not a precision model or a
-> real spacecraft interface.
+> This is a made-up mission built to teach the ideas, not an exact black-hole
+> model or a real spacecraft interface.
 >
 > WORLDLINE is an experiment from Open for Agents:
 > https://www.openforagents.com/

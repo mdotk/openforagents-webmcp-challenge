@@ -437,7 +437,7 @@ export default function WorldlineApp() {
             <>
               <p className="worldline-eyebrow">71 seconds until contact is lost</p>
               <h1 id="worldline-title">Save the probe—or send its discoveries home.</h1>
-              <p className="worldline-lede">A probe beside a black hole has collected two observations that can never be repeated. It has enough fuel to escape, or enough time to transmit them to Earth—but not both. Ask your browser agent to investigate the possible futures. Then you choose what comes home.</p>
+              <p className="worldline-lede">A probe beside a black hole has collected two observations that can never be repeated. It has enough fuel to escape, or enough time to transmit them to Earth—but not both. Work with your browser agent to test what can happen. You’ll learn how signal speed and spacecraft limits shape the result, then choose what comes home.</p>
               <dl className="worldline-mission-facts" aria-label="Mission stakes">
                 <div><dt>Distance</dt><dd>23 light-years</dd></div>
                 <div><dt>Contact</dt><dd>71 seconds</dd></div>
@@ -731,8 +731,8 @@ export default function WorldlineApp() {
 
       <section className="worldline-below">
         <div>
-          <p className="worldline-below__label">An interactive science story</p>
-          <p>With a compatible browser agent, a learner can investigate evidence and compare possible futures instead of watching a fixed simulation. The agent explains the trade-off; the learner decides what matters.</p>
+          <p className="worldline-below__label">An interactive science lesson</p>
+          <p>Each route the agent tests is a possible future—a worldline. See why a signal from 23 light-years away takes 23 years to arrive, work out how long the probe needs to send its discoveries, and discover why one burn cannot save everything.</p>
         </div>
         <details>
           <summary>Mission data and exact tools</summary>
@@ -753,7 +753,7 @@ export default function WorldlineApp() {
         {!agentReady && !registrationPending && (
           <p className="worldline-fallback">This experience requires a compatible WebMCP browser agent. Open it in ChatGPT’s in-app browser or Chrome with WebMCP enabled.</p>
         )}
-        <p className="worldline-note">A deterministic, scientifically informed educational simulation—not a precision model of a real black-hole mission.</p>
+        <p className="worldline-note">A made-up mission built to teach the ideas—not a real spacecraft or an exact black-hole model.</p>
         <p className="worldline-credit">An <a href="https://www.openforagents.com/">Open for Agents</a> experiment in what people and browser agents can decide together.</p>
       </section>
     </main>

@@ -1,17 +1,26 @@
 # WORLDLINE — One probe. One signal.
 
-WORLDLINE is an interactive science story from
+WORLDLINE is an interactive science lesson from
 [Open for Agents](https://www.openforagents.com/), created by Enoki Limited for
-the WebMCP Challenge. A browser agent investigates possible futures for a
-probe near a black hole. It prepares the trade-off; the learner decides what
-matters.
+the WebMCP Challenge. You and a browser agent explore black holes, light-years
+and possible futures by deciding what a stranded probe can bring home.
 
 [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/) ·
 [Read about the WebMCP Challenge](https://openai.com/webmcp-challenge/)
 
-There is no real spacecraft, mission, account or external system behind the
-demonstration. Its deterministic numbers support the interaction and do not
-claim to be a precision black-hole simulation.
+This is a made-up mission built to teach the ideas. It does not control a real
+spacecraft or claim to model a black hole exactly.
+
+## What you learn
+
+WORLDLINE turns difficult space ideas into one mission you can take part in:
+
+- a light-year measures distance, not time;
+- a signal from 23 light-years away takes 23 years to reach Earth;
+- 30 MB of data takes 25 seconds to send at 1.2 MB per second;
+- the timing and strength of a burn create different possible futures;
+- some physical requirements cannot be met at the same time; and
+- science can show the consequences, but a person must decide what matters.
 
 ## Try it with a browser agent
 
@@ -42,8 +51,9 @@ my choice.** The agent uses the approved action once and verifies the result.
 
 The opening screen says whether WebMCP is available and does not claim that an
 agent has started. It presents one short instruction rather than a copied
-prompt. During an agent run, the page shows the attempt budget, confirmed and
-revised hypotheses, and a control that unregisters its WebMCP tools. If WebMCP
+prompt. During an agent run, the page shows the attempt budget, the ideas the
+agent has confirmed or changed, and a control that unregisters its WebMCP
+tools. If WebMCP
 is unavailable, the page says so and does not replace the agent's investigation
 with a scripted demonstration.
 
@@ -53,13 +63,13 @@ each of the two packets leaving, the contact window closing, the signal
 crossing 23 light-years and the verified final receipt. The 23-year wait is
 the signal's travel time from a probe 23 light-years away; the experience does
 not invent an unsupported probe-time comparison. Reduced-motion preferences
-skip directly to the complete, causally equivalent outcome.
+skip directly to the same completed outcome.
 
 ## Why WebMCP belongs here
 
 This is not an agent clicking a prepared sequence of buttons. The three-part
-investigation sets two deliberate stopping points, while the tools expose evidence
-and a simulation surface rather than burn values or a recommended answer. The
+investigation stops twice for the person to take part, while the tools expose
+evidence and a simulation rather than burn values or a recommended answer. The
 agent must:
 
 1. inspect separate mission, packet and maneuver evidence;
@@ -76,7 +86,7 @@ discoveries requires a burn between seconds 44 and 50 at 2,000–2,400 m/s. The
 time and thrust regions never overlap. The page also shows that 30 MB at 1.2
 MB/s takes 25 seconds to transmit.
 
-The learner's priority, tested hypotheses, recommendation and execution all
+The learner's priority, tested ideas, recommendation and execution all
 share the same revisioned mission state. The agent may read the priority but
 cannot rewrite it. Person approval adds one exact, argument-free action. The
 action works once, removes itself after use and leaves a verifiable final

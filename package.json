@@ -1,7 +1,7 @@
 {
   "name": "openforagents-webmcp-challenge",
   "version": "0.1.0",
-  "description": "An interactive WebMCP science story where an agent investigates possible worldlines and a learner decides what matters.",
+  "description": "An interactive science lesson about black holes, light-years and possible futures, built with WebMCP.",
   "license": "GPL-2.0-or-later",
   "type": "module",
   "scripts": {

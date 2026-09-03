@@ -8,16 +8,22 @@ WORLDLINE
 
 ## One-line description
 
-A browser agent investigates possible futures for a probe beside a black hole;
-the learner chooses whether to save the spacecraft or its unique discoveries.
+WORLDLINE is an interactive science lesson where you and a browser agent
+explore black holes, light-years and possible futures by deciding what a
+stranded probe can bring home.
 
 ## Description
 
-WORLDLINE is an interactive science story about a decision with no perfect
-answer. A probe 23 light-years from Earth has 71 seconds of contact remaining
-beside a black hole. It has
-enough fuel to escape, or enough time to transmit two unique science packets,
-but it cannot do both.
+Space is difficult to understand because its distances, timescales and physical
+limits are far outside ordinary experience. WORLDLINE turns those ideas into an
+interactive mission. A probe beside a black hole can escape or transmit two
+discoveries, but it cannot do both. A browser agent investigates the possible
+futures—or worldlines—explains the science behind each outcome, and helps you
+understand the consequences before you decide what comes home.
+
+The probe is 23 light-years from Earth and has 71 seconds of contact remaining.
+It has enough fuel to escape, or enough time to transmit two unique science
+packets, but it cannot do both.
 
 The experience is a three-part investigation. First, the browser agent reads separate
 packet, propulsion, antenna and signal evidence, then tests the two extremes:
@@ -52,9 +58,18 @@ on Earth after crossing 23 light-years. The outcome is derived from the exact
 selected simulation; the page does not claim that the probe travelled home or
 invent an elapsed-time comparison that the model does not calculate.
 
-This is a deterministic, scientifically informed educational simulation. It
-does not control a real spacecraft and does not claim to be a precision model
-of a black-hole mission.
+This is a science learning experience, not a real spacecraft controller or a
+precision model of a black-hole mission.
+
+## What people learn
+
+WORLDLINE makes difficult ideas easier to see and understand. A light-year
+measures distance, not time. A light-speed signal from 23 light-years away
+takes 23 years to reach Earth. The amount of data and the radio speed determine
+how long the antenna must stay connected. Changing when and how strongly the
+probe burns creates different possible futures. The mission also shows that
+physical requirements can conflict: science can establish the consequences,
+but it cannot decide which loss a person should accept.
 
 ## Why WebMCP is a strong fit
 
@@ -72,7 +87,15 @@ capability.
 
 ## How it creates a better experience
 
-A fixed animation can show relativity, but it cannot respond to a learner's
+Most people encounter space science through text, videos or fixed simulations.
+WORLDLINE lets them participate. They calculate how long a signal needs,
+predict what prevents the probe from succeeding, watch an AI agent test
+different maneuvers, and see the resulting worldlines unfold. WebMCP connects
+the agent directly to the lesson's simulation, so the explanation develops from
+the evidence and the person's choices rather than following one predetermined
+presentation.
+
+A fixed animation can show an outcome, but it cannot respond to a person's
 work. WORLDLINE makes the learner calculate the signal time and predict the cause, then gives the browser
 agent structured access to that answer so it can choose tests that challenge
 it. Every tested route appears on the scene as it is found, with its
@@ -139,8 +162,8 @@ schemas reject additional properties.
 WORLDLINE was created by the team behind
 [Open for Agents](https://www.openforagents.com/), which helps websites decide
 what AI agents may see and do. This experiment explores the same principle in
-an educational setting: the agent investigates, the learner decides, and the
-page controls the resulting action.
+a science lesson: the agent investigates, the learner decides, and the page
+controls the resulting action.
 
 ## Testing instructions
 

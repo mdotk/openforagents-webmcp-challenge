@@ -60,8 +60,12 @@ describe('WORLDLINE experience', () => {
   it('opens with a clear dilemma and blocks unsupported browsers', async () => {
     render(<WorldlineApp />)
     expect(screen.getByRole('heading', { name: /save the probe—or send its discoveries home/i })).toBeVisible()
+    expect(screen.getByText(/you’ll learn how signal speed and spacecraft limits shape the result/i)).toBeVisible()
     expect(screen.getByRole('button', { name: 'WebMCP agent required' })).toBeDisabled()
     expect(await screen.findByText('WebMCP required')).toBeVisible()
+    expect(screen.getByText('An interactive science lesson')).toBeVisible()
+    expect(screen.getByText(/a signal from 23 light-years away takes 23 years/i)).toBeVisible()
+    expect(screen.getByText(/a made-up mission built to teach the ideas/i)).toBeVisible()
     expect(screen.getByRole('link', { name: 'Open for Agents' })).toHaveAttribute('href', 'https://www.openforagents.com/')
   })
 
