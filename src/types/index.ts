@@ -103,3 +103,18 @@ export type {
   ShoppingValidationIssue,
   ShoppingVariant,
 } from './shopping'
+export type {
+  BurnGrant,
+  BurnReview,
+  SciencePacket,
+  SciencePacketId,
+  TransmissionReceipt,
+  WorldlineControl,
+  WorldlinePhase,
+  WorldlinePlan,
+  WorldlineSimulation,
+  WorldlineSimulationInput,
+  WorldlineSnapshot,
+  WorldlineSubscriber,
+  WorldlineToolsRegistration,
+} from './worldline'

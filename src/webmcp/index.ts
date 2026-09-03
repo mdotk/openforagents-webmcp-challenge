@@ -16,3 +16,9 @@ export {
   permanentShoppingToolNames,
   registerShoppingTools,
 } from './register-shopping-tools'
+export {
+  EXECUTE_AUTHORIZED_BURN_TOOL_NAME,
+  finalWorldlineToolNames,
+  initialWorldlineToolNames,
+  registerWorldlineTools,
+} from './register-worldline-tools'

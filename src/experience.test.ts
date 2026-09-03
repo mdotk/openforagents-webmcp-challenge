@@ -9,6 +9,7 @@ describe('experience routing', () => {
   })
 
   it('keeps the earlier experiments on explicit routes', () => {
+    expect(resolveExperience('?experience=worldline')).toBe('worldline')
     expect(resolveExperience('?experience=launch-window')).toBe('launch-window')
     expect(resolveExperience('?experience=fitting-room')).toBe('fitting-room')
     expect(resolveExperience('?experience=rack-rescue')).toBe('rack-rescue')

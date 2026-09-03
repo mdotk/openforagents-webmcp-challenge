@@ -18,3 +18,7 @@ export {
   ShoppingStateError,
 } from './shopping'
 export type { ShoppingControlOptions } from './shopping'
+export {
+  createWorldlineControl,
+  WorldlineStateError,
+} from './worldline'

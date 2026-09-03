@@ -4,12 +4,15 @@ import App from './App.tsx'
 import FittingRoomApp from './FittingRoomApp.tsx'
 import RackRescueApp from './RackRescueApp.tsx'
 import ShoppingApp from './ShoppingApp.tsx'
+import WorldlineApp from './WorldlineApp.tsx'
 import { resolveExperience } from './experience.ts'
 
 const experience = resolveExperience(window.location.search)
 
 createRoot(document.getElementById('root')!).render(
-  experience === 'rack-rescue' ? (
+  experience === 'worldline' ? (
+    <WorldlineApp />
+  ) : experience === 'rack-rescue' ? (
     <RackRescueApp />
   ) : experience === 'fitting-room' ? (
     <FittingRoomApp />

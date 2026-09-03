@@ -97,8 +97,21 @@ tool inventory therefore changes from seven tools to eight and back to seven.
 
 ## Other experiments
 
-The earlier challenge prototypes remain available without changing the main
-shopping experience:
+WORLDLINE is a separate candidate experience under qualification. A probe near
+a black hole has enough fuel to escape or enough time to send a unique
+discovery to Earth, but not both. The browser agent investigates possible
+worldlines and prepares the trade-off; the person decides what matters.
+
+- [Try WORLDLINE](https://openforagents-webmcp-challenge.vercel.app/?experience=worldline)
+
+WORLDLINE begins with six investigation and planning tools. Person approval
+alone adds one temporary, argument-free burn tool. After the exact burn runs,
+all planning and execution tools disappear and two read-only verification
+tools remain. It is a deterministic, scientifically informed educational
+simulation, not a precision model of a real black-hole mission.
+
+The earlier challenge prototypes also remain available without changing the
+main shopping experience:
 
 - [Launch Window A-01](https://openforagents-webmcp-challenge.vercel.app/?experience=launch-window)
 - [Shared Fitting Room](https://openforagents-webmcp-challenge.vercel.app/?experience=fitting-room)
