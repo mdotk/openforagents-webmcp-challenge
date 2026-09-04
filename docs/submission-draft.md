@@ -8,9 +8,9 @@ WORLDLINE
 
 ## One-line description
 
-WORLDLINE is a WebMCP science lesson where a browser agent investigates a probe
-near a black hole, you calculate and predict what physics allows, and together
-you discover which possible futures are real before choosing what to save.
+WORLDLINE is a WebMCP science lesson where you and a browser agent test possible
+futures for a probe near a black hole, learn what the evidence means, and decide
+what to save.
 
 ## Description
 
