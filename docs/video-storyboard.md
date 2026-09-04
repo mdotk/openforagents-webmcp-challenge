@@ -94,9 +94,9 @@ status visible.
 
 **Narration and subtitles**
 
-> WORLDLINE is a science lesson about a probe beside a black hole. It has one
-> burn, 71 seconds of radio contact and two files that Earth does not have. Can
-> one burn save the probe and send both files?
+> WORLDLINE is a science lesson about a probe beside a black hole. It has fuel
+> for one engine burn, 71 seconds of radio contact and two files that Earth does
+> not have. Can one burn save the probe and send both files?
 
 ### 0:22 to 0:43 | First agent exchange
 
@@ -185,9 +185,9 @@ recommendation. Pause long enough to read the two outcome cards. Choose
 
 **Narration and subtitles**
 
-> The agent recommends sending the files because Earth has no copy. It also
-> states the cost: the probe cannot escape. The physics explains the outcomes,
-> but I decide which loss to accept. I choose the files.
+> The agent recommends sending the files because Earth has no copy of either
+> one. It also states the cost: the probe cannot escape. The physics explains
+> the outcomes, but I decide which loss to accept. I choose the files.
 
 ### 1:36 to 1:45 | The learner's choice creates one exact tool
 
@@ -266,17 +266,17 @@ openforagents.com
 
 **Narration and subtitles**
 
-> WORLDLINE makes space science something a learner and an agent investigate
-> together.
+> WORLDLINE turns space science into a mission that a learner and an agent can
+> investigate together.
 
 ## Complete voiceover script
 
 > Trying to split the difference loses everything. The probe cannot escape,
 > and Earth receives neither file.
 >
-> WORLDLINE is a science lesson about a probe beside a black hole. It has one
-> burn, 71 seconds of radio contact and two files that Earth does not have. Can
-> one burn save the probe and send both files?
+> WORLDLINE is a science lesson about a probe beside a black hole. It has fuel
+> for one engine burn, 71 seconds of radio contact and two files that Earth does
+> not have. Can one burn save the probe and send both files?
 >
 > I give the agent a goal, not burn values. WebMCP lets it read the mission and
 > test possible futures. An early, powerful burn saves the probe but breaks the
@@ -291,9 +291,9 @@ openforagents.com
 > change of at least 3,400 metres per second. Sending needs a later, gentler
 > burn that keeps the antenna pointed at Earth.
 >
-> The agent recommends sending the files because Earth has no copy. It also
-> states the cost: the probe cannot escape. The physics explains the outcomes,
-> but I decide which loss to accept. I choose the files.
+> The agent recommends sending the files because Earth has no copy of either
+> one. It also states the cost: the probe cannot escape. The physics explains
+> the outcomes, but I decide which loss to accept. I choose the files.
 >
 > My choice creates one temporary WebMCP tool. It can run only the exact burn I
 > selected, once.
@@ -306,8 +306,8 @@ openforagents.com
 > tools disappear, leaving two read-only checks. The agent, animation and final
 > receipt all use the same mission state.
 >
-> WORLDLINE makes space science something a learner and an agent investigate
-> together.
+> WORLDLINE turns space science into a mission that a learner and an agent can
+> investigate together.
 
 ## Subtitle plan
 
