@@ -1,166 +1,391 @@
-# WORLDLINE demo video
+# WORLDLINE video storyboard
 
-This is a recording plan only. No video has been published.
+This plan reflects the current deployed WORLDLINE journey. It is designed for
+one real run in a WebMCP-enabled browser, edited to about 2 minutes 20 seconds.
+The finished video must remain under three minutes.
 
-Target runtime: 2 minutes 20 seconds. The finished public YouTube video must be
-under three minutes and include audio.
+## The story in one sentence
 
-## Recording rules
+WORLDLINE is an interactive science lesson in which a browser agent tests
+possible futures for a probe near a black hole, a learner works out the key
+calculation, and the learner decides whether to save the probe or send two
+files that Earth does not have.
 
-- Show the project working in the first ten seconds.
-- Record the deployed page with a real WebMCP-enabled browser agent.
-- Keep the page and agent visible together during the investigation.
-- Show one continuous 6 → 7 → 2 native tool lifecycle.
-- Start each agent exchange with the short visible instruction; do not show setup or typing.
-- Cut waiting, setup, account details and unrelated browser chrome.
-- Do not call the simulation scientifically exact or imply that it controls a
-  real mission.
+## What the film must prove
 
-## 0:00–0:10: The impossible choice
+The viewer should understand five things without reading the submission page:
 
-Open on the large investigation chapter asking **Can one middle burn save the
-probe and send the files?** The result changes to **No** and the page explains that trying to split
-the difference loses the probe and both files. Cut immediately to the recommendation
-and the two choice cards headed **What do you save?**
+1. The probe has one engine burn and 71 seconds of radio contact left.
+2. The agent receives evidence and a test budget, not a scripted answer.
+3. The learner calculates the sending time and makes a prediction that changes
+   what the agent investigates next.
+4. The agent explains the physical conflict, but the learner chooses which
+   loss to accept.
+5. WebMCP changes the available tools from six investigation tools, to seven
+   after the learner chooses, to two read-only verification tools after the
+   burn runs.
 
-On-screen text: **You calculate. You predict. The agent tests it.**
+## Recording format
 
-Narration:
+- Record at 1920 by 1080, 30 frames per second.
+- Keep the WORLDLINE page large enough to read. During tool calls, use roughly
+  70 percent of the frame for the page and 30 percent for the browser agent.
+- Use the full page width for the calculation, decision and final animation.
+- Record one truthful mission from a fresh page load. Edits may remove waiting,
+  but must not rearrange events or combine different outcomes.
+- Keep the page's own pacing. Open each test with the visible controls and hold
+  each result long enough to understand it before cutting.
+- Do not show browser profile names, bookmarks, email addresses, API keys,
+  notifications, unrelated tabs, local paths or developer tools.
+- Crop unrelated browser and extension branding. Keep the tool name, arguments
+  and result visible when showing a WebMCP call.
+- Use no copyrighted music. A quiet original ambience is optional, but the
+  narration must remain clear.
+- Put subtitles in a dedicated dark strip at the bottom of the frame so they do
+  not cover WORLDLINE controls or calculations. Use white sentence-case text,
+  no more than two lines at once.
 
-> WORLDLINE is an interactive science lesson about a probe beside a black hole.
-> A worldline is the path an object takes through space and time. Instead of watching
-> a fixed animation, I work with a browser agent to investigate which futures
-> are physically possible.
+## Competition requirements checked
 
-## 0:10–0:42: Investigate, predict, investigate again
+The [official rules](https://webmcp.devpost.com/rules) require a public YouTube
+video shorter than three minutes. It must show the project working, and its
+audio must explain what was built and how WebMCP is used. The video must not
+use third-party trademarks, music or other copyrighted material without
+permission.
 
-Jump back to the six-tool opening. The page has one instruction: say **Begin
-WORLDLINE.** Show the agent test
-one burn that lets the probe escape and one that sends the two files.
-Wait on the stable working view until both tests are ready. Choose **Review Test
-1**, then use **Show next test** to move between the two results, leaving each
-explanation on screen long enough to read. Show the gold escape curve, the purple signal
-line, and the changing tested-burn and radio-link readings. Choose **Continue
-to my calculation**, then solve
-the two compressed files, **18 MB + 12 MB, divided by 1.2 MB/s**, by choosing
-**25 seconds**. Then choose
-**The requirements may conflict** at **What might stop one burn from doing
-both?** Say **Test my prediction**
-to the same agent. Show it read your prediction, test a middle option and
-a different option that challenges the prediction. Choose **Review Test 3**,
-then use **Show next test** to reveal the other result. Choose **Continue to
-the results**.
+The organizers' [video guidance](https://webmcp.devpost.com/updates/46161-2-days-left-and-what-judges-actually-look-for)
+expressly permits AI narration. A separate organizer update also says that the
+narration may use the entrant's voice or an AI text-to-speech voice. The final
+film may therefore be recorded, edited, narrated and subtitled with AI
+assistance, provided that it truthfully shows the functioning project and does
+not overstate what ran.
 
-Narration:
+## Complete shot list
 
-> WORLDLINE gives the agent a learning goal, not the burn values or a prepared
-> route. WebMCP exposes separate mission facts and a five-test simulator. It finds the two clear outcomes,
-> then I work out that the antenna must stay pointed at Earth for 25 seconds. WebMCP
-> turns my calculation and prediction into shared state. The agent must challenge
-> my prediction with a middle option and a second test before it can teach the result.
+### 0:00 to 0:08 | Open on the failed compromise
 
-Hold briefly on the visible proof: helping the probe escape requires a burn by
-second 42 and a speed change of at least 3,400 m/s. Sending the files requires
-a burn from second 44 to 50 and a speed change of 2,000 to 2,400 m/s. The
-requirements do not overlap.
+**Picture**
 
-## 0:42–1:02: Stop at the human decision
+Start inside the second investigation round. Show the agent calling
+`simulate_worldline`, then cut to Test 3 with the question **Can one middle
+burn save the probe and send the files?** Hold on the result:
+**The probe does not escape. Earth receives no complete files.** Let the red
+failed path move once.
 
-Hold the recommendation and both choice cards on screen. Show that the agent
-recommends sending the files because Earth has no copies, clearly states that
-the probe will not escape, and stops with six tools still available.
+**Narration and subtitles**
 
-Narration:
+> Trying to split the difference loses everything. The probe cannot escape,
+> and Earth receives neither file.
 
-> It recommends sending the gravity map and light spectrum because Earth has no
-> other copy. It also tells me the cost: the probe cannot escape. The agent
-> cannot accept that loss for me. Do I save the probe, or send the only copies
-> to Earth?
+**Small overlay**
 
-## 1:02–1:20: Your choice unlocks one exact burn
+> A real WebMCP simulation, not a fixed video
 
-Choose **Send both files, lose the probe**. Show the inventory change from six tools to seven
-and identify `execute_authorized_burn`.
+This is the opening proof that the project is already working. Do not begin
+with a title card.
 
-On-screen text: **6 investigation tools → 7 after my choice**
+### 0:08 to 0:20 | Establish the mission
 
-Narration:
+**Picture**
 
-> My choice creates one temporary WebMCP tool. It has no arguments and is bound
-> to the exact route the agent already tested, so the burn cannot be changed at
-> execution time.
+Jump to a fresh page. Show the probe, the 71-second radio limit, the two
+compressed files and the instruction **Begin WORLDLINE.** Keep the six-tool
+status visible.
 
-## 1:20–1:48: The cinematic payoff
+**Narration and subtitles**
 
-Say **Carry out my choice.** Show the burn flash, the antenna
-pointing at Earth, the gravity map and light spectrum sending separately, the
-radio link closing, the probe falling silent and the signal crossing 23
-light-years. Finish on **Both files reached Earth.**
+> WORLDLINE is a science lesson about a probe beside a black hole. It has one
+> burn, 71 seconds of radio contact and two files that Earth does not have. Can
+> one burn save the probe and send both files?
 
-Narration:
+### 0:20 to 0:40 | First agent exchange
 
-> The approved burn runs once. The two compressed files, thirty megabytes in
-> total, finish sending before the
-> radio link closes. The probe is 23 light-years away, so the signal takes 23 years to
-> reach Earth. The probe cannot escape, but Earth receives both files it
-> recorded near the black hole.
+**Picture**
 
-## 1:48–2:07: Prove the WebMCP lifecycle
+Show the short message **Begin WORLDLINE.** in the agent. Use quick cuts across
+real WebMCP calls to:
 
-Show that only `read_final_state` and `verify_transmission_receipt` remain, then
-invoke or display the verified receipt.
+- `read_mission_state`
+- `inspect_science_packets`
+- `inspect_maneuver_window`
+- two calls to `simulate_worldline`
+- `present_learning_checkpoint`
 
-On-screen text: **6 → 7 → 2 tools · one shared state**
+On the page, briefly show the black-hole working indicator and **Agent still
+working. No action needed.** Then show **2 tests ready to review**. Choose
+**Review Test 1**, hold on the gold escape path and explanation, choose **Show
+next test**, then hold on the purple signal path and explanation.
 
-Narration:
+**Narration and subtitles**
 
-> Execution removes every planning and action tool. Only two read-only
-> verification tools remain. The page, the agent and the final receipt all use
-> the same revisioned mission state.
+> I give the agent a goal, not burn values. WebMCP lets it read the mission and
+> test possible futures. An early, powerful burn saves the probe but breaks the
+> radio link. A later, gentler burn sends the files but cannot save the probe.
 
-## 2:07–2:20: Close
+**Editing note**
 
-Return to the opening and briefly show the clear WebMCP-ready state. Finish on
-a simple two-second closing frame:
+Use the page's **Previous test** control once in the raw recording so the take
+proves it works. It does not need to appear in the final cut unless the pacing
+benefits from it.
 
-```
+### 0:40 to 0:54 | The learner calculates and predicts
+
+**Picture**
+
+Choose **Continue to my calculation**. Fill the frame with the calculation:
+
+> 18 MB + 12 MB = 30 MB
+>
+> 30 MB divided by 1.2 MB/s = 25 seconds
+
+Choose **25 seconds**. On the next screen choose **The requirements may
+conflict**. End on **Now ask the agent to test your prediction.**
+
+**Narration and subtitles**
+
+> Now the lesson needs me. Thirty megabytes at 1.2 megabytes per second needs
+> 25 seconds. I predict that the allowed burn times and speed changes conflict.
+> The page saves both answers for the agent.
+
+**Small overlay**
+
+> The learner's answer becomes shared page state
+
+### 0:54 to 1:15 | Second agent exchange
+
+**Picture**
+
+Show the short message **Test my prediction.** in the same agent. Show
+`read_mission_state` returning the learner's calculation and prediction. Then
+show two further `simulate_worldline` calls and
+`present_worldline_choices`.
+
+On the page, briefly show the working indicator, then **Review Test 3**. Hold
+on the failed middle burn. Choose **Show next test** and show the different
+burn that challenges the prediction. Choose **Continue to the results**.
+
+**Narration and subtitles**
+
+> The agent reads my answer from the page, tests a compromise, then tries to
+> challenge my prediction. It finds no overlap. Escape needs an early speed
+> change of at least 3,400 metres per second. Sending needs a later, gentler
+> burn that keeps the antenna pointed at Earth.
+
+**Small overlay**
+
+> Four tests used, one still available
+
+### 1:15 to 1:32 | The agent teaches, then the learner decides
+
+**Picture**
+
+Show **What do you save?**, the no-overlap diagram and the agent's
+recommendation. Pause long enough to read the two outcome cards. Choose
+**Send both files, lose the probe**.
+
+**Narration and subtitles**
+
+> The agent recommends sending the files because Earth has no copy. It also
+> states the cost: the probe cannot escape. The physics explains the outcomes,
+> but I decide which loss to accept. I choose the files.
+
+### 1:32 to 1:42 | The learner's choice creates one exact tool
+
+**Picture**
+
+Show the page change to **Your approved burn is ready** and the tool count
+change from six to seven. In the tool list, highlight
+`execute_authorized_burn`. Show that it accepts no arguments. End on the page
+instruction **Carry out my choice.**
+
+**Narration and subtitles**
+
+> My choice creates one temporary WebMCP tool. It can run only the exact burn I
+> selected, once.
+
+**Small overlay**
+
+> 6 investigation tools, then 7 after my choice
+
+### 1:42 to 2:02 | Third agent exchange and cinematic result
+
+**Picture**
+
+Show **Carry out my choice.** in the agent, followed by the real
+`execute_authorized_burn` call. Switch to the full-width page for the complete
+animation:
+
+1. Burn.
+2. Antenna locked on Earth.
+3. Gravity map sent.
+4. Light spectrum sent.
+5. Radio link closed.
+6. Across 23 light-years.
+7. Signal arriving.
+
+Keep the changing probe time and Earth signal readings visible. Do not speed
+up the 12-second sequence so much that its words cannot be read.
+
+**Narration and subtitles**
+
+> The burn runs once. The antenna stays pointed at Earth while both files leave
+> the probe. A light-year measures distance, so their signal still takes 23
+> years to cross 23 light-years and reach Earth.
+
+### 2:02 to 2:16 | Verification and close
+
+**Picture**
+
+Hold on **Both files reached Earth** and the three-part learning recap. Show
+the agent checking `read_final_state` and `verify_transmission_receipt`. End by
+showing that only two read-only tools remain.
+
+**Narration and subtitles**
+
+> Earth receives both files. The probe does not escape. Planning and execution
+> tools disappear, leaving two read-only checks. The agent, animation and final
+> receipt all use the same mission state.
+
+**Small overlay**
+
+> 6 to 7 to 2 tools
+
+### 2:16 to 2:20 | End frame
+
+**Picture**
+
+Use a simple four-second frame over the quiet star field:
+
+```text
 WORLDLINE
+An interactive WebMCP science lesson
+
 An Open for Agents experiment
 openforagents.com
 ```
 
-Narration:
+**Narration and subtitles**
 
-> WORLDLINE turns black holes, light-years and spacecraft constraints into a
-> science story you can investigate instead of merely watching. It is an Open for Agents
-> experiment in making browser agents useful without taking the human decision
-> away.
+> WORLDLINE makes space science something a learner and an agent investigate
+> together.
 
-## Prepared YouTube metadata
+## Complete voiceover script
 
-Title:
-
-> WORLDLINE: Investigate a black hole mission with a browser agent
-
-Description:
-
-> WORLDLINE is an interactive science lesson where you and a browser agent
-> explore black holes, light-years and possible futures. The agent tests two
-> clear outcomes for a stranded probe, then pauses while you calculate how long
-> its files take to send and predict what might stop one burn from doing both. In a second
-> investigation, it tests a middle option and challenges your prediction.
-> It explains the results and recommends sending the files because Earth has no
-> copies; you choose whether
-> the probe escapes or Earth receives the gravity map and light spectrum.
-> That choice creates one exact, one-use WebMCP tool; after execution, only
-> verification remains.
+> Trying to split the difference loses everything. The probe cannot escape,
+> and Earth receives neither file.
 >
-> This is a made-up mission built to teach the ideas, not an exact black-hole
-> model or a real spacecraft interface.
+> WORLDLINE is a science lesson about a probe beside a black hole. It has one
+> burn, 71 seconds of radio contact and two files that Earth does not have. Can
+> one burn save the probe and send both files?
+>
+> I give the agent a goal, not burn values. WebMCP lets it read the mission and
+> test possible futures. An early, powerful burn saves the probe but breaks the
+> radio link. A later, gentler burn sends the files but cannot save the probe.
+>
+> Now the lesson needs me. Thirty megabytes at 1.2 megabytes per second needs
+> 25 seconds. I predict that the allowed burn times and speed changes conflict.
+> The page saves both answers for the agent.
+>
+> The agent reads my answer from the page, tests a compromise, then tries to
+> challenge my prediction. It finds no overlap. Escape needs an early speed
+> change of at least 3,400 metres per second. Sending needs a later, gentler
+> burn that keeps the antenna pointed at Earth.
+>
+> The agent recommends sending the files because Earth has no copy. It also
+> states the cost: the probe cannot escape. The physics explains the outcomes,
+> but I decide which loss to accept. I choose the files.
+>
+> My choice creates one temporary WebMCP tool. It can run only the exact burn I
+> selected, once.
+>
+> The burn runs once. The antenna stays pointed at Earth while both files leave
+> the probe. A light-year measures distance, so their signal still takes 23
+> years to cross 23 light-years and reach Earth.
+>
+> Earth receives both files. The probe does not escape. Planning and execution
+> tools disappear, leaving two read-only checks. The agent, animation and final
+> receipt all use the same mission state.
+>
+> WORLDLINE makes space science something a learner and an agent investigate
+> together.
+
+## Subtitle plan
+
+Use the voiceover verbatim as the subtitle source. Split it at natural sentence
+boundaries, not at fixed word counts. Each subtitle should remain visible for
+at least 1.2 seconds and should not exceed two lines. Do not subtitle the small
+overlays a second time.
+
+The final recording task should produce:
+
+- a clean master video without subtitles;
+- a mastered video with burned-in English subtitles;
+- an English `.srt` file;
+- the voiceover audio as a separate file; and
+- a thumbnail captured from the failed compromise or final signal-arrival
+  scene.
+
+## Final recording checklist
+
+Before recording:
+
+1. Open a fresh WORLDLINE run in a WebMCP-enabled browser.
+2. Confirm **WebMCP ready · 6 tools**.
+3. Confirm the agent panel exposes the six WORLDLINE tools.
+4. Hide notifications, personal tabs, bookmarks and account details.
+5. Close or crop anything containing secrets or local paths.
+
+During recording:
+
+1. Use **Begin WORLDLINE.** exactly.
+2. Open Tests 1 and 2 yourself. Do not imply the agent controls the page's
+   reading pace.
+3. Choose **25 seconds** and **The requirements may conflict**.
+4. Use **Test my prediction.** exactly.
+5. Open Tests 3 and 4 yourself, then continue to the results.
+6. Choose **Send both files, lose the probe**.
+7. Use **Carry out my choice.** exactly.
+8. Keep the complete final animation and verification result.
+
+Before export:
+
+1. Confirm the video is shorter than three minutes.
+2. Confirm audio explains both the project and its WebMCP implementation.
+3. Confirm the first ten seconds show the working product.
+4. Confirm every tool call shown came from the recorded run.
+5. Confirm there is no copyrighted music or unapproved third-party material.
+6. Confirm all subtitles are readable and match the narration.
+7. Confirm the final file contains no email addresses, keys, notifications,
+   local paths or unrelated browser content.
+
+## Suggested YouTube metadata
+
+**Title**
+
+> WORLDLINE: A WebMCP science lesson with a browser agent
+
+**Description**
+
+> WORLDLINE is an interactive science lesson about black holes, light-years,
+> spacecraft communication and the possible futures created by one engine
+> burn. A browser agent investigates two working extremes, a learner calculates
+> the sending time and predicts what prevents one burn from achieving both
+> goals, and the agent tests that prediction before the learner chooses what to
+> save.
+>
+> WebMCP connects the agent to the mission's evidence, simulator, shared learner
+> answers, temporary one-use action and final verification. The visible tool
+> lifecycle changes from six investigation tools, to seven after the learner's
+> decision, to two read-only checks after execution.
+>
+> This is a made-up educational model, not a real spacecraft interface or an
+> exact black-hole simulation.
 >
 > WORLDLINE is an experiment from Open for Agents:
 > https://www.openforagents.com/
 >
-> Live: https://openforagents-webmcp-challenge.vercel.app/
+> Live experience:
+> https://openforagents-webmcp-challenge.vercel.app/
 >
-> Source: https://github.com/mdotk/openforagents-webmcp-challenge
+> Source code:
+> https://github.com/mdotk/openforagents-webmcp-challenge
