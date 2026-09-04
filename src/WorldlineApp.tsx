@@ -69,7 +69,7 @@ export default function WorldlineApp() {
   const [registration, setRegistration] = useState<WorldlineToolsRegistration | null>(null)
   const [toolNames, setToolNames] = useState<readonly string[]>([])
   const [registrationPending, setRegistrationPending] = useState(true)
-  const [activityMessage, setActivityMessage] = useState<string | null>(null)
+  const [, setActivityMessage] = useState<string | null>(null)
   const [activityTrail, setActivityTrail] = useState<readonly string[]>([])
   const [agentActivityDetected, setAgentActivityDetected] = useState(false)
   const [toolsPaused, setToolsPaused] = useState(false)
@@ -232,19 +232,26 @@ export default function WorldlineApp() {
   }, [control])
 
   const showNextSimulation = useCallback(() => {
-    setVisibleSimulationCount((count) => Math.min(Math.max(count, 1) + 1, snapshot.simulations.length))
+    setVisibleSimulationCount((count) => Math.min(count + 1, snapshot.simulations.length))
   }, [snapshot.simulations.length])
+
+  const showFirstSimulationFromCurrentAct = useCallback(() => {
+    const firstSimulationCount = snapshot.learnerPrediction
+      ? snapshot.learnerPrediction.selectedAfterSimulationCount + 1
+      : 1
+    setVisibleSimulationCount(Math.min(firstSimulationCount, snapshot.simulations.length))
+  }, [snapshot.learnerPrediction, snapshot.simulations.length])
 
   const continueNarrative = useCallback(() => {
     if (snapshot.phase === 'prediction') setPredictionNarrativeReady(true)
     if (snapshot.phase === 'review') setDecisionNarrativeReady(true)
   }, [snapshot.phase])
 
-  const effectiveVisibleSimulationCount = snapshot.simulations.length > 0
-    ? Math.max(visibleSimulationCount, 1)
-    : 0
+  const effectiveVisibleSimulationCount = Math.min(visibleSimulationCount, snapshot.simulations.length)
   const visibleSimulations = snapshot.simulations.slice(0, effectiveVisibleSimulationCount)
-  const activeSimulation = visibleSimulations.at(-1) ?? null
+  const currentActStartSimulationCount = snapshot.learnerPrediction?.selectedAfterSimulationCount ?? 0
+  const currentActResultIsOpen = effectiveVisibleSimulationCount > currentActStartSimulationCount
+  const activeSimulation = currentActResultIsOpen ? visibleSimulations.at(-1) ?? null : null
   const activeStory = activeSimulation ? storyForSimulation(activeSimulation, snapshot.packets) : null
   const predictionActStarted = Boolean(snapshot.learnerPrediction && (
     snapshot.simulations.length > snapshot.learnerPrediction.selectedAfterSimulationCount
@@ -294,6 +301,14 @@ export default function WorldlineApp() {
   const transmissionSeconds = Math.ceil(uniqueScienceMegabytes / WORLDLINE_CONSTRAINTS.downlinkMegabytesPerSecond)
   const showSendingCalculation = Boolean(snapshot.learnerCalculation)
     || !['investigating_extremes', 'prediction'].includes(snapshot.phase)
+  const currentActComplete = snapshot.learnerPrediction
+    ? ['review', 'authorized', 'executed'].includes(snapshot.phase)
+    : ['prediction', 'investigating_prediction', 'review', 'authorized', 'executed'].includes(snapshot.phase)
+  const currentActTestCount = Math.max(0, snapshot.simulations.length - currentActStartSimulationCount)
+  const firstActEvidenceCanBeRead = snapshot.phase !== 'investigating_extremes' || currentActResultIsOpen
+  const displayedMissionRead = firstActEvidenceCanBeRead && missionRead
+  const displayedPacketsRead = firstActEvidenceCanBeRead && packetsRead
+  const displayedManeuverRead = firstActEvidenceCanBeRead && maneuverRead
   const visualSimulation = selectedSimulation ?? activeSimulation
   const activePathKind = pathKindFor(visualSimulation)
   const routeExplanation = activePathKind === 'escape'
@@ -339,8 +354,12 @@ export default function WorldlineApp() {
     ? 'WebMCP tools paused'
     : stage === 'waiting'
       ? 'Waiting for the agent'
-      : stage === 'investigating' && activityMessage
-        ? activityMessage
+      : stage === 'investigating'
+        ? currentActComplete
+          ? `${currentActTestCount} tests ready for you`
+          : snapshot.learnerPrediction
+            ? 'Agent testing your prediction'
+            : 'Agent investigating possible burns'
       : stage === 'prediction'
         ? snapshot.learnerCalculation ? 'Waiting for your prediction' : 'Waiting for your calculation'
       : stage === 'prediction-handoff'
@@ -540,15 +559,15 @@ export default function WorldlineApp() {
               <p className="worldline-lede">{snapshot.phase === 'investigating_prediction'
                 ? `You predicted: ${snapshot.learnerPrediction?.statement} The agent is trying a middle burn and a different burn to see whether your prediction still holds. Then it will explain what the results show.`
                 : 'It is testing one burn that lets the probe escape and one that sends the two files. Then it must stop for your calculation and prediction.'}</p>
-              {snapshot.simulations.length > effectiveVisibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has finished {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. You are viewing test {effectiveVisibleSimulationCount}. The page will wait until you are ready for the next one.</p> : null}
+              {activeStory && snapshot.simulations.length > effectiveVisibleSimulationCount ? <p className="worldline-narrative-buffer">The agent has finished {snapshot.simulations.length} test{snapshot.simulations.length === 1 ? '' : 's'}. You are viewing test {effectiveVisibleSimulationCount}. The page will wait until you are ready for the next one.</p> : null}
               <div className="worldline-evidence" aria-label="Evidence learned">
-                <span className={packetsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead ? `Two compressed files only on the probe · ${uniqueScienceMegabytes} MB` : 'Checking which files matter'}</b><small>{packetsRead ? 'The files were made from raw measurements. Earth already has a complete copy of the separate 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
-                <span className={packetsRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{packetsRead && maneuverRead ? showSendingCalculation ? `${transmissionSeconds} seconds to send both files` : 'You will calculate the sending time' : 'Finding the numbers you will need'}</b><small>{packetsRead && maneuverRead ? showSendingCalculation ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'The agent found the file sizes and radio speed without revealing the answer.' : 'Waiting for the file sizes and radio speed.'}</small></span>
-                <span className={missionRead && maneuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{missionRead && maneuverRead ? 'Comparing the two sets of requirements' : 'Checking the engine and antenna'}</b><small>{missionRead && maneuverRead ? 'Escape needs an earlier, more powerful burn than sending the files.' : 'Waiting for the engine and antenna limits.'}</small></span>
+                <span className={displayedPacketsRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{displayedPacketsRead ? `Two compressed files only on the probe · ${uniqueScienceMegabytes} MB` : 'Checking which files matter'}</b><small>{displayedPacketsRead ? 'The files were made from raw measurements. Earth already has a complete copy of the separate 72 MB navigation record.' : 'Checking which files Earth already has.'}</small></span>
+                <span className={displayedPacketsRead && displayedManeuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{displayedPacketsRead && displayedManeuverRead ? showSendingCalculation ? `${transmissionSeconds} seconds to send both files` : 'You will calculate the sending time' : 'Finding the numbers you will need'}</b><small>{displayedPacketsRead && displayedManeuverRead ? showSendingCalculation ? `${uniqueScienceMegabytes} MB ÷ 1.2 MB/s` : 'The agent found the file sizes and radio speed without revealing the answer.' : 'Waiting for the file sizes and radio speed.'}</small></span>
+                <span className={displayedMissionRead && displayedManeuverRead ? 'is-read' : ''}><Check aria-hidden="true" /><b>{displayedMissionRead && displayedManeuverRead ? 'Comparing the two sets of requirements' : 'Checking the engine and antenna'}</b><small>{displayedMissionRead && displayedManeuverRead ? 'Escape needs an earlier, more powerful burn than sending the files.' : 'Waiting for the engine and antenna limits.'}</small></span>
               </div>
               <div className="worldline-investigation" aria-label="Agent investigation">
                 <header>
-                  <strong>{activeStory ? `Test ${effectiveVisibleSimulationCount}` : activityMessage ?? 'Reading the mission facts…'}</strong>
+                  <strong>{activeStory ? `Test ${effectiveVisibleSimulationCount}` : currentActComplete ? `${currentActTestCount} tests ready to review` : snapshot.learnerPrediction ? 'Testing your prediction' : 'Checking the mission facts'}</strong>
                   <span>{effectiveVisibleSimulationCount} of 5 tests shown</span>
                 </header>
                 {activeStory && activeSimulation ? (
@@ -562,7 +581,11 @@ export default function WorldlineApp() {
                     {showSendingCalculation && activeStory.calculation ? <p className="worldline-investigation__calculation"><b>The numbers</b> {activeStory.calculation}</p> : null}
                     <p className="worldline-investigation__lesson"><b>What this teaches us</b> {activeStory.lesson}</p>
                   </article>
-                ) : <p className="worldline-investigation__empty">The agent is checking the file sizes, sending time and engine limits before it tries the first burn.</p>}
+                ) : <p className="worldline-investigation__empty">{currentActComplete
+                  ? `The agent has finished this round. Open Test ${currentActStartSimulationCount + 1} when you are ready to read it.`
+                  : snapshot.learnerPrediction
+                    ? 'The agent is testing a middle burn and a different burn. This page will not reveal either result until the round is complete and you choose to review it.'
+                    : 'The agent is checking the files, radio link, engine and antenna. This page will not reveal a result until both starting tests are complete and you choose to review them.'}</p>}
                 {visibleSimulations.length > 1 ? (
                   <ol className="worldline-investigation__history" aria-label="Earlier tests">
                     {visibleSimulations.slice(0, -1).map((simulation, index) => {
@@ -573,14 +596,16 @@ export default function WorldlineApp() {
                 ) : null}
               </div>
               <div className="worldline-narrative-controls" aria-label="Investigation playback controls">
-                {snapshot.simulations.length > effectiveVisibleSimulationCount ? (
+                {!activeStory && currentActComplete && currentActTestCount > 0 ? (
+                  <button className="worldline-primary" onClick={showFirstSimulationFromCurrentAct}>Review Test {currentActStartSimulationCount + 1} <ArrowRight aria-hidden="true" /></button>
+                ) : activeStory && snapshot.simulations.length > effectiveVisibleSimulationCount ? (
                   <button className="worldline-primary" onClick={showNextSimulation}>Show next test <ArrowRight aria-hidden="true" /></button>
                 ) : snapshot.phase === 'prediction' && !predictionNarrativeReady ? (
                   <button className="worldline-primary" onClick={continueNarrative}>Continue to my calculation <ArrowRight aria-hidden="true" /></button>
                 ) : snapshot.phase === 'review' && !decisionNarrativeReady ? (
                   <button className="worldline-primary" onClick={continueNarrative}>Continue to the results <ArrowRight aria-hidden="true" /></button>
                 ) : null}
-                <small>This result stays on screen until you choose to continue.</small>
+                <small>{activeStory ? 'This result stays on screen until you choose to continue.' : 'The agent can work quickly, but the page advances only when you choose.'}</small>
               </div>
               {agentActivityDetected && registration && !toolsPaused ? (
                 <button className="worldline-secondary" onClick={() => { void stopAgentTools() }}>Stop agent tools</button>

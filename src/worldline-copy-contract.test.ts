@@ -59,6 +59,8 @@ describe('WORLDLINE copy contract', () => {
   })
 
   it('puts the person in control of investigation playback', () => {
+    expect(app).toContain('The agent can work quickly, but the page advances only when you choose.')
+    expect(app).toContain('Review Test')
     expect(app).toContain('The page will wait until you are ready for the next one.')
     expect(app).toContain('Show next test')
     expect(app).toContain('Continue to my calculation')

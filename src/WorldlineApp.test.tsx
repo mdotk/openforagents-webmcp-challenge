@@ -36,6 +36,7 @@ async function completeFirstAct(model: ReturnType<typeof installModelContext>) {
   })
   await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
   const user = userEvent.setup()
+  await user.click(await screen.findByRole('button', { name: /review test 1/i }))
   await user.click(await screen.findByRole('button', { name: /show next test/i }))
   await user.click(await screen.findByRole('button', { name: /continue to my calculation/i }))
 }
@@ -58,7 +59,7 @@ async function completeSecondAct(model: ReturnType<typeof installModelContext>) 
     teaching_explanation: 'You were right that the constraints combine: escape needs an earlier, larger speed change, while sending needs a later, smaller one that keeps the antenna on Earth.',
   })
   const user = userEvent.setup()
-  await user.click(await screen.findByRole('button', { name: /show next test/i }))
+  await user.click(await screen.findByRole('button', { name: /review test 3/i }))
   await user.click(await screen.findByRole('button', { name: /show next test/i }))
   await user.click(await screen.findByRole('button', { name: /continue to the results/i }))
 }
@@ -141,6 +142,13 @@ describe('WORLDLINE experience', () => {
     })
     await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
 
+    expect(await screen.findByText('2 tests ready to review')).toBeVisible()
+    expect(screen.getByText(/the agent has finished this round\. open test 1 when you are ready to read it/i)).toBeVisible()
+    expect(screen.getByText(/the page advances only when you choose/i)).toBeVisible()
+    expect(screen.queryByText('Test 1')).not.toBeInTheDocument()
+    expect(screen.queryByText('TESTED BURN')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /review test 1/i }))
     expect(await screen.findByText('Test 1')).toBeVisible()
     expect(screen.getByText(/the page will wait until you are ready for the next one/i)).toBeVisible()
     expect(screen.getByText(/this result stays on screen until you choose to continue/i)).toBeVisible()
@@ -164,6 +172,7 @@ describe('WORLDLINE experience', () => {
 
   it('does not reveal the sending-time answer before the person calculates it', async () => {
     const model = installModelContext()
+    const user = userEvent.setup()
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await model.tools.get('inspect_science_packets')!.execute({})
@@ -176,6 +185,8 @@ describe('WORLDLINE experience', () => {
       expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
       hypothesis: 'A later burn may send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
     })
+    await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
+    await user.click(await screen.findByRole('button', { name: /review test 1/i }))
 
     expect(await screen.findByText('You will calculate the sending time')).toBeVisible()
     expect(screen.getByText(/without revealing the answer/i)).toBeVisible()
@@ -265,13 +276,20 @@ describe('WORLDLINE experience', () => {
 
   it('draws only worldlines the agent actually tested', async () => {
     const model = installModelContext()
+    const user = userEvent.setup()
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await model.tools.get('simulate_worldline')!.execute({
       expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
       hypothesis: 'An early burn may save the probe.', expected_outcome: 'probe_return', test_role: 'extreme',
     })
-    await waitFor(() => expect(screen.getByTestId('worldline-path-escape')).toHaveClass('is-tested'))
+    expect(screen.getByTestId('worldline-path-escape')).not.toHaveClass('is-tested')
+    await model.tools.get('simulate_worldline')!.execute({
+      expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
+      hypothesis: 'A later burn may send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
+    })
+    await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
+    await user.click(await screen.findByRole('button', { name: /review test 1/i }))
     expect(screen.getByTestId('worldline-path-escape')).toHaveClass('is-active')
     expect(screen.getByTestId('worldline-path-signal')).not.toHaveClass('is-tested')
   })

@@ -44,11 +44,12 @@ middle option and a different option that challenges the prediction, then explai
 what the results support. The agent can run at most five simulations.
 
 The agent can finish its tool calls faster than a person can read the results.
-The page therefore shows the first test, then waits for you to choose **Show
-next test**. Each tested future appears as a question, attempted maneuver,
-result and lesson. After the last test, a separate button continues to your
-calculation or the final results. The result stays on screen while you are
-reading. The page
+The page therefore keeps one stable working view while the agent completes each
+round. When the round is ready, you choose **Review Test 1** or **Review Test
+3**. You then choose **Show next test** to reveal each remaining result. Each
+tested future appears as a question, attempted maneuver, result and lesson.
+After the last test, a separate button continues to your calculation or the
+final results. Nothing advances while you are reading. The page
 keeps the exact sending-time answer hidden until you calculate it. Only after
 both investigation acts does the page present two possible
 outcomes. The agent recommends sending the files because Earth has no copies,

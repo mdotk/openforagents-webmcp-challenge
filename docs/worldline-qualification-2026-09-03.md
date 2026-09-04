@@ -37,11 +37,12 @@ the post-prediction middle test and different challenge test, prediction assessm
 recommendation integrity, one-use execution, replay rejection and the
 6 → 7 → 2 WebMCP tool lifecycle.
 
-The investigation no longer advances through results on a timer. The first
-completed test appears automatically, then the page waits for the person to
-choose **Show next test**. Separate controls continue to the calculation and
-final results. Automated page tests confirm that later results and checkpoints
-remain hidden until those controls are used.
+The investigation no longer reveals any result automatically. The page keeps
+one stable working view while the agent completes each round. The person opens
+the first result with **Review Test 1** or **Review Test 3**, then chooses
+**Show next test** for the other result. Separate controls continue to the
+calculation and final results. Automated page tests confirm that every result
+and checkpoint remains hidden until the corresponding control is used.
 
 The previously unlabelled route curves now identify the active result as an
 escape path, a signal path or a failed path. The active line has an arrow and a

@@ -109,9 +109,10 @@ without claiming that an agent is connected. Each browser-agent handoff shows
 one short natural instruction. The phase-aware tool result carries the
 investigation rules, shows the five-call budget and tells the agent where to
 stop. The agent may finish several simulations before the person has read them,
-so the page reveals the first result and waits. The person chooses **Show next
-test** for each remaining result, then explicitly continues to the calculation
-or final results. There is no timed narrative progression. A visible control
+so the page holds one stable working view until the round is complete. The
+person chooses **Review Test 1** or **Review Test 3** to open the first result,
+then chooses **Show next test** for the other result. A separate control
+continues to the calculation or final results. There is no timed narrative progression. A visible control
 can unregister the page tools during an investigation.
 
 ## Promotion gate
