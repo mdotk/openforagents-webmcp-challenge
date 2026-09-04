@@ -64,6 +64,7 @@ describe('WORLDLINE copy contract', () => {
     expect(app).toContain('The agent has finished. Choose Review Test')
     expect(app).toContain('Review Test')
     expect(app).toContain('The page will wait until you are ready for the next one.')
+    expect(app).toContain('Previous test')
     expect(app).toContain('Show next test')
     expect(app).toContain('Continue to my calculation')
     expect(app).toContain('Continue to the results')

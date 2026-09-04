@@ -175,6 +175,11 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByTestId('worldline-path-signal')).toHaveClass('is-active')
     expect(screen.getByTestId('worldline-path-escape')).not.toHaveClass('is-active')
     expect(screen.getByRole('button', { name: /continue to my calculation/i })).toBeVisible()
+    expect(screen.getByRole('button', { name: /previous test/i })).toBeVisible()
+
+    await user.click(screen.getByRole('button', { name: /previous test/i }))
+    expect(await screen.findByText('Test 1')).toBeVisible()
+    expect(screen.getByRole('button', { name: /show next test/i })).toBeVisible()
   })
 
   it('does not reveal the sending-time answer before the person calculates it', async () => {

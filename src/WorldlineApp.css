@@ -722,6 +722,22 @@
   font-size: clamp(2.8rem, 4.5vw, 5.2rem);
 }
 
+@media (min-width: 851px) {
+  .worldline--investigating .worldline-scene {
+    min-height: 88vh;
+  }
+
+  .worldline--investigating .worldline-story {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(48rem, 54vw);
+    margin: 0 clamp(1.25rem, 6vw, 7rem) 0 auto;
+    padding: clamp(3.5rem, 6vh, 5.5rem) 0 4rem;
+    transform: none;
+  }
+}
+
 .worldline-narrative-buffer {
   width: fit-content;
   margin: .8rem 0 0;
@@ -745,6 +761,13 @@
   min-height: 2.9rem;
   margin: 0;
   padding: .7rem 1rem;
+}
+
+.worldline-narrative-controls .worldline-playback-back {
+  width: auto;
+  min-height: 2.9rem;
+  margin: 0;
+  padding: .7rem .9rem;
 }
 
 .worldline-narrative-controls small {
@@ -984,10 +1007,8 @@
 .worldline-investigation__history {
   display: grid;
   gap: 0;
-  max-height: 10rem;
   margin: 0;
   padding: 0;
-  overflow: auto;
   list-style: none;
 }
 
@@ -1498,9 +1519,9 @@
   .worldline-investigation > header strong { font-size: .8rem; line-height: 1.35; }
   .worldline-investigation > header span { font-size: .64rem; }
   .worldline-investigation__active > strong { font-size: .96rem; }
-  .worldline-investigation__history { max-height: 12rem; }
   .worldline-narrative-controls { align-items: stretch; flex-direction: column; }
-  .worldline-narrative-controls .worldline-primary { width: 100%; }
+  .worldline-narrative-controls .worldline-primary,
+  .worldline-narrative-controls .worldline-playback-back { width: 100%; }
   .worldline-execution-progress,
   .worldline-receipt { grid-template-columns: 1fr; }
   .worldline-cinematic-status { right: 1rem; bottom: 1rem; left: 1rem; max-width: none; }

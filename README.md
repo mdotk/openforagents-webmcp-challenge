@@ -48,6 +48,7 @@ The page therefore keeps one stable working view while the agent completes each
 round. When the round is ready, you choose **Review Test 1** or **Review Test
 3**. You then choose **Show next test** to reveal each remaining result. Each
 tested future appears as a question, attempted maneuver, result and lesson.
+After moving forward, **Previous test** lets you reread the result before it.
 After the last test, a separate button continues to your calculation or the
 final results. While the agent is working, the page says that no action is
 needed and shows how many of the two tests are complete. When it finishes, the

@@ -43,6 +43,9 @@ the first result with **Review Test 1** or **Review Test 3**, then chooses
 **Show next test** for the other result. Separate controls continue to the
 calculation and final results. Automated page tests confirm that every result
 and checkpoint remains hidden until the corresponding control is used.
+After moving forward within a round, **Previous test** reopens the preceding
+result without reversing or changing the mission state.
+
 While a round is running, the page explicitly says **Agent still working. No
 action needed**, reports how many of its two tests are complete and explains
 that the review button will appear when both are ready. When the round finishes,

@@ -1,5 +1,6 @@
 import {
   ArrowCounterClockwise,
+  ArrowLeft,
   ArrowRight,
   Check,
   Planet,
@@ -234,6 +235,13 @@ export default function WorldlineApp() {
   const showNextSimulation = useCallback(() => {
     setVisibleSimulationCount((count) => Math.min(count + 1, snapshot.simulations.length))
   }, [snapshot.simulations.length])
+
+  const showPreviousSimulation = useCallback(() => {
+    const firstSimulationCount = snapshot.learnerPrediction
+      ? snapshot.learnerPrediction.selectedAfterSimulationCount + 1
+      : 1
+    setVisibleSimulationCount((count) => Math.max(firstSimulationCount, count - 1))
+  }, [snapshot.learnerPrediction])
 
   const showFirstSimulationFromCurrentAct = useCallback(() => {
     const firstSimulationCount = snapshot.learnerPrediction
@@ -614,6 +622,9 @@ export default function WorldlineApp() {
                   </div>
                 ) : (
                   <>
+                    {activeStory && effectiveVisibleSimulationCount > currentActStartSimulationCount + 1 ? (
+                      <button className="worldline-secondary worldline-playback-back" onClick={showPreviousSimulation}><ArrowLeft aria-hidden="true" /> Previous test</button>
+                    ) : null}
                     {!activeStory && currentActTestCount > 0 ? (
                       <button className="worldline-primary" onClick={showFirstSimulationFromCurrentAct}>Review Test {currentActStartSimulationCount + 1} <ArrowRight aria-hidden="true" /></button>
                     ) : activeStory && snapshot.simulations.length > effectiveVisibleSimulationCount ? (
