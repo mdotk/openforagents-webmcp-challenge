@@ -755,34 +755,130 @@
 }
 
 .worldline-working-status {
+  --working-violet: #c8bdff;
+  --working-blue: #7b9cff;
+  --working-gold: #f0bd6e;
   display: flex;
   align-items: center;
-  gap: .75rem;
+  gap: .9rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: min(100%, 32rem);
-  padding: .75rem .85rem;
+  min-height: 4.5rem;
+  padding: .7rem .9rem;
   border: 1px solid rgba(200,189,255,.4);
   border-radius: .4rem;
   color: #f7f5ff;
-  background: rgba(31,25,58,.78);
+  background:
+    radial-gradient(circle at 2.35rem 50%, rgba(123,156,255,.14), transparent 4.2rem),
+    rgba(22,18,43,.88);
   box-shadow: 0 .7rem 2rem rgba(0,0,0,.2);
 }
 
-.worldline-working-status > span:last-child { display: grid; gap: .15rem; }
+.worldline-working-status::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 20%, rgba(200,189,255,.08) 48%, transparent 72%);
+  content: '';
+  transform: translateX(-110%);
+  animation: worldline-status-scan 3.8s ease-in-out infinite;
+}
+
+.worldline-working-status > span:last-child { display: grid; z-index: 1; gap: .15rem; }
 .worldline-working-status strong { font-size: .86rem; line-height: 1.35; }
 .worldline-working-status small { color: #d8d2e7; }
 
-.worldline-working-status__spinner {
-  width: 1rem;
-  height: 1rem;
+.worldline-working-singularity {
+  position: relative;
+  width: 3.1rem;
+  height: 2.7rem;
   flex: none;
-  border: 2px solid rgba(200,189,255,.28);
-  border-top-color: #c8bdff;
-  border-radius: 50%;
-  animation: worldline-spin .9s linear infinite;
+  perspective: 5rem;
+  filter: drop-shadow(0 0 .65rem rgba(123,156,255,.38));
 }
 
-@keyframes worldline-spin {
-  to { transform: rotate(360deg); }
+.worldline-working-singularity__disk,
+.worldline-working-singularity__disk::before,
+.worldline-working-singularity__disk::after,
+.worldline-working-singularity__core,
+.worldline-working-singularity__signal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  border-radius: 50%;
+}
+
+.worldline-working-singularity__disk {
+  width: 2.85rem;
+  height: .95rem;
+  overflow: hidden;
+  border: 1px solid rgba(200,189,255,.42);
+  background: rgba(123,156,255,.08);
+  box-shadow: 0 0 .7rem rgba(200,189,255,.34);
+  transform: translate(-50%, -50%) rotate(-11deg);
+}
+
+.worldline-working-singularity__disk::before {
+  width: 3.2rem;
+  height: 3.2rem;
+  background: conic-gradient(from 80deg, transparent 0 8%, var(--working-blue) 21%, var(--working-violet) 43%, var(--working-gold) 56%, transparent 72% 100%);
+  content: '';
+  transform: translate(-50%, -50%);
+  animation: worldline-accretion-flow 1.8s linear infinite;
+}
+
+.worldline-working-singularity__disk::after {
+  width: 2.15rem;
+  height: .42rem;
+  background: #0d0b19;
+  box-shadow: inset 0 0 .28rem rgba(123,156,255,.28);
+  content: '';
+  transform: translate(-50%, -50%);
+}
+
+.worldline-working-singularity__core {
+  z-index: 2;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 1px solid rgba(225,218,255,.36);
+  background: #010205;
+  box-shadow:
+    0 0 0 .14rem rgba(80,65,142,.55),
+    0 0 .8rem .22rem rgba(160,143,255,.34),
+    inset -.18rem -.12rem .35rem rgba(72,54,134,.45);
+  transform: translate(-50%, -50%);
+  animation: worldline-singularity-pulse 1.8s ease-in-out infinite;
+}
+
+.worldline-working-singularity__signal {
+  z-index: 3;
+  width: .25rem;
+  height: .25rem;
+  background: #fff8dc;
+  box-shadow: 0 0 .45rem .12rem var(--working-gold);
+  animation: worldline-photon-orbit 1.35s linear infinite;
+}
+
+@keyframes worldline-accretion-flow {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes worldline-photon-orbit {
+  from { transform: translate(-50%, -50%) rotate(0deg) translateX(1.35rem); }
+  to { transform: translate(-50%, -50%) rotate(360deg) translateX(1.35rem); }
+}
+
+@keyframes worldline-singularity-pulse {
+  0%, 100% { box-shadow: 0 0 0 .14rem rgba(80,65,142,.5), 0 0 .65rem .18rem rgba(160,143,255,.3), inset -.18rem -.12rem .35rem rgba(72,54,134,.45); }
+  50% { box-shadow: 0 0 0 .18rem rgba(112,89,202,.68), 0 0 1rem .3rem rgba(160,143,255,.46), inset -.18rem -.12rem .35rem rgba(72,54,134,.45); }
+}
+
+@keyframes worldline-status-scan {
+  0%, 25% { transform: translateX(-110%); }
+  70%, 100% { transform: translateX(110%); }
 }
 
 .worldline-cancel-agent {

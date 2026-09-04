@@ -602,7 +602,11 @@ export default function WorldlineApp() {
               <div className="worldline-narrative-controls" aria-label="Investigation playback controls">
                 {!activeStory && !currentActComplete ? (
                   <div className="worldline-working-status" role="status" aria-live="polite">
-                    <span className="worldline-working-status__spinner" aria-hidden="true" />
+                    <span className={`worldline-working-singularity worldline-working-singularity--${Math.min(currentActTestCount, 2)}`} aria-hidden="true">
+                      <span className="worldline-working-singularity__disk" />
+                      <span className="worldline-working-singularity__core" />
+                      <span className="worldline-working-singularity__signal" />
+                    </span>
                     <span>
                       <strong>Agent still working. No action needed.</strong>
                       <small>Review Test {currentActStartSimulationCount + 1} will appear here when both tests are ready.</small>

@@ -137,6 +137,7 @@ describe('WORLDLINE experience', () => {
       hypothesis: 'An early, powerful burn may let the probe escape.', expected_outcome: 'probe_return', test_role: 'extreme',
     })
     expect(screen.getByText('Agent still working. No action needed.')).toBeVisible()
+    expect(document.querySelector('.worldline-working-singularity')).toBeInTheDocument()
     expect(screen.getByText(/review test 1 will appear here when both tests are ready/i)).toBeVisible()
     expect(screen.getByText(/1 of 2 tests complete/i)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Cancel investigation' })).toBeVisible()
