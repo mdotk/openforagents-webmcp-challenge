@@ -85,10 +85,12 @@ skip directly to the same completed outcome.
 
 ## Why WebMCP belongs here
 
-This is not an agent clicking a prepared sequence of buttons. The three-part
-investigation stops twice for the person to take part, while the tools expose
-evidence and a simulation rather than burn values or a prepared recommendation. The
-agent must:
+WebMCP is the teaching mechanism, not a shortcut through the interface. It gives
+the browser agent separate evidence about the mission, science files, engine and
+antenna. The agent must decide which evidence matters, form hypotheses and
+choose burns to test. The three-part investigation stops twice so the learner's
+maths, prediction and final decision can change what happens next. The agent
+must:
 
 1. inspect separate mission, file, engine and antenna information;
 2. establish one tested escape outcome and one tested send-files outcome;
@@ -104,12 +106,13 @@ files requires a burn between seconds 44 and 50 that changes the probe's speed
 by 2,000 to 2,400 m/s. Those requirements happen at different times. The page
 also shows that 30 MB at 1.2 MB/s takes 25 seconds to send.
 
-Your calculation, prediction, tested ideas, recommendation and execution
-all share the same revisioned mission state. The evidence-based mission goal
-guides the recommendation, but the person still makes the final choice. That
-choice adds one exact, argument-free action. The
-action works once, removes itself after use and leaves a verifiable final
-receipt.
+Your calculation, prediction, the agent's tests, its recommendation and the
+final action all share the same revisioned mission state. The second round is
+not a replay: the agent reads your work through WebMCP, tests a middle option
+and chooses a counterexample that could prove you wrong. The evidence guides
+its recommendation, but the person still makes the final choice. That choice
+adds one exact, argument-free action. The action works once, removes itself
+after use and leaves a verifiable final receipt.
 
 ## The 6 → 7 → 2 tool lifecycle
 

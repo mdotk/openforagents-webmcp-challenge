@@ -115,10 +115,14 @@ without clipping or overlap.
 The simplified opening was also checked on the deployed page at desktop,
 390 px and 320 px. It exposed six WebMCP tools, contained no recommendation
 selector, showed **Begin WORLDLINE** as the only opening instruction and had no
-horizontal overflow or browser console warnings. The complete native-agent
-journey must still be repeated against this deployed revision before that
-specific end-to-end claim is refreshed. The earlier local agent run does not
-prove the revised opening or deployment identity.
+horizontal overflow or browser console warnings.
+
+One complete native-agent journey was then recorded against the public
+experience. It used the same three learner instructions, showed all four tested
+worldlines, stopped for the learner's calculation, prediction and final choice,
+registered the seventh one-use tool, executed the selected send-files burn and
+finished with two read-only verification tools. The final page and agent receipt
+both reported that the two files reached Earth and the probe did not escape.
 
 ## Historical evidence
 

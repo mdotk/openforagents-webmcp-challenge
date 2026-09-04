@@ -8,24 +8,25 @@ WORLDLINE
 
 ## One-line description
 
-WORLDLINE is an interactive science lesson where you and a browser agent
-explore black holes, light-years and paths through space and time by testing whether a
-stranded probe can both escape and send two compressed science files to Earth. If it cannot,
-you choose what to save.
+WORLDLINE is a WebMCP science lesson where a browser agent investigates a probe
+near a black hole, you calculate and predict what physics allows, and together
+you discover which possible futures are real before choosing what to save.
 
 ## Description
 
 Space is difficult to understand because its distances, timescales and physical
 limits are far outside ordinary experience. WORLDLINE turns those ideas into an
-interactive mission. A probe has flown close enough to a black hole to measure
+investigation shared by a learner and an AI agent. A probe has flown close
+enough to a black hole to measure
 how it bends space and changes light. Its computer has processed and compressed
 the raw measurements into an 18 MB gravity-map file and a 12 MB light-spectrum
 file, both ready to send. Earth has no copies.
 The lesson asks whether one burn can both let the probe escape and send those
-two files. A browser agent investigates the different paths the probe could take
-through space and time. These paths are called worldlines. It explains the science behind each outcome
-and tests whether both goals can be met. If they cannot, it explains the
-consequences before you decide what to save.
+two files. WebMCP gives the browser agent separate tools for the mission, the
+science files, the engine, the antenna and a simulator. The agent must decide
+which evidence matters, form hypotheses and choose burns to test. The different
+paths it investigates through space and time are called worldlines. The visible
+lesson grows from those tool results instead of playing a fixed explanation.
 
 The probe is 23 light-years from Earth, and its last radio link closes in 71
 seconds. An early, powerful burn can let it escape. A later, gentler burn can
@@ -85,27 +86,27 @@ but it cannot decide which loss a person should accept.
 
 ## Why WebMCP is a strong fit
 
-The useful part of this experience is not an agent clicking the same buttons a
-person would click. WebMCP gives the agent structured access to mission facts,
-simulation and shared state that would otherwise be scattered
-across a visual interface. The agent can investigate several possible futures
-and update the page as it learns without screen-scraping or inventing hidden
-state.
+WebMCP is what makes the lesson responsive rather than fixed. It gives the AI
+agent structured access to separate mission facts, scientific evidence, a
+limited simulator and the learner's own work. The agent chooses hypotheses and
+tests, explains why the evidence supports or contradicts them, and writes the
+results back into the same page the learner is using. It does this without
+screen-scraping or inventing facts that are not in the educational model.
 
-WebMCP also makes the human boundary part of the product. The agent may gather
-evidence, calculate, simulate and explain. It cannot decide which loss the
-person accepts. Only a choice on the page creates the exact one-use execution
-capability.
+WebMCP also makes the division of work clear. The agent gathers evidence,
+simulates possible futures and teaches from the results. The learner performs
+the central calculation, contributes a prediction and decides which loss to
+accept. Only that decision creates the exact one-use execution capability.
 
 ## How it creates a better experience
 
 Most people encounter space science through text, videos or fixed simulations.
-WORLDLINE lets them participate. They calculate how long the two files take to send,
-predict what might stop one burn from achieving both goals, watch an AI agent test
-different maneuvers, and see the resulting worldlines unfold. WebMCP connects
-the agent directly to the lesson's simulation, so the explanation develops from
-the evidence and the person's choices rather than following one predetermined
-presentation.
+WORLDLINE lets them investigate it with an AI partner. The learner calculates
+how long the files take to send and predicts why one burn may not achieve both
+goals. The agent reads that work through WebMCP, chooses a compromise and a
+counterexample, then tests whether the prediction survives. The explanation
+therefore develops from evidence and participation instead of following one
+predetermined presentation.
 
 A fixed animation can show an outcome, but it cannot respond to a person's
 work. WORLDLINE asks you to calculate the sending time and predict the cause, then gives the browser
@@ -214,3 +215,9 @@ No credentials are required.
 - Live experience: https://openforagents-webmcp-challenge.vercel.app/
 - Public source: https://github.com/mdotk/openforagents-webmcp-challenge
 - Licence: GPL-2.0-or-later
+
+## Project details
+
+- Built with: WebMCP, TypeScript, React, Vite and Vercel.
+- Entrant: Enoki Limited, represented by Matt Gibbs.
+- Credentials: none required.

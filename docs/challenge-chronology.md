@@ -1,7 +1,8 @@
 # WebMCP Challenge project chronology
 
-Launch Window A-01 is a new, standalone challenge-period project created by
-Enoki Limited in 2026 for the WebMCP Challenge.
+WORLDLINE is the current entry in a new, standalone challenge-period project
+created by Enoki Limited in 2026 for the WebMCP Challenge. The repository also
+preserves the earlier concepts that led to it.
 
 Enoki Limited is the entrant and Matt Gibbs is its representative.
 
@@ -19,10 +20,11 @@ interface are new work in this repository. They are not a release, edition or
 renamed version of the existing Open for Agents plugin, hosted Assistant, demo
 or website.
 
-Launch Window A-01 comes from the same publisher and explores the same subject
-as Open for Agents: websites that expose understandable, limited tools to
-user-chosen agents. Shared subject matter and authorship do not make this
-repository a continuation of an existing product's code.
+The original Launch Window A-01 concept came from the same publisher and
+explores the same subject as Open for Agents: websites that expose
+understandable, limited tools to user-chosen agents. Shared subject matter and
+authorship do not make this repository a continuation of an existing product's
+code.
 
 ## Reproducing the entry
 
@@ -90,11 +92,11 @@ that step. **Begin WORLDLINE** is the only opening instruction. After the tests,
 the agent recommends sending the two files because Earth has no copies, explains
 that the probe will not escape, and leaves the decision to the person.
 
-The current source passed local automated and responsive acceptance plus one
-complete native-agent run in the attached Chrome profile. That local run is not
-evidence that the same revision is deployed. A fresh run against the public URL
-remains required after deployment; earlier production traces are not reused as
-proof of the replacement contract.
+The current source passed automated and responsive acceptance. The same built
+asset identities are deployed at the public URL. One complete native-agent run
+against that public experience is preserved in the final video source: six
+planning tools became seven after the person's choice, then two read-only tools
+remained after execution.
 
 Matt Gibbs has joined the challenge on Devpost. No entry video has been
 published to YouTube and no final challenge submission has been made. This
