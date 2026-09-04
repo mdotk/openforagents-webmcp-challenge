@@ -1,7 +1,7 @@
 # WORLDLINE video storyboard
 
 This plan reflects the current deployed WORLDLINE journey. It is designed for
-one real run in a WebMCP-enabled browser, edited to about 2 minutes 20 seconds.
+one real run in a WebMCP-enabled browser, edited to about 2 minutes 22 seconds.
 The finished video must remain under three minutes.
 
 ## The story in one sentence
@@ -62,7 +62,7 @@ not overstate what ran.
 
 ## Complete shot list
 
-### 0:00 to 0:08 | Open on the failed compromise
+### 0:00 to 0:06 | Open on the failed compromise
 
 **Picture**
 
@@ -84,7 +84,7 @@ failed path move once.
 This is the opening proof that the project is already working. Do not begin
 with a title card.
 
-### 0:08 to 0:20 | Establish the mission
+### 0:06 to 0:22 | Establish the mission
 
 **Picture**
 
@@ -98,7 +98,7 @@ status visible.
 > burn, 71 seconds of radio contact and two files that Earth does not have. Can
 > one burn save the probe and send both files?
 
-### 0:20 to 0:40 | First agent exchange
+### 0:22 to 0:43 | First agent exchange
 
 **Picture**
 
@@ -128,7 +128,7 @@ Use the page's **Previous test** control once in the raw recording so the take
 proves it works. It does not need to appear in the final cut unless the pacing
 benefits from it.
 
-### 0:40 to 0:54 | The learner calculates and predicts
+### 0:43 to 0:56 | The learner calculates and predicts
 
 **Picture**
 
@@ -151,7 +151,7 @@ conflict**. End on **Now ask the agent to test your prediction.**
 
 > The learner's answer becomes shared page state
 
-### 0:54 to 1:15 | Second agent exchange
+### 0:56 to 1:20 | Second agent exchange
 
 **Picture**
 
@@ -175,7 +175,7 @@ burn that challenges the prediction. Choose **Continue to the results**.
 
 > Four tests used, one still available
 
-### 1:15 to 1:32 | The agent teaches, then the learner decides
+### 1:20 to 1:36 | The agent teaches, then the learner decides
 
 **Picture**
 
@@ -189,7 +189,7 @@ recommendation. Pause long enough to read the two outcome cards. Choose
 > states the cost: the probe cannot escape. The physics explains the outcomes,
 > but I decide which loss to accept. I choose the files.
 
-### 1:32 to 1:42 | The learner's choice creates one exact tool
+### 1:36 to 1:45 | The learner's choice creates one exact tool
 
 **Picture**
 
@@ -207,7 +207,7 @@ instruction **Carry out my choice.**
 
 > 6 investigation tools, then 7 after my choice
 
-### 1:42 to 2:02 | Third agent exchange and cinematic result
+### 1:45 to 2:04 | Third agent exchange and cinematic result
 
 **Picture**
 
@@ -232,7 +232,7 @@ up the 12-second sequence so much that its words cannot be read.
 > the probe. A light-year measures distance, so their signal still takes 23
 > years to cross 23 light-years and reach Earth.
 
-### 2:02 to 2:16 | Verification and close
+### 2:04 to 2:17 | Verification and close
 
 **Picture**
 
@@ -250,11 +250,11 @@ showing that only two read-only tools remain.
 
 > 6 to 7 to 2 tools
 
-### 2:16 to 2:20 | End frame
+### 2:17 to 2:22 | End frame
 
 **Picture**
 
-Use a simple four-second frame over the quiet star field:
+Use a simple five-second frame over the quiet star field:
 
 ```text
 WORLDLINE
