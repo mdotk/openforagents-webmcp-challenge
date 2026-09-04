@@ -568,7 +568,11 @@ export default function WorldlineApp() {
               <div className="worldline-investigation" aria-label="Agent investigation">
                 <header>
                   <strong>{activeStory ? `Test ${effectiveVisibleSimulationCount}` : currentActComplete ? `${currentActTestCount} tests ready to review` : snapshot.learnerPrediction ? 'Testing your prediction' : 'Checking the mission facts'}</strong>
-                  <span>{effectiveVisibleSimulationCount} of 5 tests shown</span>
+                  <span>{activeStory
+                    ? `${effectiveVisibleSimulationCount} of ${snapshot.simulations.length} completed tests opened`
+                    : currentActComplete
+                      ? `${currentActTestCount} tests ready`
+                      : `${currentActTestCount} of 2 tests complete`}</span>
                 </header>
                 {activeStory && activeSimulation ? (
                   <article className={`worldline-investigation__active worldline-investigation__active--${activeSimulation.outcome}`}>
@@ -596,19 +600,31 @@ export default function WorldlineApp() {
                 ) : null}
               </div>
               <div className="worldline-narrative-controls" aria-label="Investigation playback controls">
-                {!activeStory && currentActComplete && currentActTestCount > 0 ? (
-                  <button className="worldline-primary" onClick={showFirstSimulationFromCurrentAct}>Review Test {currentActStartSimulationCount + 1} <ArrowRight aria-hidden="true" /></button>
-                ) : activeStory && snapshot.simulations.length > effectiveVisibleSimulationCount ? (
-                  <button className="worldline-primary" onClick={showNextSimulation}>Show next test <ArrowRight aria-hidden="true" /></button>
-                ) : snapshot.phase === 'prediction' && !predictionNarrativeReady ? (
-                  <button className="worldline-primary" onClick={continueNarrative}>Continue to my calculation <ArrowRight aria-hidden="true" /></button>
-                ) : snapshot.phase === 'review' && !decisionNarrativeReady ? (
-                  <button className="worldline-primary" onClick={continueNarrative}>Continue to the results <ArrowRight aria-hidden="true" /></button>
-                ) : null}
-                <small>{activeStory ? 'This result stays on screen until you choose to continue.' : 'The agent can work quickly, but the page advances only when you choose.'}</small>
+                {!activeStory && !currentActComplete ? (
+                  <div className="worldline-working-status" role="status" aria-live="polite">
+                    <span className="worldline-working-status__spinner" aria-hidden="true" />
+                    <span>
+                      <strong>Agent still working. No action needed.</strong>
+                      <small>Review Test {currentActStartSimulationCount + 1} will appear here when both tests are ready.</small>
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    {!activeStory && currentActTestCount > 0 ? (
+                      <button className="worldline-primary" onClick={showFirstSimulationFromCurrentAct}>Review Test {currentActStartSimulationCount + 1} <ArrowRight aria-hidden="true" /></button>
+                    ) : activeStory && snapshot.simulations.length > effectiveVisibleSimulationCount ? (
+                      <button className="worldline-primary" onClick={showNextSimulation}>Show next test <ArrowRight aria-hidden="true" /></button>
+                    ) : snapshot.phase === 'prediction' && !predictionNarrativeReady ? (
+                      <button className="worldline-primary" onClick={continueNarrative}>Continue to my calculation <ArrowRight aria-hidden="true" /></button>
+                    ) : snapshot.phase === 'review' && !decisionNarrativeReady ? (
+                      <button className="worldline-primary" onClick={continueNarrative}>Continue to the results <ArrowRight aria-hidden="true" /></button>
+                    ) : null}
+                    <small>{activeStory ? 'This result stays here until you choose what to see next.' : `The agent has finished. Choose Review Test ${currentActStartSimulationCount + 1} to continue.`}</small>
+                  </>
+                )}
               </div>
               {agentActivityDetected && registration && !toolsPaused ? (
-                <button className="worldline-secondary" onClick={() => { void stopAgentTools() }}>Stop agent tools</button>
+                <button className="worldline-secondary worldline-cancel-agent" onClick={() => { void stopAgentTools() }}>Cancel investigation</button>
               ) : null}
               {toolsPaused ? (
                 <button className="worldline-secondary" onClick={reset}><ArrowCounterClockwise aria-hidden="true" /> Start over</button>

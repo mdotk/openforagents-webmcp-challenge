@@ -136,6 +136,11 @@ describe('WORLDLINE experience', () => {
       expected_revision: 0, burn_at_probe_second: 40, delta_v_mps: 3500, packet_ids: [],
       hypothesis: 'An early, powerful burn may let the probe escape.', expected_outcome: 'probe_return', test_role: 'extreme',
     })
+    expect(screen.getByText('Agent still working. No action needed.')).toBeVisible()
+    expect(screen.getByText(/review test 1 will appear here when both tests are ready/i)).toBeVisible()
+    expect(screen.getByText(/1 of 2 tests complete/i)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Cancel investigation' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /review test 1/i })).not.toBeInTheDocument()
     await model.tools.get('simulate_worldline')!.execute({
       expected_revision: 1, burn_at_probe_second: 46, delta_v_mps: 2200, packet_ids: ['gravity-map', 'horizon-spectrum'],
       hypothesis: 'A later burn may send both files.', expected_outcome: 'science_transmission', test_role: 'extreme',
@@ -143,15 +148,16 @@ describe('WORLDLINE experience', () => {
     await model.tools.get('present_learning_checkpoint')!.execute({ expected_revision: 2 })
 
     expect(await screen.findByText('2 tests ready to review')).toBeVisible()
+    expect(screen.getByText('2 tests ready')).toBeVisible()
     expect(screen.getByText(/the agent has finished this round\. open test 1 when you are ready to read it/i)).toBeVisible()
-    expect(screen.getByText(/the page advances only when you choose/i)).toBeVisible()
+    expect(screen.getByText(/the agent has finished\. choose review test 1 to continue/i)).toBeVisible()
     expect(screen.queryByText('Test 1')).not.toBeInTheDocument()
     expect(screen.queryByText('TESTED BURN')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /review test 1/i }))
     expect(await screen.findByText('Test 1')).toBeVisible()
     expect(screen.getByText(/the page will wait until you are ready for the next one/i)).toBeVisible()
-    expect(screen.getByText(/this result stays on screen until you choose to continue/i)).toBeVisible()
+    expect(screen.getByText(/this result stays here until you choose what to see next/i)).toBeVisible()
     expect(screen.getByText('TESTED BURN')).toBeVisible()
     expect(screen.getByText('T+00:00:40')).toBeVisible()
     expect(screen.getByText('RADIO LINK LEFT')).toBeVisible()
@@ -300,7 +306,7 @@ describe('WORLDLINE experience', () => {
     render(<WorldlineApp />)
     await screen.findByText('WebMCP ready · 6 tools')
     await model.tools.get('read_mission_state')!.execute({})
-    await user.click(await screen.findByRole('button', { name: 'Stop agent tools' }))
+    await user.click(await screen.findByRole('button', { name: 'Cancel investigation' }))
     await waitFor(() => expect(model.tools).toHaveLength(0))
     expect(screen.getByText('WebMCP paused')).toBeVisible()
   })

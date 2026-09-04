@@ -59,13 +59,15 @@ describe('WORLDLINE copy contract', () => {
   })
 
   it('puts the person in control of investigation playback', () => {
-    expect(app).toContain('The agent can work quickly, but the page advances only when you choose.')
+    expect(app).toContain('Agent still working. No action needed.')
+    expect(app).toContain('will appear here when both tests are ready.')
+    expect(app).toContain('The agent has finished. Choose Review Test')
     expect(app).toContain('Review Test')
     expect(app).toContain('The page will wait until you are ready for the next one.')
     expect(app).toContain('Show next test')
     expect(app).toContain('Continue to my calculation')
     expect(app).toContain('Continue to the results')
-    expect(app).toContain('This result stays on screen until you choose to continue.')
+    expect(app).toContain('This result stays here until you choose what to see next.')
     expect(app).not.toContain('Replaying the investigation at a pace you can follow.')
     expect(app).toContain('Gold curve: tested escape path')
     expect(app).toContain('Purple line: files sent toward Earth')

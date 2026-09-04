@@ -49,8 +49,11 @@ round. When the round is ready, you choose **Review Test 1** or **Review Test
 3**. You then choose **Show next test** to reveal each remaining result. Each
 tested future appears as a question, attempted maneuver, result and lesson.
 After the last test, a separate button continues to your calculation or the
-final results. Nothing advances while you are reading. The page
-keeps the exact sending-time answer hidden until you calculate it. Only after
+final results. While the agent is working, the page says that no action is
+needed and shows how many of the two tests are complete. When it finishes, the
+status changes and the review button appears. Nothing advances while you are
+reading. The page keeps the exact sending-time answer hidden until you
+calculate it. Only after
 both investigation acts does the page present two possible
 outcomes. The agent recommends sending the files because Earth has no copies,
 and clearly states that the probe will not escape.
