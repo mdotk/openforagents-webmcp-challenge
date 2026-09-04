@@ -47,9 +47,9 @@ After moving forward within a round, **Previous test** reopens the preceding
 result without reversing or changing the mission state.
 
 While a round is running, the page explicitly says **Agent still working. No
-action needed**, reports how many of its two tests are complete and explains
-that the review button will appear when both are ready. When the round finishes,
-the same area changes to the required review action.
+action needed** and explains that the review button will appear when both tests
+are ready. When the round finishes, the same area changes to the required
+review action.
 
 The previously unlabelled route curves now identify the active result as an
 escape path, a signal path or a failed path. The active line has an arrow and a

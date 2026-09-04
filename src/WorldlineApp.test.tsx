@@ -139,7 +139,7 @@ describe('WORLDLINE experience', () => {
     expect(screen.getByText('Agent still working. No action needed.')).toBeVisible()
     expect(document.querySelector('.worldline-working-singularity')).toBeInTheDocument()
     expect(screen.getByText(/review test 1 will appear here when both tests are ready/i)).toBeVisible()
-    expect(screen.getByText(/1 of 2 tests complete/i)).toBeVisible()
+    expect(screen.queryByText(/of 2 tests complete/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel investigation' })).toBeVisible()
     expect(screen.queryByRole('button', { name: /review test 1/i })).not.toBeInTheDocument()
     await model.tools.get('simulate_worldline')!.execute({

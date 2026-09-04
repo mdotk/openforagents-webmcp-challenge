@@ -576,11 +576,11 @@ export default function WorldlineApp() {
               <div className="worldline-investigation" aria-label="Agent investigation">
                 <header>
                   <strong>{activeStory ? `Test ${effectiveVisibleSimulationCount}` : currentActComplete ? `${currentActTestCount} tests ready to review` : snapshot.learnerPrediction ? 'Testing your prediction' : 'Checking the mission facts'}</strong>
-                  <span>{activeStory
-                    ? `${effectiveVisibleSimulationCount} of ${snapshot.simulations.length} completed tests opened`
-                    : currentActComplete
-                      ? `${currentActTestCount} tests ready`
-                      : `${currentActTestCount} of 2 tests complete`}</span>
+                  {activeStory ? (
+                    <span>{effectiveVisibleSimulationCount} of {snapshot.simulations.length} completed tests opened</span>
+                  ) : currentActComplete ? (
+                    <span>{currentActTestCount} tests ready</span>
+                  ) : null}
                 </header>
                 {activeStory && activeSimulation ? (
                   <article className={`worldline-investigation__active worldline-investigation__active--${activeSimulation.outcome}`}>

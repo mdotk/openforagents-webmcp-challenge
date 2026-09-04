@@ -51,8 +51,8 @@ tested future appears as a question, attempted maneuver, result and lesson.
 After moving forward, **Previous test** lets you reread the result before it.
 After the last test, a separate button continues to your calculation or the
 final results. While the agent is working, the page says that no action is
-needed and shows how many of the two tests are complete. When it finishes, the
-status changes and the review button appears. Nothing advances while you are
+needed. When it finishes, the status changes and the review button appears.
+Nothing advances while you are
 reading. The page keeps the exact sending-time answer hidden until you
 calculate it. Only after
 both investigation acts does the page present two possible
